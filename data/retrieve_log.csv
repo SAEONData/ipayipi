@@ -1,0 +1,23 @@
+EvID,Lock,QA,Event_type,Date_time,Date,Download_time,Recorder,Lat,Lon,Location,Borehole_name,Logger_SN,Logger_stopped,Next_log_dt,Next_log_tm,Log_interval,Logger_time_synced,Data_download_check,Logger_programmer,Dipper_reading_recorder,Dipper_reading_m,Casing_ht_m,Depth_to_logger_m,Equipment_condition,Notes
+1,TRUE,TRUE,Logger download,2019-09-12 10:56:31,2019-09-12,10:56:31,Siphiwe,,,SIBHAYI,BARO_CAMP,2042643,Not stopped,,,30 min,No,Successful,Siphiwe,,,,,Good,
+2,TRUE,TRUE,Borehole readings,2019-11-14 13:20:00,2019-11-14,13:20:00,Siphiwe,,,SIBHAYI,CF,,,,,,,,,Siphiwe,22.79,0.31,,,
+3,TRUE,TRUE,Logger deploy,2019-11-14 13:20:00,2019-11-14,13:20:00,Siphiwe,,,SIBHAYI,CF,,,,,30 min,No,,Siphiwe,,,,,,
+4,TRUE,TRUE,Logger download,2019-11-26 11:33:18,2019-11-26,11:33:18,Siphiwe,,,SIBHAYI,BARO_CAMP,2042643,,,,30 min,No,Successful,Siphiwe,,,,,,
+5,TRUE,TRUE,Logger download,2020-01-15 16:48:48,2020-01-15,16:48:48,Siphiwe,,,SIBHAYI,CF,1076959,,,,30 min,Yes,Successful,Siphiwe,,,,,,
+6,TRUE,TRUE,Borehole readings,2020-01-15 16:52:00,2020-01-15,16:52:00,Siphiwe,,,SIBHAYI,CF,,,,,,,,,Siphiwe,22.88,0.3,,,Stopped the logger to clear memory future started for 16/01/2020 @12:00
+7,TRUE,TRUE,Logger download,2020-01-16 11:22:29,2020-01-16,11:22:29,Siphiwe,,,SIBHAYI,BARO_CAMP,2042643,Yes; stopped!,,,30 min,Yes,Successful,Siphiwe,,,,,Good,
+8,TRUE,TRUE,Borehole readings,2019-12-12 16:40:04,2019-12-12,16:40:04,Siphiwe,,,SIBHAYI,CF,,Not stopped,,,,,,,Siphiwe,22.8,0.3,,Good,
+9,TRUE,TRUE,Logger download,2019-12-12 16:40:41,2019-12-12,16:40:41,Siphiwe,,,SIBHAYI,CF,2095357,,,,30 min,No,Successful,Siphiwe,,,,,,Logger found outside borehole.; been out since 12/01/2020 @17:00. Stopped the logger to clear memory ; future started for 14/01/2020 @15:00
+10,TRUE,TRUE,Borehole readings,2020-02-13 17:19:26,2020-02-13,17:19:26,Siphiwe,,,SIBHAYI,CF,,,,,,,,,Siphiwe,22.92,0.3,,,
+11,TRUE,TRUE,Logger download,2020-02-13 17:20:07,2020-02-13,17:20:07,Siphiwe,,,SIBHAYI,CF,1076959,Not stopped,,,30 min,No,Successful,Siphiwe,,,,,Good,
+12,TRUE,TRUE,Logger download,2020-02-14 09:05:45,2020-02-14,09:05:45,Siphiwe,,,SIBHAYI,BARO_CAMP,2042643,Not stopped,,,30 min,No,Successful,Siphiwe,,,,,Good,
+13,TRUE,TRUE,Borehole readings,2020-01-16 12:00:00,2020-01-16,12:00:00,Siphiwe,,,SIBHAYI,CF,,,,,,,,,Siphiwe,22.88,0.3,,Good,This is a pseudo reading or repear of the previous reading due to the missing data over this ~24 hour period.
+14,TRUE,TRUE,Borehole readings,2020-03-18 15:28:00,2020-03-18,15:28:00,Siphiwe,,,SIBHAYI,CF,,,,,,,,,Siphiwe,23,0.32,,,
+15,TRUE,TRUE,Logger download,2020-03-18 15:28:00,2020-03-18,15:28:00,Siphiwe,,,SIBHAYI,CF,1076959,Not stopped,,,30min,No,yes,,Siphiwe,,,,Good,
+16,TRUE,TRUE,Logger download,2020-03-18 11:20:00,2020-03-18,11:20:00,Siphiwe,,,SIBHAYI,BARO_CAMP,2042643,Not stopped,,,30 min,No,yes,,Siphiwe,,,,Good,
+17,TRUE,TRUE,Borehole readings,2019-11-10 10:38:00,2019-11-10,10:38:00,Siphiwe,,,SIBHAYI,CF,,,,,,,,,Siphiwe,22.45,0.31,,,
+18,TRUE,TRUE,Borehole readings,2020-06-04 16:58:00,2020-06-04,16:58:00,Siphiwe,,,SIBHAYI,CF,,,,,,,,,Siphiwe ,23.1,0.3,,,
+19,TRUE,TRUE,Logger download,2020-06-04 16:58:00,2020-06-04,16:58:00,Siphiwe,,,SIBHAYI,CF,1076959,No,,,30 min,No,No,,Siphiwe ,,,,Good,
+20,TRUE,TRUE,Logger download,2020-06-05 16:50:00,2020-06-05,16:50:00,Siphiwe,,,SIBHAYI,BARO_CAMP,2042643,No,,,30 min,No,No,,Siphiwe ,,,,,
+21,TRUE,TRUE,Borehole readings,2020-07-07 16:05:00,2020-07-07,16:05:00,Siphiwe,,,SIBHAYI,CF,,,,,,,,,Siphiwe,23.13,0.3,,Good,
+22,TRUE,TRUE,Borehole readings,2020-08-14 15:30:00,2020-08-14,15:30:00,Siphiwe,,,SIBHAYI,CF,,,,,,,,,Siphiwe,23.17,0.3,,Good,

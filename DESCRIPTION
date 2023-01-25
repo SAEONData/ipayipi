@@ -1,0 +1,32 @@
+Package: ipayipi
+Version: 0.2
+Date: 2020-10-28
+Title: Groundwater data processing pipe
+Author: Paul J Gordijn <paul@saeon.ac.za>
+Maintainer: Paul J Gordijn <paul@saeon.ac.za>
+Description: Functions that can be used to process groundwater data from
+ solonist data loggers - including import into R, barometric and drift 
+ correction, outlier detection and interpolation plus more.
+Depends:
+    R (>= 4.1.2),
+    data.table (>= 1.12.8)
+Imports:
+    attempt,
+    dygraphs,
+    ggplot2,
+    lubridate,
+    parallel,
+    readxl,
+    XML,
+    xml2,
+    xts,
+    mondate
+globalVariables(c(": ="),
+    c("Location", "Borehole", "SN", "Start", "End",
+        "Location_uz", "Borehole_uz",
+        "Date_time", "Latitude", "Longtitude", "Event_threshold", "Schedule",
+        "conduct_mS_per_cm",
+        "xle_FileInfo", "xle_LoggerInfo", "xle_LoggerHeader",
+        "date_time"))
+RoxygenNote: 7.2.0
+Roxygen: list(markdown = TRUE)
