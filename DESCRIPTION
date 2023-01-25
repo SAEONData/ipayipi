@@ -4,9 +4,10 @@ Date: 2020-10-28
 Title: Groundwater data processing pipe
 Author: Paul J Gordijn <paul@saeon.ac.za>
 Maintainer: Paul J Gordijn <paul@saeon.ac.za>
-Description: Functions that can be used to process groundwater data from
- solonist data loggers - including import into R, barometric and drift 
- correction, outlier detection and interpolation plus more.
+Description: Functions that can be used to generate time series data
+ pipelines. Standardising of data and metadata, and processing this.
+ Interactive visualisations for examining, infilling, drift correction
+ and more.
 Depends:
     R (>= 4.1.2),
     data.table (>= 1.12.8)

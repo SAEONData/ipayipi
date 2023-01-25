@@ -9,3 +9,6 @@
 - Generic pipeline construction for open data
 
 Currently, advanced groundwater and rainfall processing does not use the generic pipeline functions, but does follow the same principles. A merger of the advanced processing functions into the generic pipeline is under way.
+
+# Package installation
+
