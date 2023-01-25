@@ -4,7 +4,8 @@
 
 - Build a traceable data pipeline
 - Standardise, archive, and processing of time series data and metadata
-- Top notch speed when handling `big data' using 'data.table'
+- Speed when handling `big data' through
+'data.table'
 - Advanced processing of groundwater data*
 - Generic pipeline construction for open data
 
