@@ -1,4 +1,4 @@
-#' @title Pipe directory intitiate do it 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
+#' @title Pipe directory intitiate
 #' @description Creates the necessary folders for the ipaypi groundwater
 #'  data processing pipeline.
 #' @param work_dir The folder, that is, directory in which to create the
