@@ -2,7 +2,7 @@
 % Please edit documentation in R/gw_a_pipe_initiate.r
 \name{gw_pipe_init}
 \alias{gw_pipe_init}
-\title{Pipe directory intitiate update}
+\title{Pipe directory intitiate}
 \usage{
 gw_pipe_init(work_dir = ".")
 }

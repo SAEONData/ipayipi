@@ -13,3 +13,23 @@ Currently, advanced groundwater and rainfall processing does not use the generic
 
 # Package installation
 
+You can install dependencies in your R terminal like so ...
+
+```
+# list required packages for ipayipi
+packages <- c("attempt", "data.table", "devtools", "egg", "DT", "dygraphs",
+    "ggplot2", "googlesheets4", "khroma", "lubridate", "parallel", "plotly",
+    "readxl", "XML", "xml2", "xts")
+
+# Install packages not yet installed
+installed_packages <- packages %in% rownames(installed.packages())
+if (any(installed_packages == FALSE)) {
+    install.packages(packages[!installed_packages])
+}
+```
+
+Then install 'ipayipi' with `devtools` in your R terminal.
+
+```
+devtools::install_github("SAEONData/ipayipi")
+```

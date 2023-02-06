@@ -23,7 +23,7 @@ that are requried for bulk processing of files in the ipayipi groundwater
 pipeline structure. The directories are:
 \itemize{
 \item \strong{wait_room} --- for raw data imports
-\item \strong{nomvet} --- for storing standardized native solonist data files
+\item \strong{nomvet_room} --- for storing standardized native solonist data files
 \item \strong{ipip_room} --- transforming and processing standardized native data
 & processing
 }
@@ -31,7 +31,7 @@ pipeline structure. The directories are:
 \examples{
 # Inititate pipeline
 dir <- "." # define the working directory
-pipe_init_met(work_dir = dir)
+pipe_init(work_dir = dir)
 }
 \author{
 Paul J. Gordijn

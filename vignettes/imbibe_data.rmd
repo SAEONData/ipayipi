@@ -152,6 +152,7 @@ imbibe_raw_batch(
     record_interval_type = "event_based" # record intervals are not continuous here
 )
 ```
+
 The time-zone can be set using the `dt_tz` argument---the default is `Africa/Johannesburg'.
 
 # Standardising data
