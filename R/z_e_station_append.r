@@ -208,6 +208,7 @@ append_station <- function(
     y = phends, by = "phid", all.y = TRUE)[
     order(table_name, phen_name, start_dt, end_dt)]
   station_file$phen_data_summary <- phends
+  station_file$logg_interfere$id <- seq_len(nrow(station_file$logg_interfere))
   station_file <- station_file[!names(station_file) %in% names(other_tbls)]
   station_file <- c(station_file, other_tbls)
   return(station_file)

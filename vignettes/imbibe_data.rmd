@@ -163,7 +163,7 @@ The standardisation of phenomena (variable) metadata and other harvested metadat
 nomenclature_sts(wait_room = wait_room) # checks header information
 ```
 
-If `nomenclature_sts()` detects new or undescribed standards a nomenclature table (comma-separated format), with prefix `nomtab', is written to the 'waiting room'---otherwise the function will standardise all data files in the 'waiting room'. The location and station must standardised---these strings should be concatenated around an underscore to makeup the stations standardised title. This all enhances the integrity of the pipeline.
+If `nomenclature_sts()` detects new or undescribed standards a nomenclature table (comma-separated format), with prefix `nomtab', is written to the 'waiting room'---otherwise the function will standardise all data files in the 'waiting room'. The location and station must standardised---these strings should be concatenated around an underscore to make up the stations standardised title. This all enhances the integrity of the pipeline.
 
 
 
