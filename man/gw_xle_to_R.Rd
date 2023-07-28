@@ -13,7 +13,11 @@ gw_xle_to_R(
   app_data = FALSE,
   input_dir = ".",
   output_dir = ".",
-  transfer_log = FALSE
+  transfer_log = FALSE,
+  dt_format = c("Ymd HMS", "Ymd IMSp", "ymd HMS", "ymd IMSp", "mdY HMS", "mdy IMSp",
+    "dmY HMS", "dmy IMSp"),
+  dt_tz = "Africa/Johannesburg",
+  ...
 )
 }
 \arguments{
@@ -42,6 +46,17 @@ pipeline this is the "nomvet" folder.}
 
 \item{transfer_log}{Logical. Generate a log of which files have been
 converted.}
+
+\item{dt_format}{The function guesses the date-time format from a vector of
+format types supplied to this argument. The 'guessing' is done via
+\code{lubridate::parse_date_time()}. \code{lubridate::parse_date_time()} prioritizes
+the 'guessing' of date-time formats in the order vector of formats
+supplied. The default vector of date-time formats supplied should work
+well for most logger outputs.}
+
+\item{dt_tz}{Recognized time-zone (character string) of the data locale. The
+default for the package is South African, i.e., "Africa/Johannesburg" which
+is equivalent to "SAST".}
 }
 \value{
 R environment data file.

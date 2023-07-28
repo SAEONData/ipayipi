@@ -18,6 +18,9 @@ gw_baro_comp(
   join_tolerance = NULL,
   na_thresh = 5,
   overwrite_t_bt_level = FALSE,
+  dt_format = c("Ymd HMS", "Ymd IMSp", "ymd HMS", "ymd IMSp", "mdY HMS", "mdy IMSp",
+    "dmY HMS", "dmy IMSp"),
+  dt_tz = "Africa/Johannesburg",
   ...
 )
 }
@@ -69,6 +72,17 @@ number of NA's exceeds this threshold.}
 \item{overwrite_t_bt_level}{Overwrite the transformed baro data? If TRUE,
 the transformed bt level data will be overwritten. If False, this data will
 not be overwritten.}
+
+\item{dt_format}{The function guesses the date-time format from a vector of
+format types supplied to this argument. The 'guessing' is done via
+\code{lubridate::parse_date_time()}. \code{lubridate::parse_date_time()} prioritizes
+the 'guessing' of date-time formats in the order vector of formats
+supplied. The default vector of date-time formats supplied should work
+well for most logger outputs.}
+
+\item{dt_tz}{Recognized time-zone (character string) of the data locale. The
+default for the package is South African, i.e., "Africa/Johannesburg" which
+is equivalent to "SAST".}
 }
 \value{
 Screen print of the solonist logger file that was compensated.
@@ -235,8 +249,8 @@ Remove duplicates
 Summarise the baro_baro file into a log format
 Create a table of barologger names and serial numbers that can be joined
 to the baro_baro_log
-If there is an rdta_log then use this to generate a table that can be used
-in a query to identify logger details.
+If there is an rdta_log then use this to generate a table that can be
+ used in a query to identify logger details.
 Attached the newly generated baro_baro_log into the level or working file
 Insert updated baro data and baro log into the level file (working file)
 3.4 Join baro and level data

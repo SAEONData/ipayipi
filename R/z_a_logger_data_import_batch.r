@@ -31,7 +31,7 @@ logger_data_import_batch <- function(
   ...
 ) {
   # get list of data to be imported
-  slist <- dta_list(input_dir = source_dir, file_ext = file_ext,
+  slist <- ipayipi::dta_list(input_dir = source_dir, file_ext = file_ext,
     prompt = prompt, recurr = recurr, unwanted = unwanted, wanted = wanted)
   cr_msg <- padr(core_message =
     paste0(" Introducing ", length(slist),

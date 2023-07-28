@@ -72,7 +72,7 @@ rain_nomenclature <- function(
   saveRDS(nomtab, file.path(wait_room, "nomtab.rds"))
 
 
-  if (check_nomenclature &
+  if (check_nomenclature &&
     nrow(nomtab[is.na(location) | is.na(station) | is.na(stnd_title)]) > 0) {
       message("There are unconfirmed identities in the nomenclature!")
       message("Check the nomenclature table.")

@@ -60,8 +60,8 @@ transfer_sts_files <- function(
         file = x,
         stnd_title = m$header_info$stnd_title[1],
         record_interval = m$header_info$record_interval[1],
-        start_dt = m$header_info$start_dt[1],
-        end_dt = m$header_info$end_dt[1]
+        start_dttm = m$header_info$start_dttm[1],
+        end_dttm = m$header_info$end_dttm[1]
       )
       invisible(mdt)
     })
@@ -82,12 +82,12 @@ transfer_sts_files <- function(
     to_transfer$basename <- paste0(
       to_transfer$stnd_title, "_",
       gsub(" ", "", to_transfer$record_interval), "_",
-      as.character(format(to_transfer$start_dt, "%Y")),
-      as.character(format(to_transfer$start_dt, "%m")),
-      as.character(format(to_transfer$start_dt, "%d")), "-",
-      as.character(format(to_transfer$end_dt, "%Y")),
-      as.character(format(to_transfer$end_dt, "%m")),
-      as.character(format(to_transfer$end_dt, "%d"))
+      as.character(format(to_transfer$start_dttm, "%Y")),
+      as.character(format(to_transfer$start_dttm, "%m")),
+      as.character(format(to_transfer$start_dttm, "%d")), "-",
+      as.character(format(to_transfer$end_dttm, "%Y")),
+      as.character(format(to_transfer$end_dttm, "%m")),
+      as.character(format(to_transfer$end_dttm, "%d"))
     )
     bnames <- lapply(seq_len(nrow(to_transfer)), function(x) {
       i <- 1
@@ -104,7 +104,8 @@ transfer_sts_files <- function(
     transferrr <- lapply(seq_len(nrow(to_transfer)), function(x) {
       m <- readRDS(file.path(wait_room, to_transfer$input_file[x]))
       class(m) <- "ipayipi_data"
-      tab_name <- paste0("raw_", m$data_summary$table_name[1])
+      # tab_name <- paste0("raw_", m$data_summary$table_name[1])
+      tab_name <- m$data_summary$table_name[1]
       names(m)[names(m) == "raw_data"] <- tab_name
       m$data_summary$nomvet_name <- to_transfer$rds_names[x]
       saveRDS(m, file.path(nomvet_room, to_transfer$rds_names[x]))

@@ -59,6 +59,15 @@
 #' @param overwrite_t_bt_level Overwrite the transformed baro data? If TRUE,
 #' the transformed bt level data will be overwritten. If False, this data will
 #' not be overwritten.
+#' @param dt_format The function guesses the date-time format from a vector of
+#'  format types supplied to this argument. The 'guessing' is done via
+#'  `lubridate::parse_date_time()`. `lubridate::parse_date_time()` prioritizes
+#'  the 'guessing' of date-time formats in the order vector of formats
+#'  supplied. The default vector of date-time formats supplied should work
+#'  well for most logger outputs.
+#' @param dt_tz Recognized time-zone (character string) of the data locale. The
+#'  default for the package is South African, i.e., "Africa/Johannesburg" which
+#'  is equivalent to "SAST".
 #' @export
 #' @author Paul J Gordijn
 #' @keywords compensation; barometric
@@ -81,6 +90,12 @@ gw_baro_comp <- function(
   join_tolerance = NULL,
   na_thresh = 5,
   overwrite_t_bt_level = FALSE,
+  dt_format = c(
+    "Ymd HMS", "Ymd IMSp",
+    "ymd HMS", "ymd IMSp",
+    "mdY HMS", "mdy IMSp",
+    "dmY HMS", "dmy IMSp"),
+  dt_tz = "Africa/Johannesburg",
   ...) {
   #' 2 Import data files - baro and water level
   #' 2.1 rds import
@@ -89,12 +104,17 @@ gw_baro_comp <- function(
     input_file <- gsub(pattern = ".rds", replacement = "", x = input_file)
     working <- attempt::try_catch(
       readRDS(file.path(wk_dir, paste0(basename(input_file), ".rds"))),
-          .e = ~ stop(.x),
-          .w = ~ warning(
-            paste0(input_file, " was not found!"),
-          .x
+        .e = ~ stop(.x),
+        .w = ~ warning(
+          paste0(input_file, " was not found!"),
+        .x
       )
     )
+    if (attr(working$log_t$Date_time, "tz") == "" ||
+      attr(working$log_t$Date_time, "tzone") == "") {
+      attr(working$log_t$Date_time, "tz") <- dt_tz
+      attr(working$log_t$Date_time, "tzone") <- dt_tz
+    }
     #' Read in rdta_log file - used to query the barologger file name
     if (rdta_log == TRUE) {
       if (file.exists(file.path(wk_dir, "rdta_log.rds"))) {
@@ -119,48 +139,48 @@ gw_baro_comp <- function(
         baro_file <-
           subset(rdta_log_file, lev_file == input_file)[, "Baro_name"]
         if (is.na(baro_file)) {
-            message(paste0(
-                "Please specify a barologger file that ",
-                "can be used for the barometric compensation of ",
-                input_file
+          message(paste0(
+            "Please specify a barologger file that ",
+            "can be used for the barometric compensation of ",
+            input_file
         ))
         stop("Barologger file missing")
         }
-        baro <-
-            readRDS(file.path(
-              wk_dir, paste0(basename(as.character(baro_file)), ".rds")))
+        baro <- readRDS(file.path(
+          wk_dir, paste0(basename(as.character(baro_file)), ".rds")))
       }
-        if (is.na(baro_file)) {
-          #' get the last baro_file name that was used.
-              bb <- length(working$log_baro_log$Baro_name)
-          if (bb > 0) {
-              baro_file <- working$log_baro_log$Baro_name[bb]
-              rm(bb)
-          } else {
-          stop(paste0(
-              "There is no barologger history in the input",
-              "file to trace the correct barologger file for pulling."
-          ))
-          }
+      if (is.na(baro_file)) {
+        #' get the last baro_file name that was used.
+          bb <- length(working$log_baro_log$Baro_name)
+        if (bb > 0) {
+          baro_file <- working$log_baro_log$Baro_name[bb]
+          rm(bb)
+        } else {
+        stop(paste0(
+          "There is no barologger history in the input",
+          "file to trace the correct barologger file for pulling."
+        ))
         }
+      }
     }
     #' If pull_baro == F then check whether we have a user declared baro_file
     if (pull_baro == FALSE) {
       if (is.null(baro_file)) {
-            message(paste0(
-              "Please specify a barologger ",
-              "file that can be used for the barometric ",
-              "compensation of ", input_file
-            ))
-          stop("Barologger file missing")
+        message(paste0(
+          "Please specify a barologger ",
+          "file that can be used for the barometric ",
+          "compensation of ", input_file
+        ))
+        stop("Barologger file missing")
       } else {
-          baro_file <-
-              gsub(pattern = ".rds", replacement = "", x = baro_file)
+        baro_file <- gsub(pattern = ".rds", replacement = "", x = baro_file)
       }
     }
     #' Read in the barologger data
     baro_file <- gsub(pattern = ".rds", replacement = "", x = baro_file)
     baro <- readRDS(file.path(wk_dir, paste0(basename(baro_file), ".rds")))
+    # check tz attributes -- the barologger data has tz
+    attr(baro$log_data$Date_time, "tzone")
   }
   #' 2.2 r env data import option
   if (InasRDS == FALSE) {
@@ -174,22 +194,25 @@ gw_baro_comp <- function(
     } else {
       stop("Please specify a barologger file input.")
     }
+    # check level file tz
+    attr(working$log_t$Date_time, "tz")
+    attr(working$log_data$Date_time, "tz")
   }
   cr_msg <- padr(core_message = paste0(" Opened: ", input_file, " and ",
-      baro_file, " ", collapse = ""), wdth = 80, pad_char = "-",
-      pad_extras = c("|", "", "", "|"), force_extras = TRUE,
-      justf = c(-1, 3))
+    baro_file, " ", collapse = ""), wdth = 80, pad_char = "-",
+    pad_extras = c("|", "", "", "|"), force_extras = TRUE,
+    justf = c(-1, 3))
   message(cr_msg)
   #' Check whether data classes have been defined correctly
   if (class(working) != c("level_file")) {
-      cr_msg <- padr(core_message = "The level file class is incorrect",
-        pad_char = " ", pad_extras = c("|", "", "", "|"),
-        force_extras = TRUE, justf = c(-1, 3), wdth = 80)
-      message(cr_msg)
-      cr_msg <- padr(core_message = "Please use the pipeline design class",
-        pad_char = " ", pad_extras = c("|", "", "", "|"),
-        force_extras = TRUE, justf = c(-1, 3), wdth = 80)
-      stop("Please use the pipeline design class")
+    cr_msg <- padr(core_message = "The level file class is incorrect",
+      pad_char = " ", pad_extras = c("|", "", "", "|"),
+      force_extras = TRUE, justf = c(-1, 3), wdth = 80)
+    message(cr_msg)
+    cr_msg <- padr(core_message = "Please use the pipeline design class",
+      pad_char = " ", pad_extras = c("|", "", "", "|"),
+      force_extras = TRUE, justf = c(-1, 3), wdth = 80)
+    stop("Please use the pipeline design class")
   }
   if (class(baro) != c("baro_file")) {
     cr_msg <- padr(core_message = "The barologger file class is incorrect",
@@ -203,12 +226,8 @@ gw_baro_comp <- function(
   }
 
   #' Check whether there is baro and working data in the chosen files
-  if (nrow(baro$log_data) == 0) {
-      stop("No baro logger data")
-  }
-  if (nrow(working$log_data) == 0) {
-      stop("No level logger data")
-  }
+  if (nrow(baro$log_data) == 0) stop("No baro logger data")
+  if (nrow(working$log_data) == 0) stop("No level logger data")
 
   #' 3 Append and join data
   #' The approach taken to append and join data is based on a number of
@@ -293,7 +312,7 @@ gw_baro_comp <- function(
     lev_baro <- data.table::foverlaps(lev_baro, lev_baro_log,
         nomatch = 0, mult = "first")
     lev_baro <- lev_baro[, cols, with = FALSE]
-    lev_baro[, orig := as.logical(T)]
+    lev_baro[, orig := as.logical(TRUE)]
   }
   #' F means that there is no baro data in the level logger file R object
   if (nrow(working$log_baro_data) == 0) {
@@ -312,27 +331,24 @@ gw_baro_comp <- function(
   #'          start and end dates of start and end times
   #' If no start and end is defined use min and max date times...
   if (!is.null(start_t)) {
-      start_t <- as.POSIXct(as.character(start_t),
-                      format = "%Y-%m-%d %H:%M:%OS")
+    start_t <- lubridate::parse_date_time(x = as.character(start_t),
+      orders = dt_format, tz = dt_tz)
   } else {
-      start_t <- start_temp
+    start_t <- start_temp
   }
 
-  if (start_t < start_temp) {
-      start_t <- start_temp
-  }
+  if (start_t < start_temp) start_t <- start_temp
 
   if (!is.null(end_t)) {
-      end_t <- as.POSIXct(as.character(end_t), format = "%Y-%m-%d %H:%M:%OS")
+    end_t <- lubridate::parse_date_time(x = as.character(end_t),
+      orders = dt_format, tz = dt_tz)
   } else {
-      end_t <- end_temp
+    end_t <- end_temp
   }
 
   #' *3.1.6 - trim the start and end dates by the range of date time
   #'          in the input level data (3.1.4)
-  if (end_t > end_temp) {
-      end_t <- end_temp
-  }
+  if (end_t > end_temp) end_t <- end_temp
 
   #' *3.1.7 - trim start and end dates by the range of date time
   #'           in the input baro data file
@@ -340,12 +356,8 @@ gw_baro_comp <- function(
   #'  barologger data date time values
   start_temp <- baro_in_start_temp
   end_temp <- baro_in_end_temp
-  if (start_t < start_temp) {
-      start_t <- start_temp
-  }
-  if (end_t > end_temp) {
-      end_t <- end_temp
-  }
+  if (start_t < start_temp) start_t <- start_temp
+  if (end_t > end_temp) end_t <- end_temp
 
   #' *3.1.8 - veryify start and end dates
   #' Check whether the start and end date times make sense
@@ -364,15 +376,15 @@ gw_baro_comp <- function(
     #'  If there is baro data in the level logger file [level_baro == TRUE]
     #'  this needs to be filtered if overwrite_baro is true.
     if (level_baro == TRUE) {
-        #' level baro was a variable defined above indicating the presence of
-        #' baro data in the level file.
-        if (overwrite_baro == TRUE) {
-          #' Filter the temporary baro log data generated in the query above
-          #'  lev_baro is the baro data in the input (working) level file
-          lev_baro <- subset(lev_baro,
-              subset = Date_time < start_t | Date_time > end_t
-          )
-        }
+      #' level baro was a variable defined above indicating the presence of
+      #' baro data in the level file.
+      if (overwrite_baro == TRUE) {
+        #' Filter the temporary baro log data generated in the query above
+        #'  lev_baro is the baro data in the input (working) level file
+        lev_baro <- subset(lev_baro,
+          subset = Date_time < start_t | Date_time > end_t
+        )
+      }
     }
 
     #' Now create a joined log and data file for the input barologger data
@@ -380,15 +392,14 @@ gw_baro_comp <- function(
     data.table::setDT(baro_baro)
     baro_log_info <- baro$xle_LoggerInfo
     data.table::setDT(baro_log_info)
-    baro_log_info <- baro_log_info[, c(
-          "Start", "End", "Serial_number",
-          "Model_number"
-      )][order(Start, End)]
+    baro_log_info <- baro_log_info[,
+      c("Start", "End", "Serial_number", "Model_number")][
+        order(Start, End)]
     baro_baro <- baro_baro[, dummi1 := Date_time][order(Date_time)]
     data.table::setkey(baro_baro, Date_time, dummi1)
     data.table::setkey(baro_log_info, Start, End)
     baro_baro <- data.table::foverlaps(baro_baro, baro_log_info, nomatch = 0,
-        mult = "first")
+      mult = "first")
     baro_baro <- baro_baro[, c(
         "Date_time", "level_kpa", "temperature_degc",
         "Serial_number", "Model_number"
@@ -404,29 +415,24 @@ gw_baro_comp <- function(
     #' *3.2.2 - filter input baro data
     #' Filter the input baro data by the start and end dates in the input.
     baro_baro <- subset(baro_baro,
-        subset = Date_time >= start_t & Date_time <= end_t)
+      subset = Date_time >= start_t & Date_time <= end_t)
 
     #' *3.2.3 - Append filtered baro data
     #' Now append the actual baro data into the working level file
     #'  If there is baro data in the level file and we don't want to
     #'  overwrite it
-    if (level_baro == TRUE & overwrite_baro == FALSE) {
+    if (level_baro == TRUE && overwrite_baro == FALSE) {
       baro_lev_start_temp <- min(lev_baro$Date_time, na.rm = TRUE)
       baro_lev_end_temp <- max(lev_baro$Date_time, na.rm = TRUE)
       #' Filter the baro in data to remove duplicate records
-      baro_baro <-
-        subset(baro_baro,
-          subset = Date_time < baro_lev_start_temp |
-            Date_time > baro_lev_end_temp
-        )
+      baro_baro <- subset(baro_baro, subset =
+        Date_time < baro_lev_start_temp | Date_time > baro_lev_end_temp)
     }
 
     #' 3.3 Merge baro data
     #' *3.3.1 - Merge baro data
     #' If there is baro data in the level file append this data
-    if (level_baro == TRUE) {
-      baro_baro <- rbind(baro_baro, lev_baro)
-    }
+    if (level_baro == TRUE) baro_baro <- rbind(baro_baro, lev_baro)
     baro_baro <- baro_baro[order(Date_time)]
     #' *3.3.2 - Remove duplicates whereever necessary
     #'  If overwrite_baro is set to TRUE then original baro data duplicates
@@ -436,23 +442,13 @@ gw_baro_comp <- function(
     #' Identify duplicate records (by date-time)
     #' Remove duplicates
     if (anyDuplicated(baro_baro$Date_time) > 0) {
-      baro_baro$dup_f <-
-        as.logical(duplicated(baro_baro$Date_time, fromLast = TRUE))
-      baro_baro$dup_l <-
-        as.logical(duplicated(baro_baro$Date_time, fromLast = FALSE))
-      baro_baro$dup <-
-        as.logical(ifelse(baro_baro$dup_f == TRUE |
-          baro_baro$dup_l == TRUE, TRUE, FALSE))
-      if (overwrite_baro == TRUE) {
-        baro_baro <-
-        baro_baro[-which(baro_baro$dup == TRUE & orig == TRUE), ]
-        baro_baro <- baro_baro[, !c("dup_f", "dup_l", "dup")]
-      }
-      if (overwrite_baro == FALSE) {
-        baro_baro <-
-          baro_baro[-which(baro_baro$dup == TRUE & orig == FALSE), ]
-        baro_baro <- baro_baro[, !c("dup_f", "dup_l", "dup")]
-      }
+      baro_baro$dup_f <- as.logical(
+        duplicated(baro_baro$Date_time, fromLast = TRUE))
+      baro_baro$dup_l <- as.logical(
+        duplicated(baro_baro$Date_time, fromLast = FALSE))
+      if (overwrite_baro == TRUE) baro_baro <- baro_baro[!(dup_l)]
+      if (overwrite_baro == FALSE) baro_baro <- baro_baro[!(dup_f)]
+      baro_baro <- baro_baro[, !c("dup_f", "dup_l")]
     }
 
     #' *3.3.3 - Generate an updated baro log for the level file
@@ -461,7 +457,7 @@ gw_baro_comp <- function(
     data.table::setDT(baro_baro_log)
     baro_baro_log <-
       baro_baro_log[, .(Start = min(Date_time, na.rm = TRUE),
-      End = max(Date_time, na.rm = TRUE)),
+        End = max(Date_time, na.rm = TRUE)),
           by = .(Baro_SN, Baro_Md, orig)
       ]
     baro_baro_log <-
@@ -469,8 +465,8 @@ gw_baro_comp <- function(
 
     #' Create a table of barologger names and serial numbers that can be joined
     #' to the baro_baro_log
-    #' If there is an rdta_log then use this to generate a table that can be used
-    #' in a query to identify logger details.
+    #' If there is an rdta_log then use this to generate a table that can be
+    #'  used in a query to identify logger details.
     if (rdta_log == TRUE) {
       colnames(rdta_log_file)[3] <- "Baro_SN"
       rdta_log_file <-
@@ -480,7 +476,7 @@ gw_baro_comp <- function(
       rdta_log_file <- rdta_log_file[, c("Baro_SN", "Baro_name")]
     }
 
-    qbaro <- data.table(
+    qbaro <- data.table::data.table(
       Baro_SN = as.character(baro$xle_LoggerInfo$Serial_number),
       Baro_name =
         paste0(
@@ -510,7 +506,7 @@ gw_baro_comp <- function(
     #' Attached the newly generated baro_baro_log into the level or working file
     #' Insert updated baro data and baro log into the level file (working file)
     working$log_baro_data <-
-        baro_baro[, c("Date_time", "level_kpa", "temperature_degc")]
+      baro_baro[, c("Date_time", "level_kpa", "temperature_degc")]
     working$log_baro_log <- baro_baro_log
 
     #' 3.4 Join baro and level data
@@ -520,7 +516,7 @@ gw_baro_comp <- function(
     #' *3.4.1 - remove temperature column in baro table
     #'  First, the temperature column in the barometric table is removed
     temp_working_log_baro_data <-
-        working$log_baro_data[, !c("temperature_degc")]
+      working$log_baro_data[, !c("temperature_degc")]
 
     #' *3.4.2 - Create a temporary baro-level join file
     #' Join the baro data to the baro$log_data under another name -
@@ -528,49 +524,40 @@ gw_baro_comp <- function(
     #' Before the merge the working data is filtered by the
     #' start and end date times
     merged_work_baro <- subset(working$log_data,
-        subset = Date_time >= start_t & Date_time <= end_t)
+      subset = Date_time >= start_t & Date_time <= end_t)
 
     #' The data will be joined to a generated sequence to match the
     #'  shortest possible shared sample rate of the barologger and level logger.
-    s_rate <-
-        max(c(
-            working$xle_LoggerHeader$Sample_rate_s,
-            baro$xle_LoggerHeader$Sample_rate_s, na.rm = TRUE
-        ))
-    s_rate_min <-
-        min(c(
-            working$xle_LoggerHeader$Sample_rate_s,
-            baro$xle_LoggerHeader$Sample_rate_s, na.rm = TRUE
-        ))
+    s_rate <- max(c(working$xle_LoggerHeader$Sample_rate_s,
+      baro$xle_LoggerHeader$Sample_rate_s, na.rm = TRUE))
+    s_rate_min <- min(c(working$xle_LoggerHeader$Sample_rate_s,
+      baro$xle_LoggerHeader$Sample_rate_s, na.rm = TRUE
+    ))
     if (is.null(join_tolerance)) {
       join_tolerance <- s_rate_min * 0.9
     }
     if (join_tolerance > s_rate_min * 0.9) {
-        cr_msg <- padr(core_message = paste0(
-            "The entered join_tolerance was decreased to",
-            " 9/10 of the minimum sample rate", collapse = ""),
-            pad_char = " ", pad_extras = c("|", "", "", "|"),
-            force_extras = TRUE, justf = c(-1, 3), wdth = 80)
-        message(cr_msg)
-        join_tolerance <- s_rate_min * 0.9
-        cr_msg <- padr(core_message = paste0("Join tolerance now at ",
-            join_tolerance, " seconds.", collapse = ""),
-            pad_char = " ", pad_extras = c("|", "", "", "|"),
-            force_extras = TRUE, justf = c(-1, 3), wdth = 80)
-        message(cr_msg)
+      cr_msg <- padr(core_message = paste0(
+        "The entered join_tolerance was decreased to",
+        " 9/10 of the minimum sample rate", collapse = ""),
+        pad_char = " ", pad_extras = c("|", "", "", "|"),
+        force_extras = TRUE, justf = c(-1, 3), wdth = 80)
+      message(cr_msg)
+      join_tolerance <- s_rate_min * 0.9
+      cr_msg <- padr(core_message = paste0("Join tolerance now at ",
+        join_tolerance, " seconds.", collapse = ""),
+        pad_char = " ", pad_extras = c("|", "", "", "|"),
+        force_extras = TRUE, justf = c(-1, 3), wdth = 80)
+      message(cr_msg)
     }
-    dt <- seq.POSIXt(
-        from = as.POSIXct(start_t),
-        to = as.POSIXct(end_t),
-        by = paste0(s_rate, " sec")
-    )
+    dt <- seq.POSIXt(from = start_t, to = end_t, by = paste0(s_rate, " sec"))
     dt_dummi_s <- dt - join_tolerance * 0.5
     dt_dummi_e <- dt + join_tolerance * 0.5
-    dt_df <-
-      data.table::data.table(
-        dt = as.POSIXct(dt), dt_dummi_s = as.POSIXct(dt_dummi_s),
-        dt_dummi_e = as.POSIXct(dt_dummi_e)
-      )
+    dt_df <- data.table::data.table(
+      dt = as.POSIXct(dt), dt_dummi_s = as.POSIXct(dt_dummi_s),
+      dt_dummi_e = as.POSIXct(dt_dummi_e)
+    )
+    attr(dt, "tzone")
     merged_work_baro$dummi_tl <- merged_work_baro$Date_time
     temp_working_log_baro_data$dummi_tb <- temp_working_log_baro_data$Date_time
     data.table::setkey(merged_work_baro, Date_time, dummi_tl)
@@ -583,7 +570,7 @@ gw_baro_comp <- function(
       mult = "first", nomatch = NA
     )
 
-    merged_work_baro <- data.table(
+    merged_work_baro <- data.table::data.table(
       Date_time = as.POSIXct(dt_df$dt),
       ut1_level_m = dt_df$level_m,
       level_kpa = as.numeric(dt_df$level_kpa),
@@ -624,24 +611,23 @@ gw_baro_comp <- function(
     #' Remove data from the "working" file if overwrite_comp is T
     if (overwrite_comp == TRUE) {
       working$log_t <- subset(working$log_t,
-          subset = Date_time < start_t | Date_time > end_t
-          )
+        subset = Date_time < start_t | Date_time > end_t)
       working$log_t <-
-          rbind(working$log_t, merged_work_baro)[order(Date_time)]
+        rbind(working$log_t, merged_work_baro)[order(Date_time)]
     }
     #' remove overlapping data from the temp merged file if
     #'  overwrite compensated data is FALSE
     if (overwrite_comp == FALSE) {
-        if (nrow(working$log_t) > 0) {
-            merged_work_baro <-
-                subset(merged_work_baro,
-                    subset = Date_time < min(working$log_t$Date_time,
-                        na.rm = TRUE) & Date_time >
-                        max(working$log_t$Date_time, na.rm = TRUE)
-            )
-        }
-        working$log_t <-
-            rbind(working$log_t, merged_work_baro)[order(Date_time)]
+      if (nrow(working$log_t) > 0) {
+        merged_work_baro <-
+          subset(merged_work_baro,
+            subset = Date_time < min(working$log_t$Date_time,
+              na.rm = TRUE) & Date_time >
+              max(working$log_t$Date_time, na.rm = TRUE)
+        )
+      }
+      working$log_t <-
+        rbind(working$log_t, merged_work_baro)[order(Date_time)]
     }
 
     #' 4.1 Compensation
@@ -657,6 +643,7 @@ gw_baro_comp <- function(
     #' *4.1.1 Now that the data is appended in the working$log_t table
     #'  I can proceed with the barometric compensation.
     temp_workking_log_t <- working$log_t
+    attr(working$log_t$Date_time, "tzone")
 
     #' *4.1.2 - Query baro model offset
     #' Need to query the baro model names to add a 9.5 m offset for
@@ -667,6 +654,8 @@ gw_baro_comp <- function(
     cols <- colnames(temp_workking_log_t)
     #' This is the table that we will be joing to the log_t data
     log_info <- working$xle_LoggerInfo
+    attr(log_info$Start, "tzone")
+    attr(log_info$End, "tzone")
     data.table::setDT(log_info)
     #' A dummi column is set to define the interval of interest for
     #' the log_t table
@@ -676,21 +665,22 @@ gw_baro_comp <- function(
     #'  for each row in both tables
     data.table::setkey(temp_workking_log_t, Date_time, dummi2)
     data.table::setkey(log_info, Start, End)
+    attr(temp_workking_log_t$Date_time, "tzone")
+    attr(temp_workking_log_t$dummi2, "tzone")
+    attr(log_info$Start, "tzone")
+    attr(log_info$End, "tzone")
     #' The overlap join and selecting columns
     temp_workking_log_t <- data.table::foverlaps(temp_workking_log_t,
-      log_info,
-      nomatch = NA, mult = "first"
-    )
+      log_info, nomatch = NA, mult = "first")
+    
     temp_workking_log_t <-
       temp_workking_log_t[, c(cols, "Instrument_type"), with = FALSE]
     temp_workking_log_t <- temp_workking_log_t[, !c("dummi2"), with = FALSE]
     #' Generate an offest column using the level logger model
     old_mods <- c("LT_Jr", "LT_Gold")
-    temp_workking_log_t$Md_offset <-
-        as.numeric(ifelse(
-          temp_workking_log_t$Instrument_type %in% old_mods,
-          9.5, 0
-        ))
+    temp_workking_log_t$Md_offset <- as.numeric(
+      ifelse(temp_workking_log_t$Instrument_type %in% old_mods,
+        9.5, 0))
 
 
     #' *4.1.3 - Calculate barometrically compensated water level
@@ -699,41 +689,38 @@ gw_baro_comp <- function(
       (0.101972 * temp_workking_log_t$level_kpa) +
       temp_workking_log_t$Md_offset
     if (overwrite_t_bt_level == TRUE) {
-        temp_workking_log_t$t_bt_level_m <- temp_workking_log_t$bt_level_m
-        temp_workking_log_t$t_level_m <-
-            temp_workking_log_t$t_bt_level_m +
-                temp_workking_log_t$Drift_offset_m
+      temp_workking_log_t$t_bt_level_m <- temp_workking_log_t$bt_level_m
+      temp_workking_log_t$t_level_m <- temp_workking_log_t$t_bt_level_m +
+        temp_workking_log_t$Drift_offset_m
     }
     if (overwrite_t_bt_level == FALSE) {
-        temp_workking_log_t$t_bt_level_m <-
-            ifelse(is.na(temp_workking_log_t$t_bt_level_m),
-                temp_workking_log_t$bt_level_m, temp_workking_log_t$t_bt_level_m
-        )
-        temp_workking_log_t$t_level_m <-
-            temp_workking_log_t$t_bt_level_m +
-            temp_workking_log_t$Drift_offset_m
+      temp_workking_log_t$t_bt_level_m <- ifelse(
+        is.na(temp_workking_log_t$t_bt_level_m),
+          temp_workking_log_t$bt_level_m, temp_workking_log_t$t_bt_level_m)
+      temp_workking_log_t$t_level_m <- temp_workking_log_t$t_bt_level_m +
+        temp_workking_log_t$Drift_offset_m
     }
 
     #' Remove the queried Baro model numbers and model offset columns
-    working$log_t <-
-        temp_workking_log_t[, !c("Instrument_type", "Md_offset"), with = FALSE]
+    working$log_t <- temp_workking_log_t[
+      , !c("Instrument_type", "Md_offset"), with = FALSE]
 
     #' *5 Save data
     #' Save the working level file that has the compensated values.
     if (InasRDS == TRUE) {
-        saveRDS(working, file.path(wk_dir, paste0(input_file, ".rds")))
-        cr_msg <- padr(core_message = paste0(" ", input_file, " compensated",
-            collapse = ""), pad_char = " ", pad_extras = c("|", "", "", "|"),
-            force_extras = TRUE, justf = c(-1, 3), wdth = 80)
-        return(message(cr_msg))
+      saveRDS(working, file.path(wk_dir, paste0(input_file, ".rds")))
+      cr_msg <- padr(core_message = paste0(" ", input_file, " compensated",
+        collapse = ""), pad_char = " ", pad_extras = c("|", "", "", "|"),
+        force_extras = TRUE, justf = c(-1, 3), wdth = 80)
+      return(message(cr_msg))
     } else {
-        return(working)
+      return(working)
     }
-    } else {
-    cr_msg <- padr(core_message = paste0("In ", input_file,
-        ": no overlapping barometric data for compensation", collapse = ""),
-        pad_char = " ", pad_extras = c("|", "", "", "|"), force_extras = TRUE,
-        justf = c(-1, 4))
-    message(cr_msg)
-    }
+  } else {
+  cr_msg <- padr(core_message = paste0("In ", input_file,
+    ": no overlapping barometric data for compensation", collapse = ""),
+    pad_char = " ", pad_extras = c("|", "", "", "|"), force_extras = TRUE,
+    justf = c(-1, 4))
+  message(cr_msg)
+  }
 }

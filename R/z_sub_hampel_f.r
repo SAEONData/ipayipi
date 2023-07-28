@@ -54,7 +54,7 @@ hampel_f <- function(
     srs[slice_s] < srs_median - (x_devs * tighten * srs_mad),
     srs_median, srs[slice_s])
   srs_return <- ifelse(is.na(srs_return), srs_median, srs_return)
-  srs_dt_start <- data.table(
+  srs_dt_start <- data.table::data.table(
     hf = as.numeric(srs_return),
     org = as.numeric(srs[slice_s]),
     n_dev = as.numeric(srs[slice_s] - x_devs * tighten * srs_mad),
@@ -71,7 +71,7 @@ hampel_f <- function(
     srs[slice_e] < srs_median - (x_devs * tighten * srs_mad),
     srs_median, srs[slice_e])
   srs_return <- ifelse(is.na(srs_return), srs_median, srs_return)
-  srs_dt_end <- data.table(
+  srs_dt_end <- data.table::data.table(
     hf = as.numeric(srs_return),
     org = as.numeric(srs[slice_e]),
     n_dev = as.numeric(srs[slice_e] - x_devs * tighten * srs_mad),
@@ -88,7 +88,7 @@ hampel_f <- function(
     srs < srs_median - (x_devs * srs_mad),
     srs_median, srs)
   srs_return <- ifelse(is.na(srs_return), srs_median, srs_return)
-  srs_dt_mid <- data.table(
+  srs_dt_mid <- data.table::data.table(
     hf = as.numeric(srs_return[slice_m]),
     org = as.numeric(srs[slice_m]),
     n_dev = as.numeric(srs[slice_m] - x_devs * srs_mad[slice_m]),
@@ -96,7 +96,7 @@ hampel_f <- function(
   srs_hf <- rbind(srs_dt_start[c(1:((w_width - 1) / 2))], srs_dt_mid,
     srs_dt_end[c((nrow(srs_dt_end) + 1 -
     ((w_width - 1) / 2)):(nrow(srs_dt_end)))])
-  srs_hf <- data.table(
+  srs_hf <- data.table::data.table(
     Date_time = as.POSIXct(dttm),
     hf = as.numeric(srs_hf$hf),
     org = as.numeric(srs_hf$org),

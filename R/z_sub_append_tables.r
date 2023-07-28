@@ -53,7 +53,7 @@ append_tables <- function(
   # sort table order
   tbls <- lapply(tbls, function(x) {
     if ("date_time" %in% names(x)) x <- x[order(date_time)]
-    if ("start_dt" %in% names(x)) x <- x[order(start_dt, end_dt)]
+    if ("start_dttm" %in% names(x)) x <- x[order(start_dttm, end_dttm)]
     return(x)
   })
   return(tbls)

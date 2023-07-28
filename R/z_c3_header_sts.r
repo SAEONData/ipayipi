@@ -8,9 +8,11 @@
 #'  otherwise all files are returned. TRUE or FALSE. Defaults to FALSE.
 #' @param recurr Should the function search recursively into sub directories
 #'  for hobo rainfall csv export files? TRUE or FALSE.
-#' @param wanted 
-#' @param unwanted Vector of strings listing files that should not be included
-#'  in the import.
+#' @param wanted A strong containing keywords to use to filter which stations
+#'  are selected for processing. Multiple search kewords should be seperated
+#'  with a bar ('|'), and spaces avoided unless part of the keyword.
+#' @param unwanted Similar to wanted, but keywords for filtering out unwanted
+#'  stations.
 #' @param file_ext_in
 #' @param file_ext_out
 #' @keywords Cambell Scientific; meteorological data; automatic weather
@@ -59,8 +61,8 @@ header_sts <- function(
     m <- readRDS(file.path(wait_room, slist[i]))
 
     # update the start and end date_times
-    m$data_summary$start_dt <- min(m$raw_data$date_time)
-    m$data_summary$end_dt <- max(m$raw_data$date_time)
+    m$data_summary$start_dttm <- min(m$raw_data$date_time)
+    m$data_summary$end_dttm <- max(m$raw_data$date_time)
 
     # update names
     nt <- nomtab[
@@ -79,12 +81,11 @@ header_sts <- function(
   })
 
   # update the raw data table name
-  
 
   # sort out file names
   file_names <- lapply(seq_along(mfiles), function(i) {
-    st_dt <- mfiles[[i]]$data_summary$start_dt[1]
-    ed_dt <- mfiles[[i]]$data_summary$end_dt[1]
+    st_dt <- mfiles[[i]]$data_summary$start_dttm[1]
+    ed_dt <- mfiles[[i]]$data_summary$end_dttm[1]
     if (is.na(mfiles[[i]]$data_summary$record_interval[1])) {
       intv_name <- ""
     } else {

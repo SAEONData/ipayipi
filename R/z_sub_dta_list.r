@@ -27,6 +27,7 @@ dta_list <- function(
   recurr = FALSE,
   baros = FALSE,
   unwanted = NULL,
+  single_out = FALSE,
   ...) {
 
   slist <- list.files(path = input_dir, pattern = file_ext, recursive = recurr)
@@ -81,6 +82,9 @@ dta_list <- function(
     chosensiz <- chosen()
   } else {
     chosensiz <- slist
+  }
+  if (length(chosensiz) > 1 && single_out == TRUE) {
+    if (prompt) chosensiz <- chosen()[1] else slist[1]
   }
   return(chosensiz)
 }

@@ -18,10 +18,11 @@
 #'  `ipayipi::read_logger_dt()`.
 #' @param prompt Should the function use an interactive file selection function
 #'  otherwise all files are returned. TRUE or FALSE.
-#' @param wanted Vector of strings listing files that should not be
-#'  included in the import.
-#' @param unwanted Vector of strings listing files that should not be included
-#'  in the import.
+#' @param wanted A strong containing keywords to use to filter which stations
+#'  are selected for processing. Multiple search kewords should be seperated
+#'  with a bar ('|'), and spaces avoided unless part of the keyword.
+#' @param unwanted Similar to wanted, but keywords for filtering out unwanted
+#'  stations.
 #' @param recurr Should the function search recursively into sub directories
 #'  for hobo rainfall csv export files? TRUE or FALSE.
 #' @keywords meteorological data; automatic weather station; batch process;
@@ -38,7 +39,11 @@ imbibe_raw_batch <- function(
     "Ymd HMS", "Ymd IMSp",
     "ymd HMS", "ymd IMSp",
     "mdY HMS", "mdy IMSp",
-    "dmY HMS", "dmy IMSp"),
+    "dmY HMS", "dmy IMSp",
+    "Ymd HMOS", "Ymd IMOSp",
+    "ymd HMOS", "ymd IMOSp",
+    "mdY HMOS", "mdy IMOSp",
+    "dmY HMOS", "dmy IMOSp"),
   dt_tz = "Africa/Johannesburg",
   record_interval_type = "continuous",
   data_setup = NULL,

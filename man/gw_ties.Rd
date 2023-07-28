@@ -4,7 +4,15 @@
 \alias{gw_ties}
 \title{Generates dummy dipper points (ties).}
 \usage{
-gw_ties(file = NULL, tie_type = NULL, tie_datetime = NULL, ...)
+gw_ties(
+  file = NULL,
+  tie_type = NULL,
+  tie_datetime = NULL,
+  dt_format = c("Ymd HMS", "Ymd IMSp", "ymd HMS", "ymd IMSp", "mdY HMS", "mdy IMSp",
+    "dmY HMS", "dmy IMSp"),
+  dt_tz = "Africa/Johannesburg",
+  ...
+)
 }
 \arguments{
 \item{file}{Standardised 'ipayipi' water level file. The file must be
@@ -21,6 +29,17 @@ created. In the linear interpolation the two closest surrounding
 calibration measurements will be used. Any dummy-dipper reading generated
 will be used in subsequent drift correction.
 }}
+
+\item{dt_format}{The function guesses the date-time format from a vector of
+format types supplied to this argument. The 'guessing' is done via
+\code{lubridate::parse_date_time()}. \code{lubridate::parse_date_time()} prioritizes
+the 'guessing' of date-time formats in the order vector of formats
+supplied. The default vector of date-time formats supplied should work
+well for most logger outputs.}
+
+\item{dt_tz}{Recognized time-zone (character string) of the data locale. The
+default for the package is South African, i.e., "Africa/Johannesburg" which
+is equivalent to "SAST".}
 
 \item{recurr}{Setting this to TRUE will enable searching
 for R data files in sub directories i.e., a recursive search.}

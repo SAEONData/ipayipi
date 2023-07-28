@@ -13,6 +13,15 @@
 #' @param prompt If TRUE, a command line prompt will be used to
 #'  enable selection of which files in the working directory require
 #'  drift correction.
+#' @param dt_format The function guesses the date-time format from a vector of
+#'  format types supplied to this argument. The 'guessing' is done via
+#'  `lubridate::parse_date_time()`. `lubridate::parse_date_time()` prioritizes
+#'  the 'guessing' of date-time formats in the order vector of formats
+#'  supplied. The default vector of date-time formats supplied should work
+#'  well for most logger outputs.
+#' @param dt_tz Recognized time-zone (character string) of the data locale. The
+#'  default for the package is South African, i.e., "Africa/Johannesburg" which
+#'  is equivalent to "SAST".
 #' @keywords
 #' @author Paul J. Gordijn
 #' @return
@@ -20,9 +29,15 @@
 gw_alpine_butter <- function(
   input_dir = ".",
   wanted = NULL,
-  unwanted = FALSE,
+  unwanted = NULL,
   prompt = FALSE,
   recurr = FALSE,
+  dt_format = c(
+    "Ymd HMS", "Ymd IMSp",
+    "ymd HMS", "ymd IMSp",
+    "mdY HMS", "mdy IMSp",
+    "dmY HMS", "dmy IMSp"),
+  dt_tz = "Africa/Johannesburg",
   ...) {
   inx <- ipayipi::dta_list(input_dir = input_dir, file_ext = ".rds",
     prompt = prompt, recurr = recurr, baros = FALSE, unwanted = unwanted,
@@ -36,8 +51,12 @@ gw_alpine_butter <- function(
     if ("dummies" %in% names(gw)) {
       if (nrow(gw$dummies[handle == "dummy_drift"]) > 0) {
         gw_name  <- x
-      } else gw_name <- NA
-    } else gw_name <- NA
+      } else {
+        gw_name <- NA
+      }
+    } else {
+      gw_name <- NA
+    }
     invisible(gw_name)
   })
   inx <- unlist(inx)
@@ -54,12 +73,13 @@ gw_alpine_butter <- function(
       !date_time2 > gw$log_t$Date_time[1]]
     ctbl <- lapply(seq_len(nrow(tie_tbl)), function(z) {
       ctbl <- ipayipi::gw_ties(file = gw, tie_type = "dummy_drift",
-        tie_datetime = as.POSIXct(as.character(tie_tbl$date_time1[z])))
+        tie_datetime = format(tie_tbl$date_time1[z], "%Y-%m-%d %H:%M:%S"),
+        dt_tz = attr(tie_tbl$date_time1[z], "tzone"))
       invisible(ctbl)
     })
     ctbl <- data.table::rbindlist(ctbl)
     gw$log_retrieve <- gw$log_retrieve[
-      !Date_time %in% as.POSIXct(as.character(ctbl$Date_time))]
+      !Date_time %in% ctbl$Date_time]
     gw$log_retrieve <- rbind(gw$log_retrieve, ctbl)[order(Date_time)]
     saveRDS(gw, file = file.path(input_dir, x))
   })

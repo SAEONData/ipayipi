@@ -4,7 +4,14 @@
 \alias{gw_read_datum_log}
 \title{Read datum log csv}
 \usage{
-gw_read_datum_log(input_dir = NULL, recurr = FALSE, ...)
+gw_read_datum_log(
+  input_dir = NULL,
+  recurr = FALSE,
+  dt_format = c("Ymd HMS", "Ymd IMSp", "ymd HMS", "ymd IMSp", "mdY HMS", "mdy IMSp",
+    "dmY HMS", "dmy IMSp"),
+  dt_tz = "Africa/Johannesburg",
+  ...
+)
 }
 \arguments{
 \item{input_dir}{Directory in which the R solonist data files and datum log
@@ -12,6 +19,17 @@ csv files are located.}
 
 \item{recurr}{Should sub-directories be included in the search for the datum
 log csv file - TRUE/FALSE.}
+
+\item{dt_format}{The function guesses the date-time format from a vector of
+format types supplied to this argument. The 'guessing' is done via
+\code{lubridate::parse_date_time()}. \code{lubridate::parse_date_time()} prioritizes
+the 'guessing' of date-time formats in the order vector of formats
+supplied. The default vector of date-time formats supplied should work
+well for most logger outputs.}
+
+\item{dt_tz}{Recognized time-zone (character string) of the data locale. The
+default for the package is South African, i.e., "Africa/Johannesburg" which
+is equivalent to "SAST".}
 }
 \description{
 Function to read in a datum log csv file and checks variable

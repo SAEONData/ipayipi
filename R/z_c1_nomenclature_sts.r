@@ -71,6 +71,11 @@ nomenclature_sts <- function(
   nomtab <- unique(nomtab,
     by = c("uz_station", "logger_type", "record_interval_type",
       "record_interval", "uz_table_name"))
+  # standardise raw table name preffix
+  nomtab$table_name <- data.table::fifelse(
+    !grepl(pattern = "raw_", x = nomtab$table_name),
+    paste0("raw_", nomtab$table_name), nomtab$table_name
+  )
   saveRDS(nomtab, file.path(wait_room, "nomtab.rns"))
 
   if (check_nomenclature &&

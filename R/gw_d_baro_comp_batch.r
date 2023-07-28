@@ -97,7 +97,9 @@ gw_baro_comp_batch <- function(
         " name in the \'rdta_log.rds file\'"))
       stopit <- TRUE
     }
-  } else stopit <- FALSE
+  } else {
+    stopit <- FALSE
+  }
   if (!stopit) {
     cr_msg <- padr(core_message = " barometric compensation... ",
       pad_char = "=", pad_extras = c("|", "", "", "|"), force_extras = FALSE,

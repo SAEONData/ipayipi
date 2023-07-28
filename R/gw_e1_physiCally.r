@@ -37,7 +37,7 @@ gw_physiCally <- function(
     stop("There is no datum_log file")
   }
   rum <- gw_read_retrieve_log(input_dir = input_dir, recurr = recurr)
-  if (is.null(dum) == TRUE | is.null(rum) == TRUE) {
+  if (is.null(dum) == TRUE || is.null(rum) == TRUE) {
     stop("There is no retrieve_log file")
   }
   slist <- ipayipi::dta_list(input_dir = input_dir, recurr = recurr,
@@ -110,11 +110,12 @@ gw_physiCally <- function(
     rum_lg_temp <- rum_temp[which(!is.na(rum_temp$Depth_to_logger_m) &
       rum_temp$zum == emma), ]
     rum_lg_temp <- rum_lg_temp[, c("EvID", "Date_time")]
-    rum_bh_temp <- rum_temp[which(rum_temp$xum == emmat), ]
+    rum_bh_temp <- rum_temp[xum == emmat][!is.na(Date_time)]
     rum_bh_temp_l <- rum_bh_temp
     rum_bh_temp <- rum_bh_temp[
       which(!is.na(rum_bh_temp$Dipper_reading_m) |
         !is.na(rum_bh_temp$Casing_ht_m)), c("EvID", "Date_time")]
+    rum_bh_temp <- rum_bh_temp[!is.na(Date_time)]
 
     if (nrow(sol_temp$log_t) > 0) {
       if (nrow(rum_bh_temp) > 0) {

@@ -36,6 +36,7 @@ rain_agg_batch <- function(
   ignore_nas = FALSE,
   agg_offset = c("0 secs", "0 secs"),
   ...) {
+
   slist <- ipayipi::dta_list(input_dir = input_dir, file_ext = ".rds",
     prompt = prompt, recurr = recurr, unwanted = unwanted, wanted = wanted)
   cr_msg <- ipayipi::padr(core_message =

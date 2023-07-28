@@ -7,7 +7,9 @@
 sts_interval_name(intv = NULL, ...)
 }
 \arguments{
-\item{intv}{String describing time duration or 'difftime' object.}
+\item{intv}{String describing time duration or 'difftime' object. If
+a string the string should begin with an interger and then the standard
+inverval period. Recognised interval periods are described in the details.}
 }
 \value{
 Tabulated details on the time duration.
@@ -18,7 +20,21 @@ to the time period in seconds.
 }
 \details{
 Function used internally. Note that if the input is in months
-the returned time in seconds is based on a 28 day month.
+the returned time in seconds is based on a 28 day month. Also the
+seconds in a year are estimated based on a \code{lubridate} year period.
+These abviously differ depening on the exact period the interval covers,
+e.g., a leap year.
+
+\emph{Table} of recognised interval string inputs.\tabular{ll}{
+   Recognised inputs \tab Synonums \cr
+   "secs" \tab "sec \cr
+   "mins" \tab "min \cr
+   "hours" \tab "hour \cr
+   "days" \tab "day \cr
+   "weeks" \tab "wk \cr
+   "months" \tab "month \cr
+   "years" \tab "yr \cr
+}
 }
 \author{
 Paul J. Gordijn

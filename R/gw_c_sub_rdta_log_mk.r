@@ -35,7 +35,7 @@
     } else {
       baro <- NA
     }
-    logdta <- data.table(
+    logdta <- data.table::data.table(
       Location = as.character(f$xle_LoggerHeader$Location[length(
         f$xle_LoggerHeader$Location
     )]),
@@ -48,8 +48,8 @@
       Model = as.character(f$xle_LoggerInfo$Model_number[length(
         f$xle_LoggerInfo$Model_number
     )]),
-      Start = as.POSIXct(as.character(min(f$log_data$Date_time))),
-      End = as.POSIXct(as.character(max(f$log_data$Date_time))),
+      Start = min(f$log_data$Date_time),
+      End = max(f$log_data$Date_time),
       file.name = as.character(x),
       place = as.character("solr_room"),
       Baro_name = as.character(baro),
