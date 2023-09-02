@@ -11,6 +11,7 @@
 change_intervals <- function(
   int_dta = NULL,
   ...) {
+  ":=" <- NULL
   qt <- data.table::data.table(
     id = seq_along(int_dta),
     int_dta = int_dta,

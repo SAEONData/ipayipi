@@ -6,11 +6,9 @@
 #'  from 8 am to 8pm the `agg_offset` should be set to c(8 hours, 8 hours).
 #' @author Paul J. Gordijn
 #' @export
-aggs <- function(
-  agg_offset = c("0 secs", "0 secs"),
+agg_gen <- function(
   ...) {
-    x <- list(...)
-    x <- list(agg_offset = agg_offset, f_params = x)
-    class(x) <- c("f_params", "list")
-    return(x)
-  }
+  x <- list(...)
+  class(x) <- c("agg_params", "list")
+  return(x)
+}

@@ -43,6 +43,7 @@ chainer <- function(
   notes = NULL,
   fork_table = NULL,
   ...) {
+  "%ilike%" <- NULL
   # some evaluation of the chain segment
   if (!temp_var) { # if the variable is permanent
     essnt_params <- c("measure", "units", "var_type")
@@ -53,8 +54,9 @@ chainer <- function(
     # standardise types of measures, units and var_types ...
     sts_phen_var_type <- data.table::data.table(
       phen_prop = c("num", "int", "chr", "fac", "posix", "logi"),
-      phen_syn = c("num", "int", "str|string|chr|character|char",
-        "fac|factor|fact", "date|time|posix", "logical|lgcl|lcl|lgc|logi")
+      phen_syn = c("numeric", "integer", "str|string|chr|character|char",
+        "fac|factor|fact", "date|time|posix|date-time|posixct",
+        "logical|lgcl|lcl|lgc|logi")
     )
     ivar_type <- sts_phen_var_type[phen_syn %ilike% var_type]$phen_prop
     if (length(ivar_type) > 1 || length(ivar_type) < 1) {
@@ -63,9 +65,10 @@ chainer <- function(
     }
     var_type <- ivar_type
     sts_phen_measure <- data.table::data.table(
-      phen_prop = c("smp", "tot", "min", "max", "avg", "cumm"),
+      phen_prop = c("smp", "tot", "min", "max", "avg", "cumm", "logi"),
       phen_syn = c("smp|samp|smpl|sample", "total|tot", "min|mn|minimum",
-        "max|mx|maximum", "average|avg|mean", "cum|cumm|cml|cummulative")
+        "max|mx|maximum", "average|avg|mean", "cum|cumm|cml|cummulative",
+        "logical")
     )
     imeasure <- sts_phen_measure[phen_syn %ilike% measure]$phen_prop
     if (length(imeasure) > 1 || length(imeasure) < 1) {

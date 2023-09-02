@@ -2,7 +2,7 @@
 % Please edit documentation in R/z_sub_dt_hsf_param_eval.r
 \name{hsf_param_eval}
 \alias{hsf_param_eval}
-\title{Harvest station data}
+\title{'dt' processing pipeline: genearte data harvest criteria}
 \usage{
 hsf_param_eval(
   station_file = NULL,
@@ -13,38 +13,42 @@ hsf_param_eval(
   phen_names = NULL,
   recurr = TRUE,
   harvest_station_ext = ".ipip",
-  prompt = FALSE,
+  prompt = TRUE,
   single_out = TRUE,
   full_eval = FALSE,
+  f_params = NULL,
   f_summary = NULL,
-  ppsi = NULL,
+  ppsij = NULL,
   sf = NULL,
   ...
 )
 }
 \arguments{
-\item{station_file}{The path and name of the main station to
+\item{station_file}{*The path and name of the main station to
 which data is being harvested.}
 
-\item{hsf_station}{The path and name of the station, or a
-keyword, to search for the station from which data will be
-harvested. \emph{If \code{NULL} the \code{hsf_station} is set to
-\code{station_file}, i.e., data will be harvested from the
-\code{station_file}.}}
+\item{hsf_station}{*The path and name of the station, or a keyword, to search
+for the station from which data will be harvested. \emph{If \code{NA} the
+\code{hsf_station} is set to \code{station_file}, i.e., data will be harvested from
+the \code{station_file}.} If a string is provided the function will search
+for a matching station during full evaluation (\code{eval_full} set to TRUE`).}
 
-\item{hsf_table}{The name of the table from which to harvest
-data. If the keyword "raw" is used data will extracted from
-stations 'raw' data.}
+\item{harvest_dir}{*The directory in which to search for the \code{hsf_station}.}
 
-\item{time_interval}{The desired time interval of the \code{output_dt}.
-The full evaluation will extract phenomena from raw data tables
-based accordingly.}
+\item{hsf_table}{*The name of the table from which to harvest data. If the
+keyword "raw" is used data will extracted from stations standardised 'raw'
+data. The linked "phen" table will be used for describing the extracted
+"raw" data. If there are no phenomena descriptions the function will use
+the default format of the fields/columns of the harvested table. This will
+be added to the processing phenomena information ('phens_dt').}
 
-\item{phen_names}{Names of phenomena to extract from the specified
-tables. If \code{NULL} all phenomena possible will be harvested. If the
-desired \code{time_interval} is shorter than the time interval or
-frequency of recordings of the data to be harvested, phenomena will
-not be harvested.}
+\item{time_interval}{*The desired time interval of the \code{output_dt}. The
+full evaluation will extract phenomena from 'raw' data tables accordingly.}
+
+\item{phen_names}{*Names of phenomena to extract from tables. If \code{NULL}
+all phenomena possible will be harvested. If the desired \code{time_interval}
+is shorter than the time interval or frequency of recordings of the data
+to be harvested, phenomena will not be harvested.}
 
 \item{recurr}{Logical. Whether to search recursively in directories
 for the \code{hsf_station}. Parsed to \code{ipayipi::dta_list()}.}
@@ -61,13 +65,29 @@ returns from than one option.}
 
 \item{full_eval}{Defaults to \code{FALSE}.}
 
-\item{ppsi}{Summary pipe process table for the function. If provided this
+\item{f_params}{For the partial evaluation multiple phenomena can
+be described using \code{ipayipi::agg_params()}. If left blank defaults will
+be used on all phenomena harvested.}
+
+\item{f_summary}{Summary information used in full evaluation. Includes
+any tables in the station file with keywords, "phens" or "summary".}
+
+\item{ppsij}{Summary pipe process table for the function. If provided this
 data will be used to overwrite similar arguments provided in the function.
 This must be provided for the full function evaluation.}
 
-\item{hsf_dir}{The directory in which to search for the
-\code{hsf_station}.}
+\item{sf}{Station file object.}
 }
 \description{
 Sets up a data harvest from a desired station file.
+}
+\details{
+_Parameters indicated by '*' are used in the partial evaluation.
+The results of partial evaluations are fed to the full evaluation.
+
+\emph{Time_interval}: In order to minimise the memory requried to
+aggregate harvested data, if there are more than one 'raw' tables with
+different record intervals, phenomena will be exrtacted from the 'raw'
+table whose record interval most closely matches the specified
+\code{time_interval}.
 }

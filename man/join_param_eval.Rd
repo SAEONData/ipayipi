@@ -13,7 +13,7 @@ join_param_eval(
   x_table_key = NULL,
   full_eval = FALSE,
   f_summary = NULL,
-  ppsi = NULL,
+  ppsij = NULL,
   sf = sf,
   ...
 )

@@ -15,6 +15,7 @@ phenomena_read_csv <- function(
     input_dir = ".",
     file = NULL,
     ...) {
+  "wait_room" <- NULL
   if (is.null(file)) {
     phenlist <- ipayipi::dta_list(input_dir = input_dir, file_ext = ".csv",
       wanted = "phentab")

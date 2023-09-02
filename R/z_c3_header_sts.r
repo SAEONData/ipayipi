@@ -38,6 +38,8 @@ header_sts <- function(
   file_ext_out = ".iph",
   ...
 ) {
+  "uz_station" <- "logger_type" <- "record_interval_type" <-
+    "record_interval" <- "uz_table_name" <- "old_fn" <- NULL
   # get list of data to be imported
   slist <- ipayipi::dta_list(input_dir = wait_room, file_ext = file_ext_in,
     prompt = prompt, recurr = recurr, unwanted = unwanted, wanted = wanted)

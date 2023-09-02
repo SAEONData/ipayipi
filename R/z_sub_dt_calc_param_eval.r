@@ -7,10 +7,11 @@ calc_param_eval <- function(
   full_eval = FALSE,
   f_params = NULL,
   f_summary = NULL,
-  ppsi = NULL,
+  ppsij = NULL,
   sf = sf,
   ...
   ) {
+  "phen_name" <- NULL
   x <- list(...)
   # x <- list(
   #   t_lag = chainer(
@@ -75,9 +76,9 @@ calc_param_eval <- function(
     class(dt_parse) <- c(class(dt_parse), "dt_calc_string")
   } else {
     # full evaluation of chainer with providing phenmoena
-    # extract chains from ppsi
+    # extract chains from ppsij
     if (is.null(f_params)) {
-      idt <- as.list(ppsi$f_params)
+      idt <- as.list(ppsij$f_params)
     } else {
       s <- unlist(gregexpr(pattern = "\\[", text = f_params))
       e <- unlist(gregexpr(pattern = "\\]", text = f_params))
@@ -112,22 +113,27 @@ calc_param_eval <- function(
       return(si)
     })
     # generate a phen table
-    record_interval_type <- ipayipi::sts_interval_name(ppsi$time_interval[1])
+    record_interval_type <- ipayipi::sts_interval_name(ppsij$time_interval[1])
+    fna <- function(x, y) if (any(is.null(x[[y]]))) NA else x[[y]][1]
     phens_dt <- data.table::data.table(
-      ppsid = paste(ppsi$dt_n, ppsi$dtp_n, sep = "_"),
+      ppsid = paste(ppsij$dt_n, ppsij$dtp_n, sep = "_"),
       phid = NA,
-      phen_name = new_phens,
-      units = sapply(xtras, function(x) x$units),
-      measure = sapply(xtras, function(x) x$measure),
-      var_type = sapply(xtras, function(x) x$var_type),
+      phen_name = unlist(new_phens),
+      units = sapply(xtras, fna, y = "units"),
+      measure = sapply(xtras, fna, y = "measure"),
+      var_type = sapply(xtras, fna, y = "var_type"),
       record_interval_type = data.table::fifelse(
-        record_interval_type$sts_intv %in% "discnt", "discnt", "continuous"),
+        record_interval_type$sts_intv %in% "discnt",
+        "event_based", "continuous"),
       orig_record_interval = record_interval_type$sts_intv,
-      orig_table_name = ppsi$output_dt,
-      table_name = ppsi$output_dt
+      dt_record_interval = gsub(pattern = " ", replacement = "_",
+        record_interval_type$sts_intv),
+      orig_table_name = ppsij$output_dt,
+      table_name = ppsij$output_dt
     )
     phens_dt <- phens_dt[!is.na(phen_name)]
-    dt_parse <- list(f_params = f_params, phens_dt = phens_dt)
+    dt_parse <- list(f_params = list(calc_params = f_params),
+      phens_dt = phens_dt)
   }
   return(dt_parse)
 }

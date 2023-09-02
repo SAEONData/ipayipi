@@ -23,6 +23,10 @@ append_station <- function(
   by_station_table = FALSE,
   ...
 ) {
+  "phen_name" <- "table_name" <- "dups" <- "phid_new" <-
+    "phen_name_full" <- "phen_type" <- "measure" <- "uz_phen_name" <-
+      "var_type" <- "uz_units" <- "uz_measure" <- "phid" <- "origin" <-
+        NULL
   sf_ds <- readRDS(station_file)$data_summary
   sf_phen_ds <- readRDS(station_file)$phen_data_summary
   sf_phens <- readRDS(station_file)$phens
@@ -92,7 +96,7 @@ append_station <- function(
     zuz_phen_name <- phen_dt[dups == TRUE]$uz_phen_name[j]
     zuz_units <- phen_dt[dups == TRUE]$uz_units[j]
     zuz_measure <- phen_dt[dups == TRUE]$uz_measure[j]
-    zf_convert <- phen_dt[dups == TRUE]$f_convert[j]
+    # <- phen_dt[dups == TRUE]$f_convert[j]
     phen_dt[dups == TRUE]$phid_new[j] <-
       phen_dt[dups == FALSE][phen_name_full %in% z_name_full][
         phen_type %in% z_type][phen_name %in% z_name][

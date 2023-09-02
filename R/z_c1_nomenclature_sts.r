@@ -23,6 +23,8 @@ nomenclature_sts <- function(
     file_ext = "ipr",
     ...
   ) {
+  "uz_station" <- "stnd_title" <- "station" <- "logger_type" <-
+    "logger_title" <- "uz_table_name" <- "table_name" <- "location" <- NULL
   if (file.exists(file.path(wait_room, "nomtab.rns"))) {
     nomtab <- readRDS(file.path(wait_room, "nomtab.rns"))
   } else {

@@ -36,7 +36,7 @@ append_phen_data <- function(
   tn = NULL,
   ri = NULL,
   ...) {
-
+  ":=" <- NULL
   phens <- unique(phen_dt[table_name == tn]$phen_name)
 
   nd_min <- min(ndt$date_time)

@@ -19,16 +19,16 @@ pipe_process(
 supplied.}
 
 \item{pipe_memory}{A station processing pipeline summary in table format.
-If supplied this will be updated via comparison with pipe_seq.}
+If supplied this will be updated after comparison with pipe_seq.}
 
 \item{overwrite_pipe_memory}{If TRUE then extant pipeline processing
 summaries are overwritten, and \emph{vice versa}.}
 
-\item{start_dttm}{Earliest date time for which data have been processed in
-this table.}
+\item{pipe_eval}{If \code{TRUE} then two pipes will be compared and a flag,
+that is, \code{update_pipe_data} will be set to \code{TRUE}.}
 
-\item{end_dttm}{Latest date time for which data have been processed in
-this table.}
+\item{update_pipe_data}{Defaults to \code{FALSE}. Is returned as \code{TRUE} if
+\code{pipe_seq} is different to \code{pipe_memory}.}
 }
 \value{
 A standardised pipe process summary and a tag indicating whether an

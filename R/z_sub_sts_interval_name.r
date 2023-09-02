@@ -28,6 +28,7 @@ sts_interval_name <- function(
   intv = NULL,
   ...
 ) {
+  "%ilike%" <- NULL
   if (is.null(intv)) intv <- NA
   # reference table for standardisation
   time_units <- data.table::data.table(

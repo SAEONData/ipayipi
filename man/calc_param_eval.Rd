@@ -8,7 +8,7 @@ calc_param_eval(
   full_eval = FALSE,
   f_params = NULL,
   f_summary = NULL,
-  ppsi = NULL,
+  ppsij = NULL,
   sf = sf,
   ...
 )

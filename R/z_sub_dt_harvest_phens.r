@@ -5,6 +5,7 @@
 harvest_phens <- function(
   phen = NULL
 ) {
+  ":=" <- NULL
   aggs <- ipayipi::aggs(rain_tot = ipayipi::agg_params(
     agg_function = "mean(x)", units = "mm", table_name = "raw_5_mins"))
   # if list format --- convert to table

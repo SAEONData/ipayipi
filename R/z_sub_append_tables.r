@@ -1,13 +1,14 @@
 #' @title Appends a list of tables
-#' @description Appends tables based on date-time stamps, and unique rows.
-#' @param original_tbl_list List of original tables to append. Both original
-#'  and new table lists must be named.
-#' @param new_tbl_list Named list of new tables to append to the originals.
-#' @param overwrite_old NOTE: THIS FUNCTIONALITY HAS NOT YET BEEN INCLUDED.
-#'  Logical. If `TRUE` then original data is disgarded
-#'  in favour of new data. If there are NA values, in either old or new data,
-#'  these are not retained if there are values in the old or new data that can
-#'  replace these. Defaults to FALSE.
+#' @description Appends lists of tables (and other list objects) based
+#'  on date-time stamps, and unique rows.
+#' @param original_tbl List of original tables (and other named
+#'  objects in the list) to append. Both original and new table lists
+#'  must be named.
+#' @param new_tbl Named list of new tables (and other objects) to append
+#'  to the originals.
+#' @param overwrite_old If `TRUE` then original data is disgarded in favour of
+#'  new data. Defaults to FALSE. In the case of non-data.table items new
+#'  data objects replace old if set to `TRUE`.
 #' @keywords append data, overwrite data, join tables,
 #' @export
 #' @author Paul J Gordijn
@@ -19,12 +20,21 @@ append_tables <- function(
   new_tbl = NULL,
   overwrite_old = FALSE,
   ...) {
+  # seperate list items and table items
+  original_oth <- original_tbl[
+    !sapply(original_tbl, FUN = data.table::is.data.table)]
+  new_oth <- new_tbl[!sapply(new_tbl, FUN = data.table::is.data.table)]
+  original_tbl <- original_tbl[
+    sapply(original_tbl, FUN = data.table::is.data.table)]
+  new_tbl <- new_tbl[sapply(new_tbl, FUN = data.table::is.data.table)]
   otbl_names <- names(original_tbl)
   ntbl_names <- names(new_tbl)
+  if (length(otbl_names) == 0) otbl_names <- NULL
+  if (length(ntbl_names) == 0) ntbl_names <- NULL
 
   # check for unique table names and make blank tables to infill
-  uotbl_names <- otbl_names[!names(otbl_names) %in% ntbl_names]
-  untbl_names <- ntbl_names[!names(ntbl_names) %in% otbl_names]
+  uotbl_names <- otbl_names[!otbl_names %in% ntbl_names]
+  untbl_names <- ntbl_names[!ntbl_names %in% otbl_names]
   # create empty tables for simple appending so each table name has a pair
   uotbl <- lapply(untbl_names, function(x) {
     original_tbl[x] <- new_tbl[x]
@@ -42,7 +52,7 @@ append_tables <- function(
   new_tbl <- c(new_tbl, untbl)
 
   # append paired tables
-  tbl_names <- unique(otbl_names, ntbl_names)
+  tbl_names <- unique(c(otbl_names, ntbl_names))
   tbls <- lapply(seq_along(tbl_names), function(i) {
       tbl <- rbind(original_tbl[[tbl_names[i]]], new_tbl[[tbl_names[i]]],
         fill = TRUE)
@@ -56,5 +66,13 @@ append_tables <- function(
     if ("start_dttm" %in% names(x)) x <- x[order(start_dttm, end_dttm)]
     return(x)
   })
+  # add list items together
+  if (overwrite_old) {
+    new_oth <- new_oth[!names(new_oth) %in% names(original_oth)]
+  } else {
+    original_oth <- original_oth[!names(original_oth) %in% names(new_oth)]
+  }
+  new_oth <- c(original_oth, new_oth)
+  tbls <- c(tbls, new_oth)
   return(tbls)
 }

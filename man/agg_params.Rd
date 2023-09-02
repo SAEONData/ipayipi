@@ -4,9 +4,51 @@
 \alias{agg_params}
 \title{Aggregate organisation for phenomena}
 \usage{
-agg_params(aggs = NULL)
+agg_params(
+  n = NULL,
+  phen_out_name = NULL,
+  agg_f = NULL,
+  units = NULL,
+  measure = NULL,
+  var_type = NULL,
+  ignore_nas = TRUE,
+  ...
+)
+}
+\arguments{
+\item{n}{Optional parameter for assigning an integer to the phenomena
+being aggregated. Duplicated 'n's will be filtered out in partial
+evaluation.}
+
+\item{phen_out_name}{Final aggregated phenomena name (can be different
+from the phenomena name in the harvested or other data source.}
+
+\item{agg_f}{Custom aggregation function. Must be supplied with \code{x} as
+it's argument, e.g., \code{mean(x, na.rm = TRUE)}. String variable.}
+
+\item{units}{Standardised unit of the phenomena.}
+
+\item{measure}{Measure describing the original phenomena. "\strong{smp}" for
+sample; "\strong{avg}" for mean or average; "\strong{tot}" for total; "\strong{min}",
+"\strong{max}" for maximum; or "\strong{sd}" for standard deviation.}
+
+\item{var_type}{The specified type or class of a variable/phenomenon.
+"\strong{num}" for numeric or double; "\strong{int}" for integer; "\strong{fac}" for
+factor; "posix" for dates or date-time stamps; "\strong{chr}" for character
+or string.}
+
+\item{ignore_nas}{If not a custom function must \code{NA} values be ignored
+in aggregation functions. If \code{NA} values are ignored then aggregate
+periods with \code{NA} values will not be calculated? Logical \code{TRUE} or
+\code{FALSE}.}
 }
 \description{
-Function to organise a list or a data.table of
-aggregation parameters.
+Function to organise a list of aggregation parameters.
+Can be used to override default aggregation parameters, e.g., in
+the case of aggregating a mean by a maximum to estimate the maximum-mean.
+Provide as much detail as possible. _The phenomena name is not provided
+as a parameter to this function --- see \code{ipayipi::agg_param_eval()}.
+}
+\author{
+Paul J. Gordijn
 }

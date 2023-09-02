@@ -29,7 +29,6 @@
 #'  raw data standardisation; data pipeline
 #' @author Paul J. Gordijn
 #' @export
-#' @details 
 imbibe_raw_batch <- function(
   wait_room = NULL,
   file_ext_in = NULL,

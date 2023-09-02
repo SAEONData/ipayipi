@@ -62,6 +62,9 @@ phenomena_sts <- function(
   file_ext_out = ".ipi",
   ...
 ) {
+  "uz_phen_name" <- "uz_units" <- "uz_measure" <- "phen_name_full" <-
+    "var_type" <- "f_convert" <- "%ilike%" <- ".SD" <- "phen_name" <-
+    ":=" <- NULL
   # get list of data to be imported
   slist <- ipayipi::dta_list(input_dir = wait_room, file_ext = file_ext_in,
     prompt = prompt, recurr = recurr, unwanted = unwanted, wanted = wanted)

@@ -2,7 +2,7 @@
 % Please edit documentation in R/z_sub_ipip_init.r
 \name{ipip_init}
 \alias{ipip_init}
-\title{Pipe directory intitiate---generic}
+\title{Pipe directory intitiate}
 \usage{
 ipip_init(work_dir = ".")
 }

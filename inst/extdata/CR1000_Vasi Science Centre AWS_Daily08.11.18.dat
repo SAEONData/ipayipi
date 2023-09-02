@@ -1,0 +1,5 @@
+"TOA5","CR1000_Vasi Science Centre AWS","CR1000","84923","CR1000.Std.31.02","CPU:Vasi_Science Centre AWS.CR1","64103","Daily"
+"TIMESTAMP","RECORD","WS_ms_S_WVT","WindDir_D1_WVT","WindDir_SD1_WVT","WS_ms_Max","AirTC_Min","AirTC_Max","RH_Min","RH_Max","SlrW_Max","SlrW_Std","CUV5_W_Max","CUV5_W_Std","CUV5_MJ_Tot","Rain_mm_Tot","T107_C_Min","T107_C_Avg","VW_Avg"
+"TS","RN","meters/second","Deg","Deg","meters/second","Deg C","Deg C","%","%","W/m^2","W/m^2","W/m^2","W/m^2","MJ/m^2","mm","Deg C","Deg C",""
+"","","WVc","WVc","WVc","Max","Min","Max","Min","Max","Max","Std","Max","Std","Tot","Tot","Min","Avg","Avg"
+"2018-11-08 00:00:00",0,1.837,173.7,36.81,7.175,15.31,23.24,52.24,89.6,753,169.1,28.33,7.591,0.153,0.762,15.02,18.24,0.073

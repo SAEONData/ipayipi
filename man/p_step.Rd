@@ -18,13 +18,34 @@ p_step(
 )
 }
 \arguments{
-\item{dtp_n}{The numeric (integer) order of the processing step.}
+\item{dt_n}{The numeric (integer) order of the processing stage.}
 
-\item{f}{A string to be evaluated in the data.table environment.}
+\item{dtp_n}{A processing stage ('dt_n') contains multiple steps. A stage
+generally only outputs one processed data table with the specified
+\code{time_interval} given at the harvesting stage.}
 
-\item{input_dt}{The name of the input data table (character string).}
+\item{f}{One of the following functions given as a string: "dt_harvest",
+"dt_calc_chain", "dt_agg", and "dt_join".
+\itemize{
+\item "dt_harvest": function used to harvest data from a station or other
+source.
+\item "dt_calc_chain": uses \code{data.table} chaining to perform calculations,
+filtering/subsetting, and generate new variables.
+\item "dt_agg": used to aggregate data by a specified/default function by
+a desired \code{time_interval}.
+\item "dt_join": merges two datasets via overlap, left, right, inner and
+outer joins. \emph{Not yet implemented}.
+}}
 
-\item{output_dt}{The name of the output data table (character string).}
+\item{input_dt}{The name/keyword of the input data table (character string).
+If not specified at the harvesting stage, "raw" data imported into a
+station file will be harvested.}
+
+\item{output_dt}{The name of the output data table (character string) ---
+the final table is appended to a station file object.}
+
+\item{time_interval}{Only has to be specified in the harvesting step. Only
+one time interval per stage.}
 }
 \description{
 Internal function used to unpack a data pipeline processing

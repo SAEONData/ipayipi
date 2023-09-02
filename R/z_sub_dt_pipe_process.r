@@ -4,13 +4,13 @@
 #'  `ipayipi::p_dt()`. Both or either the `pipe_seq` or `pipe_memory` must be
 #'  supplied.
 #' @param pipe_memory A station processing pipeline summary in table format.
-#'  If supplied this will be updated via comparison with pipe_seq.
+#'  If supplied this will be updated after comparison with pipe_seq.
 #' @param overwrite_pipe_memory If TRUE then extant pipeline processing
 #'  summaries are overwritten, and _vice versa_.
-#' @param start_dttm Earliest date time for which data have been processed in
-#'   this table.
-#' @param end_dttm Latest date time for which data have been processed in
-#'   this table.
+#' @param pipe_eval If `TRUE` then two pipes will be compared and a flag,
+#'  that is, `update_pipe_data` will be set to `TRUE`.
+#' @param update_pipe_data Defaults to `FALSE`. Is returned as `TRUE` if
+#'  `pipe_seq` is different to `pipe_memory`.
 #' @author Paul J. Gordijn
 #' @export
 #' @return A standardised pipe process summary and a tag indicating whether an
@@ -25,7 +25,7 @@ pipe_process <- function(
   update_pipe_data = FALSE,
   ...) {
   # run basic pipe sequence check
-  pipe_seq <- ipayipi::pipe_seq(pipe_seq = pipe_seq, pipe_eval = pipe_eval)
+  pipe_seq <- ipayipi::pipe_seq(p = pipe_seq, pipe_eval = pipe_eval)
   pipe_memory <- pipe_seq
   # compare standardised pipe_seq with pipe_memory --- this doesn't eval
   #  function parameters
@@ -51,9 +51,13 @@ pipe_process <- function(
         pps_new[!id %in% pps_common$id],
         pps_common)[order(dt_n, dtp_n)]
       pps <- subset(pps, select = -id)
+
+      update_pipe_data <- TRUE # need to run full eval and data processing
     } else {
       pps <- pipe_seq[order(dt_n, dtp_n)]
     }
+  } else {
+    update_pipe_data <- TRUE  # need to run full eval and data processing
   }
   return(list(pipe_seq = pipe_seq, update_pipe_data = update_pipe_data,
     overwrite_pipe_memory = overwrite_pipe_memory))
