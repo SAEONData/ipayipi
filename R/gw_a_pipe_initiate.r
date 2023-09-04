@@ -13,7 +13,7 @@
 #' * **wait_room** --- for raw data imports
 #' * **nomvet** --- for storing standardized native solonist data files
 #' * **solr_dta** --- transforming and processing standardized native data
-#'  & processing
+#'  & processing.
 #' @md
 #' @examples
 #' # Inititate pipeline
