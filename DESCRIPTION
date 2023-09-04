@@ -1,9 +1,9 @@
 Package: ipayipi
 Version: 0.2
 Date: 2020-10-28
-Title: Groundwater data processing pipe
-Author: Paul J Gordijn <paul@saeon.ac.za>
-Maintainer: Paul J Gordijn <paul@saeon.ac.za>
+Title: Logger data processing pipe
+Author: Paul J Gordijn <pj.gordijn@saeon.nrf.ac.za>
+Maintainer: Paul J Gordijn <pj.gordijn@saeon.nrf.ac.za>
 Description: Functions that can be used to generate time series data
  pipelines. Standardising of data and metadata, and processing this.
  Interactive visualisations for examining, infilling, drift correction
@@ -13,11 +13,13 @@ Depends:
     data.table (>= 1.12.8)
 Imports:
     attempt,
+    circular,
     dygraphs,
     ggplot2,
     lubridate,
     parallel,
     readxl,
+    units,
     XML,
     xml2,
     xts,
@@ -28,6 +30,7 @@ globalVariables(c(": ="),
         "Date_time", "Latitude", "Longtitude", "Event_threshold", "Schedule",
         "conduct_mS_per_cm",
         "xle_FileInfo", "xle_LoggerInfo", "xle_LoggerHeader",
-        "date_time"))
-RoxygenNote: 7.2.0
+        "date_time", "%ilike%"))
+RoxygenNote: 7.2.3
 Roxygen: list(markdown = TRUE)
+LazyData: true

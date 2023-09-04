@@ -4,13 +4,31 @@
 \alias{gw_read_rdta_log}
 \title{Reads in R data log csv file}
 \usage{
-gw_read_rdta_log(input_dir = NULL, file = NULL, ...)
+gw_read_rdta_log(
+  input_dir = NULL,
+  file = NULL,
+  dt_format = c("Ymd HMS", "Ymd IMSp", "ymd HMS", "ymd IMSp", "mdY HMS", "mdy IMSp",
+    "dmY HMS", "dmy IMSp"),
+  dt_tz = "Africa/Johannesburg",
+  ...
+)
 }
 \arguments{
 \item{input_dir}{Directory in which both the csv and R data files
 are located.}
 
 \item{file}{File name of the csv to be read.}
+
+\item{dt_format}{The function guesses the date-time format from a vector of
+format types supplied to this argument. The 'guessing' is done via
+\code{lubridate::parse_date_time()}. \code{lubridate::parse_date_time()} prioritizes
+the 'guessing' of date-time formats in the order vector of formats
+supplied. The default vector of date-time formats supplied should work
+well for most logger outputs.}
+
+\item{dt_tz}{Recognized time-zone (character string) of the data locale. The
+default for the package is South African, i.e., "Africa/Johannesburg" which
+is equivalent to "SAST".}
 }
 \value{
 A data.table of the logger files in a directory.

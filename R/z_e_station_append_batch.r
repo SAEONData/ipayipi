@@ -16,16 +16,22 @@
 #'   appended to appropriate stations. Appending is done via the
 #'   `ipayipi::append_station()`, `ipayipi::append_phen_data()`, and
 #'   `ipayipi::append_tables()` functions.
+#'  If the data is continuous the function ensures continuous date-time values
+#'  between missing data chuncks. Missing values are fillled as NA.
 #' @export
 append_station_batch <- function(
   ipip_room = NULL,
   nomvet_room = NULL,
-  overwrite_old = FALSE,
+  overwrite_sf = FALSE,
   by_station_table = FALSE,
   station_ext = ".ipip",
   sts_file_ext = ".ipi",
   ...
 ) {
+  overwrite_sf = FALSE
+  by_station_table = FALSE
+  station_ext = ".ipip"
+  sts_file_ext = ".ipi"
   # get list of station names in the ipip directory
   station_files <- ipayipi::dta_list(
     input_dir = ipip_room, file_ext = station_ext, prompt = FALSE,
@@ -47,8 +53,8 @@ append_station_batch <- function(
   })
   station_files <- gsub(station_ext, "", station_files)
   all_station_files <- unlist(sapply(station_files, function(x) {
-    z <- readRDS(file.path(ipip_room, paste0(x, station_ext)))
-    all_station_files <- z$data_summary$nomvet_name
+    all_station_files <- readRDS(file.path(ipip_room, paste0(x, station_ext)))$
+      data_summary$nomvet_name
     return(all_station_files)
   }))
   new_station_files <- nom_stations[
@@ -64,7 +70,8 @@ append_station_batch <- function(
   # update and/or create new stations
   # upgraded_stations <- lapply(seq_along(new_station_files), function(i) {
   upgraded_stations <- lapply(seq_along(new_station_files), function(i) {
-    # open the new station file
+    message(i)
+    # write the table name onto the 'new_data'
     new_data <- readRDS(file.path(nomvet_room, names(new_station_files[i])))
     new_data$phens$table_name <- new_data$data_summary$table_name[1]
     cr_msg <- padr(core_message = paste0(
@@ -82,13 +89,12 @@ append_station_batch <- function(
       )
     } else {
       # append data
-      station_file <- readRDS(file.path(ipip_room,
-        paste0(new_station_files[i], station_ext)))
+      station_file <- file.path(
+        ipip_room, paste0(new_station_files[i], station_ext))
       # append function, then save output as new station
       station_file <- ipayipi::append_station(station_file = station_file,
-        new_data = new_data, overwrite_old = overwrite_old,
+        new_data = new_data, overwrite_sf = overwrite_sf,
         by_station_table = by_station_table)
-      #print(station_file$phen_data_summary)
       saveRDS(station_file,
         file = file.path(ipip_room, paste0(new_station_files[i], station_ext)))
     }

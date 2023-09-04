@@ -5,29 +5,39 @@
 \title{Appends data tables by phenomena}
 \usage{
 append_phen_data(
-  old_dta = NULL,
-  old_phen_ds = NULL,
-  new_dta = NULL,
+  station_file = NULL,
+  sf_phen_ds = NULL,
+  ndt = NULL,
   new_phen_ds = NULL,
   phen_dt = NULL,
-  overwrite_old = FALSE,
+  overwrite_sf = FALSE,
   tn = NULL,
+  ri = NULL,
   ...
 )
 }
 \arguments{
+\item{station_file}{Path and filename of the station file.}
+
+\item{sf_phen_ds}{Phenomena summary from the station file.}
+
+\item{ndt}{Data from the new data file.}
+
+\item{new_phen_ds}{Phenomena summary for the new data.}
+
 \item{phen_dt}{Phenomena table of from both the station and new data files
 combined. These are combined and phids standarised in
 ipayipi::station_append().}
 
-\item{overwrite_old}{If \code{TRUE} then original data is disgarded
+\item{overwrite_sf}{If \code{TRUE} then original data is disgarded
 in favour of new data. If TRUE both data sets will be evaluated and where
 there are NA values, a replacement, if available, will be used to replace
 the NA value. Defaults to FALSE.}
 
-\item{station_data_table}{Data from the station file.}
+\item{tn}{The name of the phenomena data tables.}
 
-\item{new_data_table}{Data from the new data file.}
+\item{ri}{The record interval associated with the data sets. As a
+standardised string.}
 }
 \value{
 A phenomena table that contains the start and end dates of each
@@ -37,7 +47,7 @@ data. Also, the appended data.
 \description{
 This function is for internal use. The function is designed to
 append phenomena data and associated phenomena standards efficiently, but
-retaining a metadata records for each phenomena. Moreover, the function
+retaining metadata records for each phenomena. Moreover, the function
 evaluates missing data and compares new and older data records so avoid
 loosing data.
 }

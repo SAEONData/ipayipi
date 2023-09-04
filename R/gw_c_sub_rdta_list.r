@@ -22,7 +22,7 @@ gw_rdta_list <- function(
     input_dir = ".",
     recurr = FALSE) {
   rdta_path <- list.files(path = input_dir, pattern = "*.rds",
-    recursive = recurr, include.dirs = T, full.names = TRUE)
+    recursive = recurr, include.dirs = TRUE, full.names = TRUE)
   rdta_path <- setdiff(rdta_path,
     rdta_path[which(grepl(x = rdta_path, pattern = "rdta_log"))])
   rdta_path <- setdiff(rdta_path,

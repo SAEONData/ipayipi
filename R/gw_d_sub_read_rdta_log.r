@@ -5,6 +5,15 @@
 #' @param input_dir Directory in which both the csv and R data files
 #'  are located.
 #' @param file File name of the csv to be read.
+#' @param dt_format The function guesses the date-time format from a vector of
+#'  format types supplied to this argument. The 'guessing' is done via
+#'  `lubridate::parse_date_time()`. `lubridate::parse_date_time()` prioritizes
+#'  the 'guessing' of date-time formats in the order vector of formats
+#'  supplied. The default vector of date-time formats supplied should work
+#'  well for most logger outputs.
+#' @param dt_tz Recognized time-zone (character string) of the data locale. The
+#'  default for the package is South African, i.e., "Africa/Johannesburg" which
+#'  is equivalent to "SAST".
 #' @author Paul J Gordijn
 #' @keywords data log
 #' @return A data.table of the logger files in a directory.
@@ -15,6 +24,12 @@
 gw_read_rdta_log <- function(
   input_dir = NULL,
   file = NULL,
+  dt_format = c(
+    "Ymd HMS", "Ymd IMSp",
+    "ymd HMS", "ymd IMSp",
+    "mdY HMS", "mdy IMSp",
+    "dmY HMS", "dmy IMSp"),
+  dt_tz = "Africa/Johannesburg",
   ...) {
 
   fl_dir <- file.path(input_dir, basename(file))
@@ -27,8 +42,10 @@ gw_read_rdta_log <- function(
     Borehole = as.character(rdta_log$Borehole),
     SN = as.character(rdta_log$SN),
     Model = as.character(rdta_log$Model),
-    Start = as.POSIXct(as.character(rdta_log$Start)),
-    End = as.POSIXct(as.character(rdta_log$End)),
+    Start = lubridate::parse_date_time(
+      x = rdta_log$Start, orders = dt_format, tz = dt_tz),
+    End = lubridate::parse_date_time(
+      x = rdta_log$End, orders = dt_format, tz = dt_tz),
     file.name = as.character(rdta_log$file.name),
     place = as.character(rdta_log$place),
     Baro_name = as.character(rdta_log$Baro_name),

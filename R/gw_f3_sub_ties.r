@@ -18,6 +18,15 @@
 #' @param prompted If TRUE, a command line prompt will be used to
 #'  enable selection of which files in the working directory require
 #'  drift correction.
+#' @param dt_format The function guesses the date-time format from a vector of
+#'  format types supplied to this argument. The 'guessing' is done via
+#'  `lubridate::parse_date_time()`. `lubridate::parse_date_time()` prioritizes
+#'  the 'guessing' of date-time formats in the order vector of formats
+#'  supplied. The default vector of date-time formats supplied should work
+#'  well for most logger outputs.
+#' @param dt_tz Recognized time-zone (character string) of the data locale. The
+#'  default for the package is South African, i.e., "Africa/Johannesburg" which
+#'  is equivalent to "SAST".
 #' @details Tie points can be used to correct for level shifts in time series
 #'  data. This function will attempt to automatically generate tie points using:
 #'  1. Available calibration measurements,
@@ -30,6 +39,12 @@ gw_ties <- function(
   file = NULL,
   tie_type = NULL,
   tie_datetime = NULL,
+  dt_format = c(
+    "Ymd HMS", "Ymd IMSp",
+    "ymd HMS", "ymd IMSp",
+    "mdY HMS", "mdy IMSp",
+    "dmY HMS", "dmy IMSp"),
+  dt_tz = "Africa/Johannesburg",
   ...
 ) {
   if (class(file) != "level_file") {
@@ -37,26 +52,27 @@ gw_ties <- function(
   }
   if (tie_type == "dummy_drift" && length(tie_datetime) == 1) {
     ctbl <- file$log_retrieve
-    ctbl <- ctbl[Date_time != as.POSIXct(as.character(tie_datetime))][
+    tie_datetime <- lubridate::ymd_hms(tie_datetime, tz = dt_tz)
+    ctbl <- ctbl[Date_time != tie_datetime][
       !Date_time < file$log_t$Date_time[1] |
         !Date_time > file$log_t$Date_time[nrow(file$log_t)]
     ]
     ctbl <- ctbl[!Notes %in% "auto_dummy_drift"]
     ctbl_i <- data.table::data.table(
       id = as.integer(max(ctbl$id) + 1, na.rm = TRUE),
-      Date_time = as.POSIXct(as.character(tie_datetime)),
+      Date_time = tie_datetime,
       QA = as.logical(TRUE),
       Dipper_reading_m = as.numeric(NA),
       Casing_ht_m = as.numeric(NA),
       Depth_to_logger_m = as.numeric(NA),
       Notes = "auto_dummy_drift"
     )
-    ctbl <- ctbl[!Date_time %in% as.POSIXct(as.character(tie_datetime))]
+    ctbl <- ctbl[!Date_time %in% tie_datetime]
     ctbl <- rbind(ctbl, ctbl_i)[order(Date_time)]
-    ci_row <- which(ctbl$Date_time == as.POSIXct(as.character(tie_datetime)))
+    ci_row <- which(ctbl$Date_time == tie_datetime)
     st_row <- ci_row - 1
     ed_row <- ci_row + 1
-    if (nrow(ctbl) > 2) { # only do this if there is a calibration reading
+    if (nrow(ctbl) > 2) { # only do this if there is a calibration re
       if (st_row < 1) { # there is no first calibration
         start_dt <- file$log_t$Date_time[1]
         wlevel <- file$log_t$t_level_m[1]
@@ -70,8 +86,8 @@ gw_ties <- function(
           Notes = "auto_dummy_drift_false-start"
         )
         ctbl <- rbind(ctbl, ctbl_i)[order(Date_time)]
-        ci_row <- which(ctbl$Date_time == as.POSIXct(
-          as.character(tie_datetime)))
+        ci_row <- which(ctbl$Date_time == lubridate::parse_date_time(
+        x = tie_datetime, orders = dt_format, tz = dt_tz))
         st_row <- ci_row - 1
         ed_row <- ci_row + 1
       } else {

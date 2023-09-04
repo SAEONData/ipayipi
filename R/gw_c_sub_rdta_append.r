@@ -152,22 +152,25 @@ gw_rdta_append <- function(
         names(new[[generic_tbls[i]]]) %ilike% col_of_interest
       ][1]
       data.table::setorderv(new[[generic_tbls[i]]], sort_col)
-    } else data.table::setorderv(new[[generic_tbls[i]]],
+    } else {
+      data.table::setorderv(new[[generic_tbls[i]]],
         names(new[[generic_tbls[i]]])[1])
+    }
     col_of_interest <- "start|end"
     if (any(names(new[[generic_tbls[i]]]) %ilike% col_of_interest)) {
       sort_col <- names(new[[generic_tbls[i]]])[
         names(new[[generic_tbls[i]]]) %ilike% col_of_interest
       ]
       data.table::setorderv(new[[generic_tbls[i]]], sort_col)
-    } else data.table::setorderv(new[[generic_tbls[i]]],
+    } else {
+      data.table::setorderv(new[[generic_tbls[i]]],
         names(new[[generic_tbls[i]]])[1])
+    }
   }
-
   class(new) <- class(old)
 
   # save the file as an RDS with filename
-  if (save_rdta == TRUE | !is.null(RDS_name)) {
+  if (save_rdta == TRUE || !is.null(RDS_name)) {
     if (is.null(RDS_name)) {
     RDS_name <- paste0(
       new$xle_LoggerHeader$Location[max(
@@ -181,7 +184,6 @@ gw_rdta_append <- function(
     RDS_name <- gsub(pattern = ".rds", replacement = "", x = RDS_name)
     RDS_name <- paste0(RDS_name, ".rds")
     }
-
     saveRDS(new, file.path(new_dir, RDS_name))
   }
   return(new)

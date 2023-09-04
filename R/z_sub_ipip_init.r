@@ -1,10 +1,9 @@
-#' @title Pipe directory intitiate---generic
+#' @title Pipe directory intitiate
 #' @description Creates the necessary folders for the ipaypi meteorological
 #'  data processing pipeline.
 #' @param work_dir The folder, that is, directory in which to create the
 #'  pipeline directories.
 #' @keywords initiate pipeline, folder creation, directory structure.
-#' @author Paul J. Gordijn
 #' @return Notification of directory creation.
 #' @details This function automates the creation of three folders/diretories
 #'  that are requried for bulk processing of files in the ipayipi groundwater
@@ -18,6 +17,7 @@
 #' # Inititate pipeline
 #' dir <- "." # define the working directory
 #' pipe_init(work_dir = dir)
+#' @author Paul J. Gordijn
 #' @export
 ipip_init <- function(
     work_dir = "."

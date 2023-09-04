@@ -9,7 +9,7 @@ gw_vis_dy(
   vis_type = 1,
   dippr = FALSE,
   group = NULL,
-  show_events = FALSE,
+  show_events = TRUE,
   conduct = FALSE,
   rain_data = NULL,
   ...

@@ -71,7 +71,7 @@ record_interval_eval <- function(
   } else {
     if (any(diff(dt) %in% c(28:31)) &&
         attr(diff(dt), "units") %in% c("days") &&
-        all(second(dt) == 0) && all(minute(dt) == 0)) {
+        all(data.table::second(dt) == 0) && all(data.table::minute(dt) == 0)) {
       record_interval <- mondate::as.difftime(1, units = "months")
       ri_cks <- rep(TRUE, length(dt))
       record_interval_type <- "continuous"

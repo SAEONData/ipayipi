@@ -23,6 +23,8 @@ phenomena_chk <- function(
     csv_out = TRUE,
     ...
   ) {
+    "uz_phen_name" <- "phen_name" <- "measure" <- "uz_units" <-
+      "uz_measure" <- "sensor_id" <- "phen_name_full" <- NULL
   if (file.exists(file.path(wait_room, "phentab.rps"))) {
     phentab <- readRDS(file.path(wait_room, "phentab.rps"))
   } else {
@@ -81,7 +83,7 @@ phenomena_chk <- function(
       "sensor_id", "notes"))
   saveRDS(phentab, file.path(wait_room, "phentab.rps"))
 
-  if (check_phenomena &
+  if (check_phenomena &&
     nrow(phentab[is.na(phen_name_full) | is.na(phen_name) | is.na(units) |
         is.na(measure)]) > 0) {
       message("There are unconfirmed phenomena details!")

@@ -63,6 +63,11 @@ read_nomtab_csv <- function(
       uz_table_name = as.character(nomtab$uz_table_name),
       table_name = as.character(nomtab$table_name)
     )
+    # standardise raw table name preffix
+    nomtab$table_name <- data.table::fifelse(
+      !grepl(pattern = "raw_", x = nomtab$table_name),
+      paste0("raw_", nomtab$table_name), nomtab$table_name
+    )
     saveRDS(nomtab, file.path(wait_room, "nomtab.rns"))
   }
   invisible(nomtab)

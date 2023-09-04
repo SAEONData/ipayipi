@@ -7,22 +7,23 @@
 append_tables(original_tbl = NULL, new_tbl = NULL, overwrite_old = FALSE, ...)
 }
 \arguments{
-\item{overwrite_old}{NOTE: THIS FUNCTIONALITY HAS NOT YET BEEN INCLUDED.
-Logical. If \code{TRUE} then original data is disgarded
-in favour of new data. If there are NA values, in either old or new data,
-these are not retained if there are values in the old or new data that can
-replace these. Defaults to FALSE.}
+\item{original_tbl}{List of original tables (and other named
+objects in the list) to append. Both original and new table lists
+must be named.}
 
-\item{original_tbl_list}{List of original tables to append. Both original
-and new table lists must be named.}
+\item{new_tbl}{Named list of new tables (and other objects) to append
+to the originals.}
 
-\item{new_tbl_list}{Named list of new tables to append to the originals.}
+\item{overwrite_old}{If \code{TRUE} then original data is disgarded in favour of
+new data. Defaults to FALSE. In the case of non-data.table items new
+data objects replace old if set to \code{TRUE}.}
 }
 \value{
 List of joined tables.
 }
 \description{
-Appends tables based on date-time stamps, and unique rows.
+Appends lists of tables (and other list objects) based
+on date-time stamps, and unique rows.
 }
 \details{
 This function is an internal function called by others in the

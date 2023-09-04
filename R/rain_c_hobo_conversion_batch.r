@@ -119,7 +119,7 @@ rain_hobo_conversion_batch <- function(
         uz_location_station = as.character(basename(
             substr(x = hbf[["data_summary"]]$import_file_name,
               start = 1,
-              stop = nchar(hbf[["data_summary"]]$import_file_name) - 16))),
+              stop = nchar(hbf[["data_summary"]]$import_file_name)))),
         uz_title = as.character(hbf[["data_summary"]]$ptitle_original),
         location = as.character(NA),
         station = as.character(NA),
@@ -135,7 +135,9 @@ rain_hobo_conversion_batch <- function(
       nomtabi <- data.table::data.table(
         uz_import_file_name = as.character(x),
         uz_location_station = as.character(basename(
-            substr(x = x, start = 1, stop = nchar(x) - 16))),
+            substr(x = hbf[["data_summary"]]$import_file_name,
+              start = 1,
+              stop = nchar(hbf[["data_summary"]]$import_file_name)))),
         uz_title = as.character(NA),
         location = as.character(NA),
         station = as.character(NA),

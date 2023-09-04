@@ -60,8 +60,7 @@ gw_data_handler <- function(
       date_time1 >= gw$log_t$Date_time[1]][
         date_time1 <= gw$log_t$Date_time[nrow(gw$log_t)]
       ]
-    gw$log_retrieve <- gw$log_retrieve[
-      !Date_time %in% as.POSIXct(as.character(gw$dummies$date_time1))]
+    gw$log_retrieve <- gw$log_retrieve[!Date_time %in% gw$dummies$date_time1]
     man_out <- dh_subset[handle %in% c("manual_outliers")]
     man_out <- subset(man_out, select = c(date_time1, date_time2, notes))
     names(man_out) <- c("Start", "End", "Notes")

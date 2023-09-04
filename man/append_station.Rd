@@ -7,7 +7,7 @@
 append_station(
   station_file = NULL,
   new_data = NULL,
-  overwrite_old = TRUE,
+  overwrite_sf = TRUE,
   by_station_table = FALSE,
   ...
 )
@@ -15,7 +15,7 @@ append_station(
 append_station(
   station_file = NULL,
   new_data = NULL,
-  overwrite_old = TRUE,
+  overwrite_sf = TRUE,
   by_station_table = FALSE,
   ...
 )
@@ -24,6 +24,9 @@ append_station(
 \item{station_file}{The main data set to which data will be appended.}
 
 \item{new_data}{The data that will be appended to the main 'hobo station'.}
+
+\item{overwrite_sf}{Logical. Defaults to FALSE so that data from the
+\code{station_file} is not over written by the \code{new_data}.}
 
 \item{overwrite_old}{Logical. Defaults to FALSE so that data from the
 \code{station_file} is not over written by the \code{new_data}.}

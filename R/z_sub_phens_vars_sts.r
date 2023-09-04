@@ -11,6 +11,7 @@ phen_vars_sts <- function(
   phen_table = NULL,
   dta_in = NULL,
   ...) {
+  "%ilike%" <- ":=" <- "var_type" <- "phen_name" <- ".SD" <- NULL
   # merge data sets into a station for given time periods
   phens <- names(dta_in)[!names(dta_in) %in% c("id", "date_time", "d1", "d2")]
   phen_table <- phen_table[phen_name %in% phens][,

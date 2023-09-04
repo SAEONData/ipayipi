@@ -7,7 +7,7 @@
 append_station_batch(
   ipip_room = NULL,
   nomvet_room = NULL,
-  overwrite_old = FALSE,
+  overwrite_sf = FALSE,
   by_station_table = FALSE,
   station_ext = ".ipip",
   sts_file_ext = ".ipi",
@@ -15,14 +15,14 @@ append_station_batch(
 )
 }
 \arguments{
+\item{station_file}{The main data set to which data will be appended.}
+
+\item{new_data}{The data that will be appended to the main 'hobo station'.}
+
 \item{overwrite_old}{If \code{TRUE} then original data (station data) is
 disgarded in favour of new data. If TRUE both data sets will be evaluated
 and where there are NA values, a replacement, if available, will be used
 to replace the NA value. Defaults to FALSE.}
-
-\item{station_file}{The main data set to which data will be appended.}
-
-\item{new_data}{The data that will be appended to the main 'hobo station'.}
 }
 \description{
 Appends two standardised 'ipayipi' meteorological' station
@@ -35,6 +35,8 @@ and existing 'station files' in the \code{ipip_room}. Files from the
 appended to appropriate stations. Appending is done via the
 \code{ipayipi::append_station()}, \code{ipayipi::append_phen_data()}, and
 \code{ipayipi::append_tables()} functions.
+If the data is continuous the function ensures continuous date-time values
+between missing data chuncks. Missing values are fillled as NA.
 }
 \author{
 Paul J Gordijn

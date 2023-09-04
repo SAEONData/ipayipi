@@ -73,8 +73,8 @@ ipayipi_agg <- function(
         dt <- c(min(input_file[["data_summary"]]$start_dt), dt)
         add_s <- TRUE
       }
-      if (!max(dt) %in% max(input_file[["data_summary"]]$end_dt)) {
-        dt <- c(dt, max(input_file[["data_summary"]]$end_dt))
+      if (!max(dt) %in% max(input_file[["data_summary"]]$end_dttm)) {
+        dt <- c(dt, max(input_file[["data_summary"]]$end_dttm))
         add_e <- TRUE
       }
       # now work through each phen in the raw_tbl

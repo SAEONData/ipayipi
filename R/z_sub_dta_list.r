@@ -27,8 +27,9 @@ dta_list <- function(
   recurr = FALSE,
   baros = FALSE,
   unwanted = NULL,
+  single_out = FALSE,
   ...) {
-
+  "%ilike%" <- NULL
   slist <- list.files(path = input_dir, pattern = file_ext, recursive = recurr)
 
   if (baros == FALSE) {
@@ -66,7 +67,7 @@ dta_list <- function(
       } else {
       df <- data.frame(Sites = slist[np], stringsAsFactors = FALSE)
       print(df)
-      answer <- readline(prompt = "Confirm chosen boreholes Y/n : ")
+      answer <- readline(prompt = "Confirm chosen stations Y/n : ")
         if (answer == "Y") {
           return(slist[np])
         } else {
@@ -81,6 +82,9 @@ dta_list <- function(
     chosensiz <- chosen()
   } else {
     chosensiz <- slist
+  }
+  if (length(chosensiz) > 1 && single_out == TRUE) {
+    if (prompt) chosensiz <- chosen()[1] else slist[1]
   }
   return(chosensiz)
 }

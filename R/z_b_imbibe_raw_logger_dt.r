@@ -6,12 +6,12 @@
 #' @param file_ext The extension of the 'flat' logger file.
 #' @param col_dlm The column delimter of the 'flat' logger file which is fed
 #'  to `data.table::fread()` or `base::read.csv()`.`
-#' @param dt_format The function guesses the date-time format from a vector of
-#'  format types supplied to this argument. The 'guessing' is done via
-#'  `lubridate::parse_date_time()`. `lubridate::parse_date_time()` prioritizes
-#'  the 'guessing' of date-time formats in the order vector of formats
-#'  supplied. The default vector of date-time formats supplied should work
-#'  well for most logger outputs.
+#' @param dt_format The function attempts to work out the date-time format
+#'  from a vector of format types supplied to this argument. The testing is
+#'  done via `lubridate::parse_date_time()`. `lubridate::parse_date_time()`
+#'  prioritizes the tesing of date-time formats in the order vector of
+#'  formats supplied. The default vector of date-time formats supplied should
+#'  work well for most logger outputs.
 #' @param dt_tz Recognized time-zone (character string) of the data locale. The
 #'  default for the package is South African, i.e., "Africa/Johannesburg" which
 #'  is equivalent to "SAST".
@@ -118,7 +118,11 @@ imbibe_raw_logger_dt <- function(
     "Ymd HMS", "Ymd IMSp",
     "ymd HMS", "ymd IMSp",
     "mdY HMS", "mdy IMSp",
-    "dmY HMS", "dmy IMSp"),
+    "dmY HMS", "dmy IMSp",
+    "Ymd HMOS", "Ymd IMOSp",
+    "ymd HMOS", "ymd IMOSp",
+    "mdY HMOS", "mdy IMOSp",
+    "dmY HMOS", "dmy IMOSp"),
   dt_tz = "Africa/Johannesburg",
   record_interval_type = "continuous",
   data_setup = NULL,
@@ -314,8 +318,8 @@ imbibe_raw_logger_dt <- function(
       location = NA_character_,
       station = NA_character_,
       stnd_title = NA_character_,
-      start_dt = min(dta$date_time),
-      end_dt = max(dta$date_time),
+      start_dttm = min(dta$date_time),
+      end_dttm = max(dta$date_time),
       logger_type = as.character(head_info_i$logger_type),
       logger_title = as.character(head_info_i$logger_title),
       logger_sn = as.character(head_info_i$logger_sn),
@@ -332,15 +336,17 @@ imbibe_raw_logger_dt <- function(
     # generate a logger interference table
     logg_interfere <- data.table::data.table(
       id = as.integer(seq_len(2)),
-      date_time = c(data_summary$start_dt, data_summary$end_dt),
+      date_time = c(data_summary$start_dttm, data_summary$end_dttm),
       logg_interfere_type = as.character(rep(logg_interfere_type, 2))
     )
     # generate a phenomena by data summary table
     phen_data_summary <- data.table::data.table(
       phid = as.integer(phens$phid),
-      dsid = as.integer(rep(as.integer(data_summary$dsid), nrow(phens))),
-      start_dt = rep(data_summary$start_dt, nrow(phens)),
-      end_dt = rep(data_summary$end_dt, nrow(phens)),
+      # removed dsid as it takes up too many rows and slows joins when
+      #  generating phenomena data summaries
+      # dsid = as.integer(rep(as.integer(data_summary$dsid), nrow(phens))),
+      start_dttm = rep(data_summary$start_dttm, nrow(phens)),
+      end_dttm = rep(data_summary$end_dttm, nrow(phens)),
       table_name = NA_character_
     )
   }

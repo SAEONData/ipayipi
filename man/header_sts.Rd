@@ -24,10 +24,12 @@ otherwise all files are returned. TRUE or FALSE. Defaults to FALSE.}
 \item{recurr}{Should the function search recursively into sub directories
 for hobo rainfall csv export files? TRUE or FALSE.}
 
-\item{wanted}{}
+\item{wanted}{A strong containing keywords to use to filter which stations
+are selected for processing. Multiple search kewords should be seperated
+with a bar ('|'), and spaces avoided unless part of the keyword.}
 
-\item{unwanted}{Vector of strings listing files that should not be included
-in the import.}
+\item{unwanted}{Similar to wanted, but keywords for filtering out unwanted
+stations.}
 }
 \description{
 Uses the nomenclature table, standardises the recording

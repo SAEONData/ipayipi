@@ -54,7 +54,7 @@ declared data gaps.
 \item If there has been event data appended to the station data the function
 will search therein for any manually declared gaps, that is, the
 'event_type' 'logger_declare_error_segment'. If these segments extend
-'over' any 'auto' gaps they are trimmed to preserce the record of the
+'over' any 'auto' gaps they are trimmed to preserve the record of the
 'auto' gap. If any 'auto' gaps fall within an manually declared error
 segment then, they too, are considered a problem gap, even if the duration
 of the 'auto' gap is short enough to not be considered a problem gap.

@@ -8,6 +8,7 @@ phenomena_sts(
   wait_room = NULL,
   prompt = FALSE,
   recurr = TRUE,
+  wanted = NULL,
   unwanted = NULL,
   file_ext_in = ".iph",
   file_ext_out = ".ipi",
@@ -23,14 +24,55 @@ otherwise all files are returned. TRUE or FALSE.}
 \item{recurr}{Should the function search recursively into sub directories
 for hobo rainfall csv export files? TRUE or FALSE.}
 
-\item{unwanted}{Vector of strings listing files that should not be included
-in the import.}
+\item{wanted}{A strong containing keywords to use to filter which stations
+are selected for processing. Multiple search kewords should be seperated
+with a bar ('|'), and spaces avoided unless part of the keyword.}
+
+\item{unwanted}{Similar to wanted, but keywords for filtering out unwanted
+stations.}
 
 \item{file_ext_in}{The file extension defaults to ".iph". Other file types
 could be incorporatted if required.}
 }
 \description{
-Standardises data phenomena in 'ipayipi' format.
+Standardise raw data inputs formats and more into
+the 'ipayipi' pipeline though an interactive process.
+}
+\details{
+The raw data formats, units, and offsets, in an 'ipayipi' station
+file are standardised using this function. The function keeps a record
+of phenomena (variable) metadata and uses this to implement transformations
+to standardise the data. If new phenomena are detected in the data then
+a csv file is generated and the user must fill in the 'blank' (actually NA)
+values. Once the csv is complete this file can be read back into the
+pipeline using \code{ipayipi::phenomena_read_csv()}.
+
+The following phenomena (variable) metadata fields are allowed. Required
+fields are denoted with an asterix.
+\enumerate{
+\item *phen_name_full -- The full name of a phenomenon. This should be
+described as the phenomenon being recorded : then the measure
+(\emph{see measure}) used to estimate the phenomenon. For example,
+"Atmospheric pressure: sample".
+\item *phen_type -- The specific phenomenon being measured, e.g.,
+"Atmospheric pressure".
+\item *phen_name -- The shortened name of the phenomenon provided in lower
+case letters. These values will be used as the column header in the
+data, e.g., "atm_pressure_smp". \strong{Note no spaces. Only underscores}.
+\item *units -- the units used to measure the phenomena. Within a pipeline
+the way the units are written must be exactly standarised.
+\item *measure -- the type of measurement used to represent a single time
+series event of a phenomenon, e.g., a sample or 'smp' for short. Other
+measure types include; min, max, sd (standard deviation), tot (total),
+and avg (mean or average). A sample is an instantaneous measurement.
+\item offset -- \strong{need to describe the implementation of this}.
+\item f_convert -- a numeric multiplier for the phenomenon to be used for
+unit conversion or similar. If this is left as \code{NA} no factor
+conversion is performed on the 'raw_data'.
+\item sensor_id -- the serial number of the sensor used to measure the
+phenomenon.
+\item notes -- any pertinent notes on a specific phenomenon.
+}
 }
 \author{
 Paul J. Gordijn
@@ -39,11 +81,12 @@ Paul J. Gordijn
 \keyword{batch}
 \keyword{data;}
 \keyword{file}
-\keyword{meteorological}
 \keyword{process;}
+\keyword{series}
 \keyword{standardisation;}
 \keyword{standardise}
 \keyword{station;}
+\keyword{time}
 \keyword{transform}
 \keyword{variables}
 \keyword{variables;}

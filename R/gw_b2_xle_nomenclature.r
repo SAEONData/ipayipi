@@ -34,8 +34,8 @@
 #' # "nomvet.rds" file (which in the pipeline is stored in the
 #' # "waiting room" folder).
 gw_xle_nomenclature <- function(
-  wait_room=NULL,
-  out_csv=TRUE,
+  wait_room = NULL,
+  out_csv = TRUE,
   ...) {
   xlefiles_path <- gw_xle_list(input_dir = wait_room, recurr = FALSE)
 
@@ -65,7 +65,6 @@ gw_xle_nomenclature <- function(
   #  2. Borehole name -- this is saved in the 'Location' field.
 
   nom_list <- lapply(xlefiles_path, function(z) {
-    #setwd(wait_room)
     x <- xml2::read_xml(z, encoding = "UTF-8")
     f_n <- xml2::xml_text(xml2::xml_find_first(x,
       xpath = ".//File_info/FileName"))
