@@ -5,21 +5,54 @@
 \title{Evaluate and prepare tables for joins}
 \usage{
 join_param_eval(
-  join_type = NULL,
-  x_table = NULL,
-  y_table = NULL,
+  join = "full_join",
+  x_tbl = NULL,
+  y_tbl = NULL,
   y_phen_names = NULL,
-  y_table_key = NULL,
-  x_table_key = NULL,
+  x_key = "date_time",
+  y_key = "date_time",
+  inq = NULL,
+  nomatch = NA,
+  mult = "all",
+  roll = FALSE,
+  rollends = FALSE,
+  allow.cartesian = FALSE,
+  time_seq = TRUE,
+  fuzzy = NULL,
   full_eval = FALSE,
+  eval_seq = NULL,
   f_summary = NULL,
+  f_params = NULL,
   ppsij = NULL,
-  sf = sf,
+  sf = NULL,
   ...
 )
 }
+\arguments{
+\item{x_tbl}{The name of the 'x' or left table in the merge/join. This
+defaults to the working data table, and therefore, this argument need not be supplied.}
+
+\item{y_tbl}{Argument must be supplied. Name of the 'y' or right table.}
+
+\item{x_key}{Column name. If not provided, defaults to "date_time".}
+
+\item{y_key}{Column name. Similar to \code{x_key} if not provided.}
+
+\item{time_seq}{If \code{TRUE} then a continuous sequence of date-time values are ensured for both \emph{x} and \emph{y} tables. If a vector of two logial values is provided then this is applied to \emph{x} and \emph{y} tables seperately, in that order, and the final joined table.}
+
+\item{fuzzy}{String or logical. If string, this argument is evaluated to determine the fuzzy interval used to ...}
+}
 \description{
 Flexible and fast joining of \code{ipayipi} data.
+}
+\details{
+\strong{Join types}
+\itemize{
+\item \code{full_join}: Merges matching \code{x_tbl} and \code{y_tbl} rows, and retains all unmatching records.
+\item \code{left_join}: Matching \code{x_tbl} and \code{y_tbl} rows, plus all unmatched \code{x_tbl} rows.
+\item \code{right_join}: Matching \code{x_tbl} and \code{y_tbl} rows, plus all unmatched \code{y_tbl} rows.
+\item \code{inner_join}: Only retains matching \code{x_tbl} and \code{y_tbl} rows.
+}
 }
 \author{
 Paul J. Gordijn

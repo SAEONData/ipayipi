@@ -12,7 +12,7 @@
 #'  file extension .xle. Older solonist levelogger files with extension
 #'  .lev are excluded.
 #' @examples
-#' # Generate a list of xle files in the working directory
+#' # Generate a list of xle solonist files in the working directory
 #' dir <- "." # define the directory
 #' gw_xle_list(input_dir = dir, recurr = FALSE)
 

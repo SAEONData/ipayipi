@@ -5,7 +5,7 @@
 \title{Standardises data phenomena in 'ipayipi' format.}
 \usage{
 phenomena_sts(
-  wait_room = NULL,
+  pipe_house = NULL,
   prompt = FALSE,
   recurr = TRUE,
   wanted = NULL,
@@ -16,7 +16,8 @@ phenomena_sts(
 )
 }
 \arguments{
-\item{wait_room}{Path to the 'wait_room' directory.}
+\item{pipe_house}{List of pipeline directories. \strong{See}
+\code{ipayipi::ipip_init()} \strong{for details}.}
 
 \item{prompt}{Should the function use an interactive file selection function
 otherwise all files are returned. TRUE or FALSE.}
@@ -24,7 +25,7 @@ otherwise all files are returned. TRUE or FALSE.}
 \item{recurr}{Should the function search recursively into sub directories
 for hobo rainfall csv export files? TRUE or FALSE.}
 
-\item{wanted}{A strong containing keywords to use to filter which stations
+\item{wanted}{A string of keywords to use to filter which stations
 are selected for processing. Multiple search kewords should be seperated
 with a bar ('|'), and spaces avoided unless part of the keyword.}
 
@@ -35,15 +36,15 @@ stations.}
 could be incorporatted if required.}
 }
 \description{
-Standardise raw data inputs formats and more into
-the 'ipayipi' pipeline though an interactive process.
+Standardise raw data inputs formats and more for the
+'ipayipi' pipeline though an interactive process.
 }
 \details{
 The raw data formats, units, and offsets, in an 'ipayipi' station
 file are standardised using this function. The function keeps a record
 of phenomena (variable) metadata and uses this to implement transformations
-to standardise the data. If new phenomena are detected in the data then
-a csv file is generated and the user must fill in the 'blank' (actually NA)
+to standardise the data. If 'new' phenomena are detected in the data then
+a csv file is generated and the user must fill in the 'blank' (NA)
 values. Once the csv is complete this file can be read back into the
 pipeline using \code{ipayipi::phenomena_read_csv()}.
 
@@ -65,13 +66,41 @@ the way the units are written must be exactly standarised.
 series event of a phenomenon, e.g., a sample or 'smp' for short. Other
 measure types include; min, max, sd (standard deviation), tot (total),
 and avg (mean or average). A sample is an instantaneous measurement.
-\item offset -- \strong{need to describe the implementation of this}.
+\item offset -- \strong{not yet implemented}.
 \item f_convert -- a numeric multiplier for the phenomenon to be used for
 unit conversion or similar. If this is left as \code{NA} no factor
 conversion is performed on the 'raw_data'.
 \item sensor_id -- the serial number of the sensor used to measure the
 phenomenon.
 \item notes -- any pertinent notes on a specific phenomenon.
+}
+
+\strong{Editing the phenomena table}:
+When unrecognised synonyms are introduced (e.g., after a change in logger
+program setup, or 'new' variable from an additional station sensor) this
+function creates a csv table in the \code{wait_room} that should be edited to
+maintain a phenomena synonym database. Unstandardised phenomena metadata
+(columns) are preffixed by 'uz_'._ These unstandardised columns must not be
+edited by the user: standardised phenomena information can be added by
+replacing corresponding \code{NA} values with information. The required fields,
+marked with an asterix (above), must be described.
+
+\strong{Other}: A number of other phenomena standardisation proceedure are
+included here:
+\itemize{
+\item '\emph{Interference events}': Some logger files, e.g., hobo data logger files
+include useful columns that describe what within the ipayipi pipeline are
+termed 'logger interference events'. Logger interference events include
+events such as manual logger data downloads where the logger, or related
+data recording mechanism is 'interfered' with, and consequently, data near
+the time of interference may be altered undesirably. In hobo files
+interference column data are generally called 'logged' events, but spelling
+and capitalisation of this may change depending on the data. As part of
+the phenomena standardisation process, all interference events are marked
+in the data as 'logged'. Any column/phenomena in the data with the key
+'interfere' will be marked as an 'interference' column. Therefore, when
+selecting phenomena names, take care to include the key 'interfere' so
+that the column is treated as recording 'interference' events.
 }
 }
 \author{

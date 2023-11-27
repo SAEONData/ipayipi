@@ -2,7 +2,7 @@
 % Please edit documentation in R/z_g0_meta_read.r
 \name{meta_read}
 \alias{meta_read}
-\title{Open and check rainfall event metadata database.}
+\title{Open and prepare event metadata database.}
 \usage{
 meta_read(
   input_dir = ".",

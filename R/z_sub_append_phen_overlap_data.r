@@ -2,7 +2,7 @@
 #' @description This function is for internal use. The function is designed to
 #'  append phenomena data and associated phenomena standards efficiently, but
 #'  retaining metadata records for each phenomena. Moreover, the function
-#'  evaluates missing data and compares new and older data records so avoid
+#'  evaluates missing data and compares new and older data records to avoid
 #'  loosing data. This part of the function only deals with overlap data.
 #' @param phens
 #' @param sf_phen_ds Phenomena summary from the station file.
@@ -37,7 +37,9 @@ append_phen_overlap_data <- function(
   overwrite_sf = FALSE,
   ...
   ) {
-
+  "date_time" <- "%ilike%" <- "phen_name" <- "d1" <- "d2" <- "table_name" <-
+    "phid" <- "d1_old" <- "d2_old" <- "var_type" <- "d1_new" <- "d2_new" <-
+    "dttm" <- NULL
   # if there is overlap data
   if (nrow(sfo) > 0) {
     sfo_min <- min(sfo$date_time)
@@ -57,7 +59,7 @@ append_phen_overlap_data <- function(
         c("id", "date_time", names(ndo)[
           !names(ndo) %in% c("id", "date_time", "d1", "d2")], "d1", "d2"))
 
-      dold_l <- lapply(seq_along(phens), function(i) {
+      dold_l <- parallel::mclapply(seq_along(phens), function(i) {
         if (phens[i] %in% names(sfo)) {
           dold <- sfo[, c("id", "date_time", phens[i], "d1", "d2"),
             with = FALSE]
@@ -85,7 +87,7 @@ append_phen_overlap_data <- function(
         return(dtp)
       })
       names(dold_l) <- phens
-      dold_l <- lapply(dold_l, function(x) { # standardise variable types
+      dold_l <- parallel::mclapply(dold_l, function(x) { # standardise variables
         ptab <- phen_dt
         ptab$phen_name <- paste0(ptab$phen_name, "_old")
         ptab[var_type %ilike% "fac|factor"]$var_type <- "chr"
@@ -93,7 +95,7 @@ append_phen_overlap_data <- function(
         return(dta)
       })
 
-      dnew_l <- lapply(seq_along(phens), function(i) {
+      dnew_l <- parallel::mclapply(seq_along(phens), function(i) {
         if (phens[i] %in% names(ndo)) {
           dnew <- ndo[, c("id", "date_time", phens[i], "d1", "d2"),
             with = FALSE]
@@ -121,7 +123,7 @@ append_phen_overlap_data <- function(
         return(dtp)
       })
       names(dnew_l) <- phens
-      dnew_l <- lapply(dnew_l, function(x) { # standardise variable types
+      dnew_l <- parallel::mclapply(dnew_l, function(x) { # standardise variable
         ptab <- phen_dt
         ptab$phen_name <- paste0(ptab$phen_name, "_new")
         ptab[var_type %ilike% "fac|factor"]$var_type <- "chr"
@@ -142,7 +144,7 @@ append_phen_overlap_data <- function(
       dt_seq <- data.table::data.table(dttm = dt_seq)
       dt_seq <- dt_seq[order(dttm)]
       if (overwrite_sf) f <- c("_old", "_new") else f <- c("_new", "_old")
-      dto <- lapply(seq_along(phens), function(i) {
+      dto <- parallel::mclapply(seq_along(phens), function(i) {
         # join old to dt_seq then new
         z <- dold_l[[i]]
         if (nrow(dold_l[[i]]) > 0) {
@@ -177,7 +179,7 @@ append_phen_overlap_data <- function(
       })
       names(dto) <- phens
       # put all phenomena in one table
-      naj <- lapply(seq_along(dto), function(i) {
+      naj <- parallel::mclapply(seq_along(dto), function(i) {
         naj <- is.na(dto[[i]][["id"]][])[
           is.na(dto[[i]][["id"]][]) == TRUE]
         naj <- length(naj)
@@ -199,8 +201,9 @@ append_phen_overlap_data <- function(
       zap <- lapply(dto, function(x) {
         all(!is.na(x$id))
       })
+      rm(zap)
       dto <- dto[unlist(lapply(dto, function(x) all(!is.na(x$id))))]
-      phen_dtos <- lapply(dto, function(x) {
+      phen_dtos <- parallel::mclapply(dto, function(x) {
         x$date_time <- raw_dto$date_time
         x$ph_int <- ipayipi::change_intervals(int_dta = x$phid)
         x$f <- as.integer(as.factor(paste0(x$ph_int)))

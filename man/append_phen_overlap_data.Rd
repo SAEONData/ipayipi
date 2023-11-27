@@ -42,7 +42,7 @@ List of useful items for internal use. Overap data.
 This function is for internal use. The function is designed to
 append phenomena data and associated phenomena standards efficiently, but
 retaining metadata records for each phenomena. Moreover, the function
-evaluates missing data and compares new and older data records so avoid
+evaluates missing data and compares new and older data records to avoid
 loosing data. This part of the function only deals with overlap data.
 }
 \details{

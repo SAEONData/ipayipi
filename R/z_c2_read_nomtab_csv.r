@@ -1,49 +1,59 @@
-#' @title Read meteorological nomenclature csv
-#' @description Read in a user edited nomenclature file and save as a usable
-#'  nomtab file in the 'waiting room' folder. Part of the hobo rainfall
-#'  data pipeline.
+#' @title Imbibe edited nomenclature csv
+#' @description Reads a user edited nomenclature file and saves as a usable
+#'  nomtab (nomenclature table) file in the 'waiting room' folder.
+#' @param pipe_house List of pipeline directories. __See__
+#'  `ipayipi::ipip_init()` __for details__.
+#' @param file name of the csv file to be read as the nomenclature table.
 #' @details
-#'  \enumerate{
-#'    \item Read in csv file from specified folder.
-#'    \item Check for NA values in the table.
-#'    \item If the nomenclature table has no NA's:
-#'       - convert to tibble.
-#'       - save as rds in the 'waiting room' folder.
-#'    \item If there are NA values:
-#'       - stop the function and.
-#'       - produce warning, i.e. the user needs to fill in the NA values.
-#'  }
+#'  - Searches for the most recently edited nomenclature table csv
+#'   ('nomtab.csv') file in the `wait_room` directory.
+#'  - Checks whether there are any `NA` values corresposing to unstandardised
+#'   synonyms of the following fields: 'location', 'station', and a station's
+#'   standard title, that is, 'stnd_title'.
+#'  - The 'table_name' also requires standardisation. By default this field is
+#'   given as concatenation of a preffix, that is, 'raw_', and the standardised
+#'   record interval (standardised by `ipayipi::record_interval_eval()` during
+#'   logger data 'imbibing' (`ipayipi::imbibe_raw_logger_dt()`)). This
+#'   convention should be maintained for the pipelines structure. Note that for
+#'   event based or discontinuous data the table name will default to
+#'   'raw_discnt'.
+#'
+#'   __NB!__ Only edit these fields (above) of the nomenclature table during
+#'    standardisation.
+#'
+#'  __NB!__ The 'ipayipi' data pipeline strongly suggests conforming with
+#'  tidyverse data standards. Therefore, use lower case characters, no special
+#'  characters, except for the underscore character which should be used for
+#'  spacing.
 #' @return Saves the read nomenclature table in 'rds' format. Prints the
 #'  nomenclature table.
-#' @keywords Naming convention, nomenclature
+#' @md
+#' @keywords Naming convention, nomenclature synonyms, pipeline standardisation.
 #' @author Paul J. Gordijn
-#' @param wait_room Directory into which new data is copied into --- the start
-#'  of the data processing pipeline.
-#' @param file name of the csv file to be read as the nomenclature table.
 #' @export
 read_nomtab_csv <- function(
-  wait_room = NULL,
+  pipe_house = NULL,
   file = NULL,
   ...) {
   if (is.null(file)) {
-    nomlist <- ipayipi::dta_list(input_dir = wait_room, file_ext = ".csv",
-      wanted = "nomtab")
+    nomlist <- ipayipi::dta_list(input_dir = pipe_house$wait_room, file_ext =
+      ".csv", wanted = "nomtab")
     if (length(nomlist) < 1) stop("There is no nomtab file in the wait_room!")
     nom_dts <- lapply(nomlist, function(x) {
-      mtime <- file.info(file.path(wait_room, x))$mtime
+      mtime <- file.info(file.path(pipe_house$wait_room, x))$mtime
       invisible(mtime)
     })
     names(nom_dts) <- nomlist
     nom_dts <- unlist(nom_dts)
     del_files <- names(nom_dts[-which(nom_dts == max(nom_dts))])
     lapply(del_files, function(x) {
-      file.remove(file.path(wait_room, x))
+      file.remove(file.path(pipe_house$wait_room, x))
       invisible(del_files)
     })
     file <- names(nom_dts[which(nom_dts == max(nom_dts))])
   }
   nomtab <- data.table::setDT(read.csv(
-    file.path(wait_room, file), row.names = 1, header = TRUE))
+    file.path(pipe_house$wait_room, file), row.names = 1, header = TRUE))
   cans <- sum(sapply(nomtab[, c("location", "station", "stnd_title")],
     function(x) sum(is.na(x))))
   if (cans > 0) {
@@ -68,7 +78,7 @@ read_nomtab_csv <- function(
       !grepl(pattern = "raw_", x = nomtab$table_name),
       paste0("raw_", nomtab$table_name), nomtab$table_name
     )
-    saveRDS(nomtab, file.path(wait_room, "nomtab.rns"))
+    saveRDS(nomtab, file.path(pipe_house$wait_room, "nomtab.rns"))
   }
   invisible(nomtab)
 }

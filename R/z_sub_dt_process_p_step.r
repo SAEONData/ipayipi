@@ -21,7 +21,10 @@
 #' @param output_dt The name of the output data table (character string) ---
 #'  the final table is appended to a station file object.
 #' @param time_interval Only has to be specified in the harvesting step. Only
-#'  one time interval per stage.
+#'  one time interval per stage. If the time interval is left as the default
+#'  `NA` then `time_interval` becomes discontinuous ("discnt").
+#' @details Note that the `f_params` argument is parsed to text in this
+#'  function. It is only evaluated as text again in ipayipi::dt_process().
 #' @author Paul J. Gordijn
 #' @export
 p_step <- function(
@@ -36,38 +39,45 @@ p_step <- function(
   time_interval = NA,
   ...) {
 
-  # mandatory args
+  # mandatory args ----
   m <- c("f")
   m <- m[sapply(m, function(x) is.null(get(x)))]
   m <- sapply(m[length(m)], function(x) {
     stop(paste0("Missing args: ", paste0(m, collapse = ", ")), call. = FALSE)
   })
-  if (!any(f %in% c("dt_calc_chain", "dt_harvest", "dt_agg", "dt_join"))) {
+  # ensure all 'f's are supported/spelt correctly
+  if (!any(f %in% c("dt_calc", "dt_harvest", "dt_agg", "dt_join"))) {
     stop(paste0("Unrecognised function: ", f))
   }
-  # specify time_interval for dt_harvest
+  # other set up ----
   if (f %in% c("dt_harvest")) {
     if (is.na(time_interval)) time_interval <- "discnt"
-    time_interval <- ipayipi::sts_interval_name(time_interval)
+    time_interval <- ipayipi::sts_interval_name(time_interval) # time interval
     time_interval <- time_interval$sts_intv
-    if (is.na(input_dt)) input_dt <- "raw"
   }
 
-  # auto generate output table name
+  # auto generate output table name ----
   if (is.na(output_dt) && !is.na(time_interval)) {
     output_dt <- paste0(
       output_dt_preffix, gsub(" ", "_", time_interval), output_dt_suffix)
   }
 
-  # special formatting for dt_calc_string
+  # special formatting for dt_calc_string ----
   f_params_calc <- f_params[any(class(f_params) %in% "dt_calc_string")]
   f_params_calc <- as.character(f_params_calc)
 
-  # special formatting for dt_harvest
+  # special formatting for dt_harvest ----
   f_params_harvest <- list(
     f_params[any(class(f_params) %in% "dt_harvest_params")])
   f_params_harvest <- f_params_harvest[
     sapply(f_params_harvest, function(x) length(x) != 0)]
+  if ("hsf_table" %in% names(unlist(f_params_harvest, recursive = TRUE))) {
+    input_dt <- unlist(f_params_harvest, recursive = TRUE)[
+      "hsf_table" %in% names(unlist(f_params_harvest, recursive = TRUE))
+    ]
+  } else {
+    input_dt <- "raw"
+  }
   f_params_harvest <- sapply(f_params_harvest, function(x) {
     deparse1(x, collapse = "")
   })
@@ -78,6 +88,8 @@ p_step <- function(
   f_params_harvest <- gsub(
         pattern = ", class = c\\(\"list\", \"dt_harvest_params\"\\))",
         replacement = "", x = f_params_harvest)
+
+  # special formatting for dt_join ----
   f_params_join <- list(
     f_params[any(class(f_params) %in% "dt_join_params")])
   f_params_join <- f_params_join[
@@ -90,7 +102,7 @@ p_step <- function(
     x = f_params_join
   )
 
-  # special formatting for dt_agg
+  # special formatting for dt_agg ----
   f_params_agg <- list(
     f_params[any(class(f_params) %in% "dt_agg_params")])
   f_params_agg <- f_params_agg[

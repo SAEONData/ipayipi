@@ -4,27 +4,19 @@
 #' @author Paul J. Gordijn
 #' @export
 calc_param_eval <- function(
-  full_eval = FALSE,
   f_params = NULL,
+  full_eval = FALSE,
   f_summary = NULL,
   ppsij = NULL,
   sf = sf,
   ...
   ) {
   "phen_name" <- NULL
-  x <- list(...)
-  # x <- list(
-  #   t_lag = chainer(
-  #     dt_syn_ac = 'date_time + lubridate::as.period(1, unit = \"secs\")'),
-  #   false_tip = chainer(
-  #     dt_syn_ac = "fifelse(date_time == t_lag, TRUE, FALSE)",
-  #     temp_var = FALSE, measure = "smp", units = "false_tip",
-  #     var_type = "lg"),
-  #   false_fork = chainer(dt_syn_bc = "false_tip == FALSE",
-  #     fork_table = "false_tips")
-  # )
+
+  ## partial evaluation ----
   if (!any(class(f_params) %in% "dt_calc_string") && full_eval == FALSE) {
     # evaluate chain and parse text
+    x <- f_params
     v_names <- names(x)
     dt_parse <- sapply(seq_along(v_names), function(ii) {
       xii <- paste0("[",
@@ -75,7 +67,7 @@ calc_param_eval <- function(
     })
     class(dt_parse) <- c(class(dt_parse), "dt_calc_string")
   } else {
-    # full evaluation of chainer with providing phenmoena
+    ## full evaluation of chainer with providing phenmoena ----
     # extract chains from ppsij
     if (is.null(f_params)) {
       idt <- as.list(ppsij$f_params)

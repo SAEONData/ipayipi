@@ -2,8 +2,8 @@
 #' @description A function to check standardisation of meteorological data
 #'  phenomena to be run before introducing data into the pipeline.
 #' @details
-#' @param input_dir The directory where imported meteorological data
-#'  files are stored with the phenomena table.
+#' @param pipe_house List of pipeline directories. __See__
+#'  `ipayipi::ipip_init()` __for details__.
 #' @param file The (base) file name of the csv import. If NULL then the
 #'  function searches for the most recently modified csv file to read (and
 #'  deletes older phenomena csv files).
@@ -12,31 +12,30 @@
 #' @author Paul J. Gordijn
 #' @export
 phenomena_read_csv <- function(
-    input_dir = ".",
+    pipe_house = NULL,
     file = NULL,
     ...) {
-  "wait_room" <- NULL
   if (is.null(file)) {
-    phenlist <- ipayipi::dta_list(input_dir = input_dir, file_ext = ".csv",
-      wanted = "phentab")
+    phenlist <- ipayipi::dta_list(input_dir = pipe_house$wait_room, file_ext =
+      ".csv", wanted = "phentab")
     if (length(phenlist) < 1) stop("There is no nomtab file in the wait_room!")
     phen_dts <- lapply(phenlist, function(x) {
-      mtime <- file.info(file.path(wait_room, x))$mtime
+      mtime <- file.info(file.path(pipe_house$wait_room, x))$mtime
       invisible(mtime)
     })
     names(phen_dts) <- phenlist
     phen_dts <- unlist(phen_dts)
     del_files <- names(phen_dts[-which(phen_dts == max(phen_dts))])
     lapply(del_files, function(x) {
-      file.remove(file.path(wait_room, x))
+      file.remove(file.path(pipe_house$wait_room, x))
       invisible(del_files)
     })
     file <- names(phen_dts[which(phen_dts == max(phen_dts))])
   }
-  if (!file.exists(file.path(input_dir, file))) {
+  if (!file.exists(file.path(pipe_house$wait_room, file))) {
     stop("File not found!")
   }
-  phentab <- read.csv(file.path(input_dir, file))
+  phentab <- read.csv(file.path(pipe_house$wait_room, file))
   cans <- sum(sapply(phentab[, c("phen_name_full", "phen_name", "units",
     "measure")], function(x) sum(is.na(x))))
   if (cans > 0) {
@@ -60,7 +59,7 @@ phenomena_read_csv <- function(
       sensor_id = as.character(phentab$sensor_id),
       notes = as.character(phentab$notes)
     )
-    saveRDS(phentab, file.path(input_dir, "phentab.rps"))
+    saveRDS(phentab, file.path(pipe_house$wait_room, "phentab.rps"))
   }
   invisible(phentab)
 }

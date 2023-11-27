@@ -2,11 +2,10 @@
 % Please edit documentation in R/z_a_logger_data_import_batch.r
 \name{logger_data_import_batch}
 \alias{logger_data_import_batch}
-\title{Import batches of logger data into the ipayipi 'waiting room'.}
+\title{Import logger data}
 \usage{
 logger_data_import_batch(
-  source_dir = ".",
-  wait_room = NULL,
+  pipe_house = NULL,
   prompt = FALSE,
   recurr = FALSE,
   wanted = NULL,
@@ -16,16 +15,14 @@ logger_data_import_batch(
 )
 }
 \arguments{
-\item{source_dir}{The path directory from where Cambell logger data files
-are located.}
-
-\item{wait_room}{Path to the 'wait_room' directory.}
+\item{pipe_house}{List of pipeline directories. \strong{See}
+\code{ipayipi::ipip_init()} \strong{for details}.}
 
 \item{prompt}{Should the function use an interactive file selection function
-otherwise all files are returned. TRUE or FALSE.}
+otherwise all files are returned. \code{TRUE} or \code{FALSE}.}
 
 \item{recurr}{Should the function search recursively into sub directories
-for hobo rainfall csv export files? TRUE or FALSE.}
+for hobo rainfall csv export files? \code{TRUE} or \code{FALSE}.}
 
 \item{wanted}{Vector of strings listing files that should not be
 included in the import.}
@@ -37,12 +34,15 @@ in the import.}
 be incorporatted if required.}
 }
 \description{
-Locates, copies, transforms in R format, then pastes logger
-data files into the 'wait_room'.
+Locates, copies, then pastes logger data files into the
+'wait_room'. Duplicate file names will have unique consequtive integers
+added as a suffix.
 }
 \details{
 Copies logger data files into a directory where further data
-standardisation will take place in the 'ipayipi' data pipeline.
+standardisation will take place in the 'ipayipi' data pipeline. Once
+the files have been standardised in native R format files the data is
+transferred into \code{nomvet_room}.
 }
 \author{
 Paul J. Gordijn

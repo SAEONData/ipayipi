@@ -6,9 +6,7 @@
 \usage{
 dt_process(
   station_file = NULL,
-  ipip_room = ".",
   pipe_seq = NULL,
-  time_intervals = NULL,
   output_dt_preffix = "dt_",
   output_dt_suffix = NULL,
   overwrite_pipe_memory = TRUE,
@@ -18,13 +16,8 @@ dt_process(
 \arguments{
 \item{station_file}{Name of the station being processed.}
 
-\item{ipip_room}{Directory where station data is stored.}
-
-\item{time_intervals}{Vector of strings describing time intervals.
-Each element of the vector corresponds to the aggregation of data
-into a new table. Each string element should begin with an integer,
-then the standard period, e.g., "1 month" or "10 mins". The period must
-be recognised by \code{ipayipi::sts_interval_name()}.}
+\item{pipe_seq}{Generated processing pipeline structure performed by
+\code{ipayipi::pipe_seq()}.}
 
 \item{output_dt_preffix}{The output table preffix which defaults to
 "dt_".}
@@ -46,19 +39,31 @@ processing pipeline. This allows the extraction and preparation of
 raw, or other data from a data table in an 'ipayipi' station file,
 and further processing of this data.
 
-Different portions of the pipeline are summarised in the
-'pipe_process_summary' data table. The sequential steps in the processing
-pipeline are numbered by the field \code{dt_1}.
-\enumerate{
-\item \code{dt_n}: Sequential number of data tables produced by the pipeline.
-Seperate data tables will be processed following this order.
-\item \code{dt_name}: The name of the data processing table.
-\item \code{dtp_n}: Sequential numbering of pipeline process within a data table.
-\item \code{f}: The processing function.
-\item 'start_dttm': Earliest date time for which data have been processed in
-this table.
-\item 'end_dttm': Latest date time for which data have been processed in this
-table.
+The first part of the processing stage of the \code{ipayipi} data pipeline
+is to set up a pipe stage and step sequence using \code{ipayipi::pipe_seq()}.
+Once the sequence is set up it can be parsed to \code{ipayipi::dt_process()}.
+The four main functions that \code{ipayipi::dt_process()} uses to process data
+are:
+\itemize{
+\item \code{dt_harvest}: for harvesting station/other data.
+\item \code{dt_calc_chain}: running \code{data.table} chained calculations on data.
+\item \code{dt_agg}: Aggregate phenomena/variables by custom or default functions.
+Defaults are based on the phenomena descriptions in \code{phens} tables, i.e.,
+their measure, variable type, and units.
+\item \code{dt_join}: Used to merge harvested data sets together via simple and
+more comlex fuzzy type joins using \code{data.table}. \emph{Not yet implemented.}
+These functions can be specified in the \code{pipe_seq} function.
+\code{pipe_seq} will itself run some basic checks on the pipeline structure and
+to help ensure smooth running of the processing. More complex checks on the
+structure of the pipeline are done in the \code{dt_process} function using
+full evaluation of the functions mentioned above. During this process
+station data (both external for external harvesting) and the station wherein
+data are being processed are opened and new phenomena descriptions are
+generated. Function parameters are also generated for each of the functions
+above. All this to minimise potential error during the actual data
+processing performed by the functions above.
+Processed data, function parameters, and new phenomena summariies are
+returned and appended to station files for future use.
 }
 }
 \author{

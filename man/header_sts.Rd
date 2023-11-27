@@ -2,10 +2,10 @@
 % Please edit documentation in R/z_c3_header_sts.r
 \name{header_sts}
 \alias{header_sts}
-\title{Standardises ipayipi raw data summary information}
+\title{Standardises ipayipi header information}
 \usage{
 header_sts(
-  wait_room = NULL,
+  pipe_house = NULL,
   prompt = FALSE,
   recurr = TRUE,
   wanted = NULL,
@@ -16,7 +16,8 @@ header_sts(
 )
 }
 \arguments{
-\item{wait_room}{Path to the 'wait_room' directory.}
+\item{pipe_house}{List of pipeline directories. \strong{See}
+\code{ipayipi::ipip_init()} \strong{for details}.}
 
 \item{prompt}{Should the function use an interactive file selection function
 otherwise all files are returned. TRUE or FALSE. Defaults to FALSE.}
@@ -35,16 +36,21 @@ stations.}
 Uses the nomenclature table, standardises the recording
 interval string, start and end date times in the file header, and finally
 the file name is copied from the standardised station name, that is, the
-'standardised title'.
+'standardised title'. The standardised station file header nomenclature
+is retained in an ipayipi station file 'data_summary' table.
 }
 \details{
-This function calls \code{ipayipi::met_nomenclature()} which will take
+This function calls \code{ipayipi::nomenclature_sts()} which will take
 take the user interactively through a process of standardising station
 names and titles.
-The phenomena of files can only be checked once nomenclature has been
+Station phenomena can only be checked once header nomenclature has been
 standardised.
-If the fundtion requests that a check of the record interval
-make sure the in function record interval table is updated.
+
+Note that there is no unstandardised 'uz' location. Whatever location
+provided to in nomenclature table will be used in naming conventions.
+The 'location' field can be provided edited during the
+\code{ipayipi::nomenclature_sts()} and \code{ipayipi::read_nomtab_csv()}
+functionality.
 }
 \author{
 Paul J. Gordijn

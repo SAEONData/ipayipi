@@ -2,10 +2,10 @@
 % Please edit documentation in R/z_c1_nomenclature_sts.r
 \name{nomenclature_sts}
 \alias{nomenclature_sts}
-\title{Check ipayipi data file nomenclature}
+\title{Check ipayipi logger data file/header nomenclature}
 \usage{
 nomenclature_sts(
-  wait_room = NA,
+  pipe_house = NA,
   check_nomenclature = TRUE,
   csv_out = TRUE,
   file_ext = "ipr",
@@ -13,12 +13,12 @@ nomenclature_sts(
 )
 }
 \arguments{
-\item{wait_room}{The working directory where imported meteorological data
-files are stored.}
+\item{pipe_house}{List of pipeline directories. \strong{See}
+\code{ipayipi::ipip_init()} \strong{for details}.}
 
-\item{check_nomenclature}{Should the file naming be check. This helps ensure
-that files are named consistently and that data from different stations are
-not appended erraneously.}
+\item{check_nomenclature}{Should the file naming be checked. This helps
+ensure that files are named consistently and that data from different
+stations are not appended erraneously.}
 
 \item{file_ext}{The extension of the file for which the nomenclature is being
 assessed.}
@@ -27,14 +27,82 @@ assessed.}
 directory if there are files with unrecognised nomenclature.}
 }
 \value{
-returns a csv nomenclature file. Screen output notes whether
-the nomenclature table is complete.
+returns a csv nomenclature file when unrecognised synonyms are
+detected. Screen output notes whether the nomenclature table is complete.
 }
 \description{
-A function to check standardisation of meteorological data
-objects to be run before introducing data into the pipeline.
+Critical step in the data pipeline. A function to check
+standardisation of logger data header information. If an unrecognised
+synonym appears the nomenclature database will have to be updated.
+}
+\details{
+When \code{ipayipi} imbibes logger data the data setup (e.g.,
+\code{ipayipi::hobo_rain}) allows for harvesting of logger file header
+information. This function assists with standardising this header
+information, storing this with header synonyms and other metadata in a
+table in the data pipelinese 'wait_room' directory. The file name of the
+table is set by default to 'nomtab.rns' (an rds file). If this file is
+deleted then the synonym database will need to be rebuilt using this
+function.
+
+\strong{Editing the nomenclature table}:
+When unrecognised synonyms are introduced (e.g., after a change in logger
+program setup, or simply a change in file name spelling) this function
+creates a csv table in the \code{wait_room} that should be edited to maintain
+the synonym database. \emph{Unstandardised header information is preffixed
+in the nomenclature table (csv) by 'uz}'._ These unstandardised columns
+must not be edited by the user, but the standardised header information
+can be added by replacing corresponding \code{NA} values with appropriate
+standards.
+
+The following fields in the nomenclature table may require editing/
+standardisation:
+\itemize{
+\item '\strong{location}': The region name used to subset a group of stations by
+area.
+\item '\strong{station}': The name of the station collecting logger data.
+\item '\strong{stnd_title}': The standard station title. It is recommended that this
+title is given as the concatenation of the location and station field
+above, seperated by an underscore.
+\item '\strong{table_name}': The name of the table. By default the preffix to logger
+data is 'raw_'. Within the pipeline structure the name appended to this
+preffix must be the standardised record interval, e.g., 'raw_5_mins',
+for continuous 5 minute data, or 'raw_discnt' for raw event based data.
+}
+
+\strong{NB!} Only edit these fields (above) of the nomenclature table during
+standardisation.
+
+Once this csv file has been edited and saved it can be pulled into the
+pipeline structure by running \code{ipayipi::read_nomtab_csv()}.
+
+\strong{What header information is used/standardised?}:
+Note that this function will only assess files for which the station name
+is known. If the station name is known, the "uz_station", "logger_type",
+"record_interval_type", "record_interval", and "uz_table_name" are used to
+define unique station and station table entries, that require
+standardisation.
+Note that \code{record_interval_type} and \code{record_interval} are evaluated during
+the \code{ipayipi::imbibe_raw_logger_dt()} function.
+
+\emph{The 'ipayipi' data pipeline strongly suggests conforming with
+'tidyverse' data standards. Therefore, use lower case characters, no special
+characters, except for the underscore character which should be used for
+spacing.}
+
+\strong{NB!} The header information and associated synonym database is used to
+standardise station metadata and is key for identifying like stations
+during the appending of data records. Phenomena or variables also need
+to be standardised using \code{ipayipi::phenomena_sts()}, but only after
+running \code{ipayipi::nomenclature_sts()}.
 }
 \author{
 Paul J. Gordijn
 }
-\keyword{nomenclature}
+\keyword{file}
+\keyword{header}
+\keyword{information,}
+\keyword{metadata,}
+\keyword{nomenclature,}
+\keyword{station}
+\keyword{synonyms}

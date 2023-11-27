@@ -36,7 +36,8 @@ append_phen_data <- function(
   tn = NULL,
   ri = NULL,
   ...) {
-  ":=" <- NULL
+  ":=" <- "phid" <- "start_dttm" <- "table_name" <- "date_time" <-
+    "end_dttm" <- NULL
   phens <- unique(phen_dt[table_name == tn]$phen_name)
 
   nd_min <- min(ndt$date_time)
@@ -45,6 +46,7 @@ append_phen_data <- function(
   if (overwrite_sf) {
     sfo <- sfo[date_time > nd_max][date_time < nd_min]
   }
+  sfo <- sfo[!duplicated(sfo$date_time)]
 
   ovlap <- ipayipi::append_phen_overlap_data(
     nd_min = nd_min, nd_max = nd_max, sfo = sfo, ndt = ndt, phen_dt = phen_dt,
@@ -120,6 +122,6 @@ append_phen_data <- function(
   data_sets <- list(
     data.table::rbindlist(data_sets, fill = TRUE), raw_dto, dtsnd)
   app_dta <- data.table::rbindlist(data_sets, fill = TRUE)[order(date_time)]
-  message(paste0(min(app_dta$date_time), "--", max(app_dta$date_time)))
+  #message(paste0(min(app_dta$date_time), "--", max(app_dta$date_time)))
   return(list(app_dta = app_dta, phen_ds = phen_ds))
 }

@@ -1,18 +1,11 @@
 ---
 title: "<img src=\"../img/saeon_logo.png\" width=\"40%\" height=\"40%\" style=\"float: right;\"/>  <br/> <img src=\"../img/ipayipi_120.png\" width=\"59%\" height=\"59%\" style=\"float: centre;\"/> <br/>  ipayipi---data processing"
-author: "Paul Gordijn"
+output: rmarkdown::html_vignette
 date: "`r format(Sys.time(), '%d %B, %Y')`"
-output: 
-  html_document:
-    theme: cerulean
-    highlight: zenburn
-    toc: true
-    toc_depth: 4
-    toc_float:
-      collapsed: false
-      smooth_scroll: false
-params:
-  set_title: "ipayipi---opening the pipeline---imbibe data"
+vignette: >
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteIndexEntry{ipayipi---opening the pipeline---imbibe data}
+  %\VignetteEncoding{UTF-8}
 ---
 
 
@@ -30,26 +23,28 @@ getwd()
 
 # Summary
 
-This vignette introduces SAEON's __ipayipi__ bulk data processing pipeline for time series data.
+Introduction to batch-data processing of time-series data using R __ipayipi__.
+
+1. Install `R ipayipi` from [GitHub](https://github.com/SAEONData/ipayipi),
+2. Initiate pipeline,
+3. Metadata harvesting and setup,
+4. Imbibe data,
+5. Standardise data,
+6. 
 
 
-1. Install `R ipayipi` <img align="centre" width="10%" height="10%" src="../img/ipayipi_120.png">
-2. Initiate pipeline \& automate metadata consolidation in **R** objects (_mobile app template available_)
-3. Start batch processing <a id="naartjietime"></a> \.\.\. <img align="centre" width="100%" height="100%" src="../img/naartjie.gif">
 
-<br/>
-
-4. Built in data visualization with **ggplot** or _interactive_ **dygraphs** (below) <a id="dychart"></a> \.\.\.
-```{r vasiviz, echo=FALSE}
-gw <- readRDS("data/VASI_A1.rds")
-library(dygraphs)
-gw_vis_dy(gw, vis_type = 3, dippr = TRUE, show_events = TRUE)
-```
 # Introduction
 
-Organising time series data from remote servers or from logger download requires a large amount of sorting, checking, and just general organisation. iPayipi provides some tools for automating and speeding up this process. Importantly, the iPayipi pipeline preserves the integrity of your raw data so that when the time comes, the raw data is available in a standardised format, and the processing of this data can be updated. Everything in the pipeline is designed to make any processing of raw data traceable. In the process iPayipi harvests all the appropriate metadata required for dataset publication.
+Organising time-series data from loggers, such as, weather stations or ground-water sensors, requires no small amount of data structuring. ipayipi is an R package to make this process dynamic, so that, processing, down (and back up) a pipeline, is traceable. Importantly, ipayipi preserves raw-data integrity and initiates archival so that the raw data is available in a standardised format, and the processing of this data can be updated.
 
-# Initiating the pipeline
+The package is maintained [GitHub](https://github.com/SAEONData/ipayipi) and can be installed using the 'devtools' package: `devtools::install_github("SAEONData/ipayipi")`.
+
+# Initiating the pipeline: the 'pipe_house'
+
+The 'pipe_house' is the name of the directory where we will initiate a data-pipeline structure. To keep things simple, we will only use our 'pipe_house' for meteorological data. The data for this vignette can be downloaded from GitHub in the package's raw-data folder [here]()
+
+# 
 
 1. **wait_room** directory where is data imported then imbibed and standardised.
 2. **nomvet_room** for storing standardised data. 

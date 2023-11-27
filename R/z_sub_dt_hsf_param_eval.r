@@ -69,7 +69,8 @@ hsf_param_eval <- function(
   "%ilike%" <- "phen_name" <- "table_name" <- "input_dt" <- "phen_syn" <-
     "dfft_diff" <- "dt_n" <- "dtp_n" <- "decis" <- "output_dt" <-
       "dfft_secs" <- "orig_table_name" <- ":=" <- NULL
-  # partial function evaluation --- returns shorter hsf_param list
+  ## partial function evaluation ----------------------------------------------
+  #  returns shorter hsf_param list
   #  full evaluation returns a list of available phenomena and
   #  their phenomena details.
   if (full_eval != TRUE) {
@@ -83,9 +84,10 @@ hsf_param_eval <- function(
     )
     f_params <- hsf_params[!sapply(hsf_params, is.null)]
     class(f_params) <- c(class(f_params), "dt_harvest_params")
-  } else { # full function evaluation --------------------------------------
+  } else {
+  # full function evaluation --------------------------------------------------
+    # extract parts of ppsij and assign values in env
     if (!is.null(ppsij)) {
-      # extract parts of ppsij and assign values in env
       ppsi_names <- names(ppsij)[!names(ppsij) %in% c("n", "f", "f_params")]
       for (k in seq_along(ppsi_names)) {
         assign(ppsi_names[k], ppsij[[ppsi_names[k]]][1])
@@ -100,6 +102,8 @@ hsf_param_eval <- function(
           f_params[[hsf_param_names[k]]])
       }
     }
+
+    # single out the harvest (hsf) station
     if (!is.null(hsf_station)) {
       hsfn <- ipayipi::dta_list(input_dir = harvest_dir, recurr = recurr,
         file_ext = harvest_station_ext, wanted = hsf_station,
@@ -118,9 +122,12 @@ hsf_param_eval <- function(
       hsf_summary <- f_summary
       hsf_names <- f_summary$sf_names
     }
-    # proceedure below dependent on input data types
-    # --- if extracting from standardised pipe data we can extract phenomena
+
+    ## prepare hsf phen metadata ----
+    # - depends on time series data type (discnt or continuous)
+    # - if extracting from standardised pipe data we can extract phenomena
     # details...
+
     # initial phenomena name organisation
     if (exists("input_dt")) hsf_table <- input_dt
 
@@ -130,7 +137,7 @@ hsf_param_eval <- function(
     if (!is.null(phen_names)) {
       phen_tabs <- lapply(phen_tabs, function(x) x[phen_name %in% phen_names])
     }
-    # extract from raw data
+    # extract from raw data phen table
     if (hsf_table %ilike% "raw") {
       p <- phen_tabs$phens[table_name %ilike% "raw",
         c("phid", "phen_name", "units", "measure", "var_type", "table_name")]
@@ -138,7 +145,7 @@ hsf_param_eval <- function(
       # join on data summary info
       s <- unique(hsf_summary$data_summary, by = "table_name")
     }
-    # extract from processed data ('_dt')
+    # extract from processed data phen table ('_dt')
     if (hsf_table %ilike% "_dt") {
       p <- phen_tabs$phens_dt[table_name %ilike% "_dt",
         c("phid", "phen_name", "units", "measure", "var_type", "table_name")]
@@ -146,13 +153,6 @@ hsf_param_eval <- function(
       # join on data summary info
       s <- unique(hsf_summary$data_summary_dt, by = "table_name")
     }
-    # standardise types of measures, units and var_types ...
-    sts_phen_var_type <- data.table::data.table(
-      phen_prop = c("num", "int", "chr", "fac", "posix", "logi"),
-      phen_syn = c("numeric", "integer", "str|string|chr|character|char",
-        "fac|factor|fact", "date|time|posix|date-time|posixct",
-        "logical|lgcl|lcl|lgc|logi")
-    )
     # extract from other source
     if (!any(sapply(phen_tabs, function(x) any(x$table_name == hsf_table))) &&
       hsf_table != "raw") {
@@ -160,20 +160,21 @@ hsf_param_eval <- function(
       ht <- attempt::try_catch(expr = readRDS(hsfn), .w = ~stop)[[hsf_table]]
       # get date time info
       dttm <- names(ht)[names(ht) %ilike% "date_time|date-time"][1]
+      # evaluate other data record interval
       dtti <- ipayipi::record_interval_eval(dt = ht[[dttm]], dta_in = ht)
       p <- data.table::data.table(
         phid = NA_integer_, phen_name = names(ht), units = NA_character_,
         measure = NA_character_, var_type = sapply(ht, function(x) class(x)[1]),
         table_name = hsf_table
       )
-      # standardise var type nomenclature
+      # standardise var_type nomenclature
       s <- data.table::data.table(record_interval_type =
         dtti$record_interval_type, record_interval = dtti$record_interval,
         start_dttm = min(ht[[dttm]], na.rm = TRUE), end_dttm =
         min(ht[[dttm]], na.rm = TRUE), table_name = hsf_table
       )
       p$var_type <- as.vector(sapply(p$var_type, function(x) {
-        sts_phen_var_type[phen_syn %ilike% x][["phen_prop"]][1]
+        ipayipi::sts_phen_var_type[phen_syn %ilike% x][["phen_prop"]][1]
       }))
     }
     if (is.null(phen_names[1]) || is.na(phen_names[1])) {
@@ -181,6 +182,8 @@ hsf_param_eval <- function(
     }
     phen_names <- unique(p$phen_name)
     phen_names <- phen_names[order(phen_names)]
+
+    ## phen aggregation interval options ----
     # add record interval to p to organise aggregation intervals and phenomena
     # selection
     s <- s[, c("record_interval_type", "record_interval", "table_name",
@@ -190,12 +193,9 @@ hsf_param_eval <- function(
     s <- cbind(s, sx)
     p <- merge(x = p, y = s, all.y = TRUE, by = "table_name")
     agg_time_interval <- ipayipi::sts_interval_name(time_interval)
-    if ("event_based" %in% p$record_interval_type) {
-      dfft_dta <- as.numeric(x = mondate::as.difftime(
-          max(s$end_dttm) - min(s$start_dttm)), units = "secs")
-      p <- subset(p, select = -dfft_secs)
-      p <- transform(p, dfft_secs = dfft_dta)
-    }
+
+    ### discontinuous data option ----
+    if ("event_based" %in% p$record_interval_type) p$dfft_secs <- 0
     if (is.na(agg_time_interval$dfft_secs)) agg_time_interval$dfft_secs <- 0
     p$agg_intv <- agg_time_interval$dfft_secs
     p$dfft_diff <- p$agg_intv - p$dfft_secs

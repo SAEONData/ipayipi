@@ -2,30 +2,41 @@
 % Please edit documentation in R/z_sub_ipip_init.r
 \name{ipip_init}
 \alias{ipip_init}
-\title{Pipe directory intitiate}
+\title{Setup an \code{ipayipi} data pipeline directory system}
 \usage{
-ipip_init(work_dir = ".")
+ipip_init(
+  work_dir = ".",
+  source_dir = NULL,
+  wait_room = NULL,
+  nomvet_room = NULL,
+  ipip_room = NULL,
+  raw_room = NULL,
+  ...
+)
 }
 \arguments{
 \item{work_dir}{The folder, that is, directory in which to create the
 pipeline directories.}
 }
 \value{
-Notification of directory creation.
+List of 'room' directories.
 }
 \description{
-Creates the necessary folders for the ipaypi meteorological
-data processing pipeline.
+Creates the folders for the ipayipi data processing pipeline.
 }
 \details{
-This function automates the creation of three folders/diretories
+This function automates the creation of four folders/directories
 that are requried for bulk processing of files in the ipayipi groundwater
 pipeline structure. The directories are:
 \itemize{
-\item \strong{wait_room} --- for raw data imports
-\item \strong{nomvet_room} --- for storing standardized native solonist data files
-\item \strong{ipip_room} --- transforming and processing standardized native data
-& processing
+\item \strong{wait_room} --- temporary directory where raw data imports are
+standardised.
+\item \strong{nomvet_room} --- for housing standardized native solonist data files.
+\item \strong{ipip_room} --- transforming and processing standardized native data.
+\item \strong{raw_room} --- for archiving 'raw' data files.
+\item \strong{source_dir} --- directory in which new raw data files are 'sourced'.
+\emph{NB}! Existing directories (and their contents) with similar names are not
+deleted/removed by this function.
 }
 }
 \examples{

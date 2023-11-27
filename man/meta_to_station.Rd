@@ -5,7 +5,7 @@
 \title{Open and check rainfall event metadata database.}
 \usage{
 meta_to_station(
-  ipip_room = ".",
+  pipe_house = NULL,
   input_dir = NULL,
   meta_file = NULL,
   file_ext = ".rmds",
@@ -17,7 +17,8 @@ meta_to_station(
 )
 }
 \arguments{
-\item{ipip_room}{Directory in which to search for the station files.}
+\item{pipe_house}{List of pipeline directories. \strong{See}
+\code{ipayipi::ipip_init()} \strong{for details}.}
 
 \item{input_dir}{Directory from which to retreieve a metadata file
 read and saved by \code{ipayipi::meta_read()}.}

@@ -83,7 +83,8 @@ pipe_seq <- function(
     # dt_agg specifics
     # only one 'dt_agg' per stage
     pij <- unique(pii[f == "dt_agg"]$dtp_n)
-    pij <- sapply(seq_len(length(pij) - 1), function(ki) {
+    if (length(pij) == 0) pij_seq <- 1 else pij_seq <- length(pij)
+    pij <- sapply(seq_len(pij_seq - 1), function(ki) {
       warning(
         "Set only one data aggregation per processeing stage (\"dt_n\")")
       stop(, call. = FALSE)
@@ -118,22 +119,18 @@ pipe_seq <- function(
   # last checks
   for (i in seq_along(p)) {
     # if there is no input data in a stage set this to the last stage output
-    if (is.na(p[[i]]$input_dt[1])) {
+    if (is.na(p[[i]]$input_dt[1]) && i > 1) {
       p[[i]]$input_dt[1] <- p[[(i - 1)]]$output_dt[1]
     }
     # as for above but with the time interval
-    if (is.na(p[[i]]$time_interval[1])) {
+    if (is.na(p[[i]]$time_interval[1]) && i > 1) {
       p[[i]]$time_interval <- p[[(i - 1)]]$time_interval[1]
     }
   }
   # check that na values input and output tables & the time interval
   for (i in seq_along(p)) {
-    for (j in seq_along(unique(p[[i]]$dtp_n))) {
-      if (is.na(p[[i]][dtp_n == j]$input_dt[1])) {
-        p[[i]][dtp_n == j]$input_dt <-
-          p[[i]][dtp_n == (j - 1)]$output_dt[1]
-      }
-    }
+    p[[i]][dtp_n > 1 & f != "dt_harvest"]$input_dt <- p[[i]][
+      dtp_n == 1]$output_dt[1]
   }
   p <- data.table::rbindlist(p, fill = TRUE)
   # check that there is a unique output table for each stage

@@ -27,11 +27,11 @@
 #' @param data_setup List of options used to extract data and metadata from
 #'  instrument data outputs. Mandatory fields are indicated with an '*'.
 #'   File header options include*^1^:
-#'   1. *file_format -- the native/raw file format.
-#'   1. *station_title -- the supplied instrument station title.
-#'   1. *location -- the standardised location (name) of the station.
-#'   1. *logger_type -- the type of logger.
-#'   1. *logger_sn -- the serial number of the logger.
+#'   1. *__file_format__ -- the native/raw file format.
+#'   1. *__station_title__ -- the supplied instrument station title.
+#'   1. location -- the standardised location (name) of the station.
+#'   1. *__logger_type__ -- the type of logger.
+#'   1. *__logger_sn__ -- the serial number of the logger.
 #'   1. logger_os -- the operating system (or firmware version) on the logger.
 #'   1. logger_program_name -- the name of the program installed on the logger
 #'       (also 'DLD name' on Cambel Scientific systems).
@@ -48,7 +48,7 @@
 #'      e.g., 3.
 #'
 #'  File phenomena information and data *^2^:
-#'   1. *phen_name -- a list of row and column numbers corresponding to the
+#'   1. *__phen_name__ -- a list of row and column numbers corresponding to the
 #'       names of phenomena (variables).
 #'   1. phen_unit -- a list of row and column numbers corresponding to the
 #'       names of phenomena units.
@@ -70,9 +70,9 @@
 #'    found and the columns wherein these lie are required. See
 #'    ?ipayipi::rng_rici() for more details.
 #'
-#'   1. *data_row -- a single integer value designating the row where phenomena
-#'     data begin from.
-#'   1. *id_col -- a single integer value designating a data row unique
+#'   1. *__data_row__ -- a single integer value designating the row where
+#'     phenomena data begin from.
+#'   1. *__id_col__ -- a single integer value designating a data row unique
 #'     identifier row.
 #' @param remove_prompt Logical; passed to `ipayipi::record_interval_eval()`.
 #'  Activate a readline prompt to choose whether or not filter our records from
@@ -81,6 +81,8 @@
 #'  time a logger is visited is counted as a logger interference event.
 #'  Type _'remote'_ occurs when data is downloaded remotely. Type _'on_site'_
 #'  is when data was downloaded on site. _See details_ ...
+#' @param silent Logical passed to `attempt::attempt()` which reads the logger
+#'  text file in with either `data.table::fread()` or base R.
 #' @details This function uses `data.table::fread` which is optimized for
 #'  processing 'big data'. Apart from usual the usual options which can be
 #'  parsed to `data.table::fread` this function generates some standardised
@@ -115,24 +117,20 @@ imbibe_raw_logger_dt <- function(
   file_ext = NULL,
   col_dlm = NULL,
   dt_format = c(
-    "Ymd HMS", "Ymd IMSp",
-    "ymd HMS", "ymd IMSp",
-    "mdY HMS", "mdy IMSp",
-    "dmY HMS", "dmy IMSp",
-    "Ymd HMOS", "Ymd IMOSp",
-    "ymd HMOS", "ymd IMOSp",
-    "mdY HMOS", "mdy IMOSp",
-    "dmY HMOS", "dmy IMOSp"),
+    "Ymd HMS", "Ymd IMSp", "ymd HMS", "ymd IMSp", "mdY HMS", "mdy IMSp",
+    "dmY HMS", "dmy IMSp", "Ymd HMOS", "Ymd IMOSp", "ymd HMOS", "ymd IMOSp",
+    "mdY HMOS", "mdy IMOSp", "dmY HMOS", "dmy IMOSp"),
   dt_tz = "Africa/Johannesburg",
   record_interval_type = "continuous",
   data_setup = NULL,
   remove_prompt = FALSE,
   logg_interfere_type = "on_site",
+  silent = TRUE,
   ...
 ) {
   file <- attempt::attempt(data.table::fread(file = file_path, header = FALSE,
     check.names = FALSE, blank.lines.skip = FALSE, sep = col_dlm,
-    strip.white = FALSE, fill = TRUE))
+    strip.white = FALSE, fill = TRUE), silent = silent)
   # if there was an error then we try and read the file using base r
   if (attempt::is_try_error(file)) {
     file <- attempt::attempt(data.table::as.data.table(read.csv(
@@ -152,9 +150,9 @@ imbibe_raw_logger_dt <- function(
 
   if (is.list(data_setup)) {
     # check that the defaults have been supplied
-    if (!any(data_setup_names[c(1:5, 11, 16)] %in% names(data_setup))) {
+    if (!any(data_setup_names[c(1:2, 4:5, 11, 16)] %in% names(data_setup))) {
       message(paste0("The following names were not supplied: ",
-      data_setup_names[!data_setup_names[c(1:5, 11, 16)] %in%
+      data_setup_names[!data_setup_names[c(1:2, 4:5, 11, 16)] %in%
         names(data_setup)], sep = "\n"))
       stop("Supply all required information in the 'data_setup'!")
     }
@@ -192,7 +190,7 @@ imbibe_raw_logger_dt <- function(
             head_info[[i]] <- NULL
           }
         } else {
-            head_info[[i]] <- NULL
+          head_info[[i]] <- NULL
         }
       }
       if (!is.character(head_info[[i]]) && !is.null(head_info[[i]])) {
@@ -302,7 +300,6 @@ imbibe_raw_logger_dt <- function(
       dta_in = dta, remove_prompt = remove_prompt,
       record_interval_type = record_interval_type
     )
-    # print(dri$record_interval)
     dta <- dri$new_data
     dri <- ipayipi::record_interval_eval(
       dt = dta$date_time, dt_format = dt_format, dt_tz = dt_tz,
@@ -315,7 +312,7 @@ imbibe_raw_logger_dt <- function(
       dsid = as.integer(1),
       file_format = as.character(head_info_i$file_format),
       uz_station = as.character(head_info_i$station_title),
-      location = NA_character_,
+      location = as.character(head_info_i$location),
       station = NA_character_,
       stnd_title = NA_character_,
       start_dttm = min(dta$date_time),
@@ -344,7 +341,8 @@ imbibe_raw_logger_dt <- function(
       phid = as.integer(phens$phid),
       # removed dsid as it takes up too many rows and slows joins when
       #  generating phenomena data summaries
-      # dsid = as.integer(rep(as.integer(data_summary$dsid), nrow(phens))),
+      # dsid = as.integer(rep(as.integer(data_summary$dsid),
+      #    nrow(phens))),
       start_dttm = rep(data_summary$start_dttm, nrow(phens)),
       end_dttm = rep(data_summary$end_dttm, nrow(phens)),
       table_name = NA_character_

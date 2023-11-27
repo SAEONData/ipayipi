@@ -60,13 +60,12 @@ phenomena that will be aggregated by \code{ipayipi::dt_agg()}.}
 \details{
 Default aggregation functions based on measure, variable types, and
 the unit of measurement. Function info is stored in the package
-data, "ftbl" --- \emph{see examples}.
+data, "sts_agg_functions" --- \emph{see examples}.
 }
 \examples{
 # load the table from the function data folder to see default aggregation
 # functions
-data("ftbl")
-print(ftbl)
+ipayipi::sts_agg_functions
 
 }
 \author{

@@ -2,10 +2,10 @@
 % Please edit documentation in R/z_c4_phenomena_chk.r
 \name{phenomena_chk}
 \alias{phenomena_chk}
-\title{Update meteorological file phenomena}
+\title{Update logger data file phenomena/variable metadata}
 \usage{
 phenomena_chk(
-  wait_room = NA,
+  pipe_house = NA,
   check_phenomena = TRUE,
   file_ext_in = ".iph",
   csv_out = TRUE,
@@ -13,28 +13,45 @@ phenomena_chk(
 )
 }
 \arguments{
-\item{wait_room}{The working directory where imported meteorological data
-files are stored.}
+\item{pipe_house}{List of pipeline directories. \strong{See}
+\code{ipayipi::ipip_init()} \strong{for details}.}
 
 \item{check_phenomena}{Should the file naming be check. This helps ensure
 that files are named consistently and that data from different stations are
 not appended erraneously.}
 
 \item{nomtab_import}{Is there an update to the extant (or non-existant)
-nomenclature table? This parameter can be used to input these updates.}
+phenomena table? This parameter can be used to input these updates.}
 
-\item{out_csv}{Logical. If TRUE a csv file is made in the working
+\item{out_csv}{Logical. If \code{TRUE} a csv file is made in the working
 directory if there are files with unrecognised phenomena.}
 }
 \value{
 returns a csv phenomena file. Screen output notes whether
-the nomenclature table is complete.
+the phenomena table is complete.
 }
 \description{
-A function to check standardisation of meteorological data
-phenomena to be run before introducing data into the pipeline.
+Critical standardisation for maintaining time-series
+data pipelines.
+}
+\details{
+Logger data phenomena must be standardised prior to being
+transferred to the nomenclature vetted room. This standardisation step
+must only be run once header information has been standardised using the
+\code{ipayipi::nomenclature_sts()} and \code{ipayipi::header_sts()} functionality.
+
+A phenomena table or or database is kept in the pipelines 'wait_room'
+directory as an RDS file ('phentab.rps'). If this file is deleted the
+\code{ipayipi::phenomena_sts()} will initiate the recreation of this file. The
+csv file is only produced for user convienience for editing.
 }
 \author{
 Paul J. Gordijn
 }
-\keyword{nomenclature}
+\keyword{logger}
+\keyword{measures,}
+\keyword{phenomena,}
+\keyword{standardisation}
+\keyword{synonyms,}
+\keyword{units,}
+\keyword{variables,}

@@ -25,7 +25,7 @@ pipeline structure. The directories are:
 \item \strong{wait_room} --- for raw data imports
 \item \strong{nomvet} --- for storing standardized native solonist data files
 \item \strong{solr_dta} --- transforming and processing standardized native data
-& processing
+& processing.
 }
 }
 \examples{

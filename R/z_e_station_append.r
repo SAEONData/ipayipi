@@ -5,6 +5,8 @@
 #' @param new_data The data that will be appended to the main 'hobo station'.
 #' @param overwrite_sf Logical. Defaults to FALSE so that data from the
 #'  `station_file` is not over written by the `new_data`.
+#' @param by_station_table If TRUE then multiple station tables will not be
+#'  kept in the same station file. Defaults to FALSE.
 #' @author Paul J. Gordijn
 #' @keywords meteorological data; data pipeline; append data;
 #' @details
@@ -21,14 +23,16 @@ append_station <- function(
   new_data = NULL,
   overwrite_sf = TRUE,
   by_station_table = FALSE,
+  phen_id = TRUE,
   ...
 ) {
   "phen_name" <- "table_name" <- "dups" <- "phid_new" <-
     "phen_name_full" <- "phen_type" <- "measure" <- "uz_phen_name" <-
       "var_type" <- "uz_units" <- "uz_measure" <- "phid" <- "origin" <-
         NULL
+  ## read in data ----
   sf_ds <- readRDS(station_file)$data_summary
-  sf_phen_ds <- readRDS(station_file)$phen_data_summary
+  sf_phen_ds <- unique(readRDS(station_file)$phen_data_summary)
   sf_phens <- readRDS(station_file)$phens
   sf_names <- names(readRDS(station_file))
   # check station names
@@ -37,6 +41,8 @@ append_station <- function(
   }
   # check table names
   tn <- new_data$data_summary$table_name[1]
+
+  ## data summary integration ----
   # generate data summary unique id
   new_data$data_summary$dsid <- seq_len(nrow(new_data$data_summary)) +
     max(sf_ds$dsid)
@@ -48,73 +54,50 @@ append_station <- function(
   if ("phen_name" %in% names(sf_phen_ds)) {
     sf_phen_ds <- subset(sf_phen_ds, select = -phen_name)
   }
+
+  ## organise phenomena ----
   # warn user if phenomena standards are different
   # need to set up ids for phenomena
   # first need to deal with only phens of the same input table name
   new_data$phens$phid <- seq_len(nrow(new_data$phens)) +
     max(sf_phens$phid)
-  # update the new_data phenomena data summary
+
+  # update new data phids to match existant station phen table
+  sf_phens$origin <- "s_f"
+  new_data$phens$origin <- "n_d"
+  phb <- rbind(sf_phens, new_data$phens)
+  # the uphen vector can be updated with more fields to retain greater detail
+  uphen <- c("phen_name", "units", "measure", "var_type")
+  # standardise non-unique phens with lowest phid
+  f <- paste(phb$phen_name, phb$units, phb$measure, phb$var_type, sep = "-")
+  phb <- split.data.frame(phb, f = factor(f))
+  phb <- lapply(phb, function(x) {
+    x$phid_update <- min(x$phid)
+    invisible(x)
+  })
+  ucols <- c("phid", "phid_update")
+  phb_ids <- data.table::rbindlist(phb)[origin == "s_f"][, ucols, with = FALSE]
+  phb_ids <- unique(phb_ids)
+  phb <- lapply(phb, function(x) {
+    x <- unique(x, by = c(uphen, "table_name", "origin"))
+    invisible(x)
+  })
+  phb <- data.table::rbindlist(phb)
+  phb$phid <- phb$phid_update
+  phb <- phb[, -c("origin", "phid_update"), with = FALSE]
+  phb <- unique(phb, by = c("phen_name", "phid", "table_name"))
+  phen_dt <- phb[order(table_name, phen_name_full, phen_name)][
+    table_name == tn]
   new_data$phen_data_summary <- data.table::data.table(
-    phid = as.integer(new_data$phens$phid),
-    # dsid = as.integer(rep(as.integer(new_data$data_summary$dsid),
-    #  nrow(new_data$phens))),
-    start_dttm = rep(new_data$data_summary$start_dttm,
-      nrow(new_data$phens)),
-    end_dttm = rep(new_data$data_summary$end_dttm, nrow(new_data$phens)),
-    table_name = rep(new_data$data_summary$table_name,
-      nrow(new_data$phens))
+    phid = phb[table_name == tn]$phid,
+    start_dttm = min(new_data[[tn]]$date_time),
+    end_dttm = max(new_data[[tn]]$date_time),
+    table_name = tn
   )
   non_tab_phens <- sf_phens[table_name != tn]
   non_tab_phen_ds <- sf_phen_ds[table_name != tn]
-  st_phens <- sf_phens[table_name == tn]
-  nd_phens <- new_data$phens[table_name == tn]
-  st_phens$origin <- "station"
-  nd_phens$origin <- "new_data"
-  phen_dt <- rbind(st_phens, nd_phens)
-  # check that the phenomena have been standardised
-  uphen <- c("phen_name_full", "phen_name", "units", "measure", "var_type")
-  phen_dt_dups <- unique(phen_dt[, uphen, with = FALSE])
-  if (any(duplicated(phen_dt_dups$phen_name))) {
-    print(phen_dt[duplicated(phen_dt_dups$phen_name), ])
-    message("Standardise phenomena before appending data")
-    message("Phenomena must have the same: ")
-    message(paste(uphen, " ", sep = " "), " details.")
-    stop("Difference in the above phenomena detected")
-  }
-  phen_dt$dups <- duplicated(phen_dt, by = names(phen_dt)[
-    !names(phen_dt) %in% c("origin", "phid")])
-  phen_dt$phid_new <- 0
-  # need to update phid's of duplicates
-  for (j in seq_len(nrow(phen_dt[dups == TRUE]))) {
-    z_name_full <- phen_dt[dups == TRUE]$phen_name_full[j]
-    z_type <- phen_dt[dups == TRUE]$phen_type[j]
-    z_name <- phen_dt[dups == TRUE]$phen_name[j]
-    zunits <- phen_dt[dups == TRUE]$units[j]
-    zmeasure <- phen_dt[dups == TRUE]$measure[j]
-    zoffset <- phen_dt[dups == TRUE]$offset[j]
-    zvar_type <- phen_dt[dups == TRUE]$var_type[j]
-    zuz_phen_name <- phen_dt[dups == TRUE]$uz_phen_name[j]
-    zuz_units <- phen_dt[dups == TRUE]$uz_units[j]
-    zuz_measure <- phen_dt[dups == TRUE]$uz_measure[j]
-    # <- phen_dt[dups == TRUE]$f_convert[j]
-    phen_dt[dups == TRUE]$phid_new[j] <-
-      phen_dt[dups == FALSE][phen_name_full %in% z_name_full][
-        phen_type %in% z_type][phen_name %in% z_name][
-        units %in% zunits][measure %in% zmeasure][
-        offset %in% zoffset][var_type %in% zvar_type][
-        uz_phen_name %in% zuz_phen_name][uz_units %in% zuz_units][
-        uz_measure %in% zuz_measure]$phid[1]
-  }
-  # update the phen data summary of the new data
-  for (j in seq_len(nrow(phen_dt[dups == TRUE]))) {
-    phid_n <- phen_dt[dups == TRUE]$phid[j]
-    new_data$phen_data_summary[
-      phid == phid_n & table_name == tn]$phid <-
-        phen_dt[dups == TRUE & phid == phid_n]$phid_new
-  }
-  phen_dt[dups == TRUE & origin == "new_data"]$phid <-
-    phen_dt[dups == TRUE & origin == "new_data"]$phid_new
-  phen_dt <- unique(subset(phen_dt, select = -c(origin, dups, phid_new)))
+  sf_phen_ds <- sf_phen_ds[table_name == tn]
+
   # append tables
   # if the raw data is new to the station then just add to station
   if (tn %in% sf_names) {
@@ -146,18 +129,22 @@ append_station <- function(
       new_data[[tn]]$date_time <- lubridate::round_date(
         new_data[[tn]]$date_time, ri
       )
+      new_data[[tn]] <- new_data[[tn]][!duplicated(new_data[[tn]]$date_time)]
       data.table::setkey(dt_seq, "date_time")
       data.table::setkey(new_data[[tn]], "date_time")
       new_data[[tn]] <-
-        merge(x = new_data[[tn]], y = dt_seq, all.y = TRUE)
+        merge(x = new_data[[tn]], y = dt_seq, all.y = TRUE,
+          all.x = FALSE)
+      new_data[[tn]] <- new_data[[tn]][!duplicated(new_data[[tn]])]
     } else {
       ri <- "discnt"
     }
 
-    phd <- ipayipi::append_phen_data(station_file = station_file,
+    phd <- ipayipi::append_phen_data2(station_file = station_file,
       sf_phen_ds = sf_phen_ds, ndt = new_data[[tn]],
       new_phen_ds = new_data$phen_data_summary, tn = tn,
-      overwrite_sf = overwrite_sf, phen_dt = phen_dt, ri = ri)
+      overwrite_sf = overwrite_sf, phen_dt = phen_dt, ri = ri,
+      phen_id = phen_id)
   } else {
     phd <- list(
       app_dta = new_data[[tn]],

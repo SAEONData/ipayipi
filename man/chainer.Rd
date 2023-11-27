@@ -2,66 +2,60 @@
 % Please edit documentation in R/z_sub_dt_calc_chainer.r
 \name{chainer}
 \alias{chainer}
-\title{Organise sequencial processing of phenomena aggregations.}
+\title{Develop a chain link for data.table processing}
 \usage{
 chainer(
   dt_syn_bc = NULL,
   dt_syn_ac = NULL,
-  dt_syn_exc = NULL,
-  temp_var = TRUE,
   measure = NULL,
   units = NULL,
   var_type = NULL,
   notes = NULL,
   fork_table = NULL,
+  temp_var = FALSE,
+  link = NULL,
   ...
 )
 }
 \arguments{
-\item{dt_syn_bc}{String to be placed before the first comma in data.table
-syntax.}
+\item{dt_syn_bc}{\code{data.table} before first-comma syntax. Logical statement that operates on a table's rows.}
 
-\item{dt_syn_ac}{String to be placed after the first comma in data.table
-syntax.}
+\item{dt_syn_ac}{\code{data.table} after first-comma syntax. \emph{See examples}.}
 
-\item{dt_syn_exc}{String to be placed after the third comma in data.table
-syntax.}
+\item{measure}{If a new vatiable is described it's measure should be provided. Measure's are standardised using the \code{ipayipi::sts_phen_measure} standard table.}
 
-\item{temp_var}{designates the calculated variable as temporary. Temporary
-variables don't need to have their measure, units, and variable type
-described. \code{temp_vars} will be removed at the end of a chain sequence.}
+\item{units}{The unit of measure of a new variable, e.g., "mm" for rainfall, or "deg_c" for degrees Celcius. \emph{Notice conformity to \strong{snake case} descriptions --- this must be applied}.}
 
-\item{measure}{One of the following to describe the type of measure:
-\itemize{
-\item "smp" for a sample (instantaneous),
-\item "tot" for total,
-\item "avg" for mean,
-\item "min" for a minimum,
-\item "max" for a maximum,
-\item "sd" for standard deviation, and
-\item "cumm" for a cummulative measure.
-}}
+\item{var_type}{The type (or class) of variable, e.g., "num" for numeric. These are standardised using the \code{ipayipi::sts_phen_var_type} table.}
 
-\item{units}{Standard shorthand for the units of the phenomena being
-calculated.}
+\item{notes}{An additional description of the calculation/operation can be provided.}
 
-\item{var_type}{The type of variable, a string description using one of the
-following accepted options:
-\itemize{
-\item "num" for numeric,
-\item "int" for integer,
-\item "chr" for string or character,
-\item "fac" for factor, and
-\item "posix" for POSIX date-time.
-}}
+\item{fork_table}{If not \code{NULL} (default) a duplicate table of the reverse \code{dt_syn_bc} (before comma logic) will be produced and kept in the data pipeline.}
 
-\item{notes}{Description of the calculation step. Character string.}
+\item{temp_var}{Indicates whether an introduced variable is temporary. If temporary it will be removed during the processing stage.}
 
-\item{fork_table}{Character string which if supplied will fork the reverse
-of the logic provided by \code{dt_syn_bc}.}
+\item{link}{Integer denoting the numeric order of a chain link in a sequence put together in a list.}
 }
 \description{
-An alias for list in ipayipi::dt_calc.
+Function to build \code{data.table} syntax of an individual chain link.
+}
+\examples{
+# Set up chain link to filter out zero mm rainfall events
+x <- list(remove0 = chainer(dt_syn_bc = "rain_cumm != 0"))
+x
+# Two stage chaining to filter out zero mm rainfall events then calculate
+# sequential time lag (assign a variable called 't_lag').
+# Note use of data.table's .N (number of rows).
+x <- list(
+ remove0 = chainer(dt_syn_bc = "rain_cumm != 0"),
+ t_lag = chainer(
+   dt_syn_ac = "c(0, date_time[2:.N] - date_time[1:(.N - 1)])")
+)
+print(x)
+
+# Transform chain links in to data.table syntax
+calc_param_eval(x)
+
 }
 \author{
 Paul J. Gordijn

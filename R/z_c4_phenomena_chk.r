@@ -1,23 +1,32 @@
-#' @title Update meteorological file phenomena
-#' @description A function to check standardisation of meteorological data
-#'  phenomena to be run before introducing data into the pipeline.
-#' @details
-#' @param wait_room The working directory where imported meteorological data
-#'  files are stored.
+#' @title Update logger data file phenomena/variable metadata
+#' @description Critical standardisation for maintaining time-series
+#'  data pipelines.
+#' @param pipe_house List of pipeline directories. __See__
+#'  `ipayipi::ipip_init()` __for details__.
 #' @param nomtab_import Is there an update to the extant (or non-existant)
-#'  nomenclature table? This parameter can be used to input these updates.
+#'  phenomena table? This parameter can be used to input these updates.
 #' @param check_phenomena Should the file naming be check. This helps ensure
 #'  that files are named consistently and that data from different stations are
 #'  not appended erraneously.
-#' @param out_csv Logical. If TRUE a csv file is made in the working
+#' @param out_csv Logical. If `TRUE` a csv file is made in the working
 #'  directory if there are files with unrecognised phenomena.
-#' @keywords nomenclature
+#' @details Logger data phenomena must be standardised prior to being
+#'  transferred to the nomenclature vetted room. This standardisation step
+#'  must only be run once header information has been standardised using the
+#'  `ipayipi::nomenclature_sts()` and `ipayipi::header_sts()` functionality.
+#'
+#'  A phenomena table or or database is kept in the pipelines 'wait_room'
+#'  directory as an RDS file ('phentab.rps'). If this file is deleted the
+#'  `ipayipi::phenomena_sts()` will initiate the recreation of this file. The
+#'  csv file is only produced for user convienience for editing.
+#' @keywords logger phenomena, logger variables, measures, units, synonyms,
+#'  standardisation
 #' @return returns a csv phenomena file. Screen output notes whether
-#'  the nomenclature table is complete.
+#'  the phenomena table is complete.
 #' @author Paul J. Gordijn
 #' @export
 phenomena_chk <- function(
-    wait_room = NA,
+    pipe_house = NA,
     check_phenomena = TRUE,
     file_ext_in = ".iph",
     csv_out = TRUE,
@@ -25,8 +34,8 @@ phenomena_chk <- function(
   ) {
     "uz_phen_name" <- "phen_name" <- "measure" <- "uz_units" <-
       "uz_measure" <- "sensor_id" <- "phen_name_full" <- NULL
-  if (file.exists(file.path(wait_room, "phentab.rps"))) {
-    phentab <- readRDS(file.path(wait_room, "phentab.rps"))
+  if (file.exists(file.path(pipe_house$wait_room, "phentab.rps"))) {
+    phentab <- readRDS(file.path(pipe_house$wait_room, "phentab.rps"))
   } else {
     phentab <- data.table::data.table(
       phid = NA_integer_,
@@ -46,11 +55,11 @@ phenomena_chk <- function(
     )
   }
 
-  # extract nomenclature from files
-  slist <- ipayipi::dta_list(input_dir = wait_room, file_ext = file_ext_in,
-    prompt = FALSE, recurr = TRUE, unwanted = NULL)
+  # extract phenomena from files
+  slist <- ipayipi::dta_list(input_dir = pipe_house$wait_room, file_ext =
+    file_ext_in, prompt = FALSE, recurr = TRUE, unwanted = NULL)
   mfiles <- lapply(slist, function(x) {
-    mfile <- readRDS(file.path(wait_room, x))
+    mfile <- readRDS(file.path(pipe_house$wait_room, x))
     invisible(mfile)
   })
   phen_import <- lapply(mfiles, function(x) {
@@ -75,13 +84,14 @@ phenomena_chk <- function(
   phen_import <- data.table::rbindlist(phen_import)
 
   phentab <- rbind(phentab, phen_import)
+  # phens must have a column name
   phentab <- phentab[!is.na(uz_phen_name), ]
   phentab <- phentab[order(phen_name, units, measure, uz_phen_name,
     uz_units, uz_measure, offset, sensor_id)]
+
   phentab <- unique(phentab,
-    by = c("uz_phen_name", "uz_units", "uz_measure", "f_convert",
-      "sensor_id", "notes"))
-  saveRDS(phentab, file.path(wait_room, "phentab.rps"))
+    by = c("uz_phen_name", "uz_units", "uz_measure", "sensor_id"))
+  saveRDS(phentab, file.path(pipe_house$wait_room, "phentab.rps"))
 
   if (check_phenomena &&
     nrow(phentab[is.na(phen_name_full) | is.na(phen_name) | is.na(units) |
@@ -94,7 +104,7 @@ phenomena_chk <- function(
       out_name <-
         paste0("phentab_", format(as.POSIXlt(Sys.time()),
           format = "%Y%m%d_%Hh%M"), ".csv")
-      write.csv(phentab, file.path(wait_room, out_name))
+      write.csv(phentab, file.path(pipe_house$wait_room, out_name))
     }
   } else {
     message("Phenomena have been checked.")

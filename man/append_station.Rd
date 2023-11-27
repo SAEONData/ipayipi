@@ -9,6 +9,7 @@ append_station(
   new_data = NULL,
   overwrite_sf = TRUE,
   by_station_table = FALSE,
+  phen_id = TRUE,
   ...
 )
 
@@ -17,6 +18,7 @@ append_station(
   new_data = NULL,
   overwrite_sf = TRUE,
   by_station_table = FALSE,
+  phen_id = TRUE,
   ...
 )
 }
@@ -27,6 +29,9 @@ append_station(
 
 \item{overwrite_sf}{Logical. Defaults to FALSE so that data from the
 \code{station_file} is not over written by the \code{new_data}.}
+
+\item{by_station_table}{If TRUE then multiple station tables will not be
+kept in the same station file. Defaults to FALSE.}
 
 \item{overwrite_old}{Logical. Defaults to FALSE so that data from the
 \code{station_file} is not over written by the \code{new_data}.}

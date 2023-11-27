@@ -5,8 +5,7 @@
 \title{Transfer standardised ipayipi data files to the 'nomvet_room'}
 \usage{
 transfer_sts_files(
-  wait_room = NULL,
-  nomvet_room = nomvet_room,
+  pipe_house = NULL,
   prompt = FALSE,
   recurr = TRUE,
   unwanted = NULL,
@@ -17,11 +16,8 @@ transfer_sts_files(
 )
 }
 \arguments{
-\item{wait_room}{The working directory where imported meteorological data
-files are stored.}
-
-\item{nomvet_room}{The directory where the standardised hobo rainfall files
-are archived.}
+\item{pipe_house}{List of pipeline directories. \strong{See}
+\code{ipayipi::ipip_init()} \strong{for details}.}
 
 \item{prompt}{Should the function use an interactive file selection function
 otherwise all files are returned. TRUE or FALSE.}
@@ -46,12 +42,11 @@ Saves files in native R format for 'ipayipi'. Returns a list of
 file names which were successfully transferred.
 }
 \description{
-Moves files from the 'wait_room' to the 'nomvet_room'. Avoids
-duplicating files in the 'nomvet_room' and ensures file names are
-unique. Files will be named using their station and table names, their date
-coverage, and an integer (that is unique per data file & respective
-date-time stamps). The nomvet directory contains files which have been
-standardised for the 'ipayipi' data pipeline.
+Moves files from the 'wait_room' to the 'nomvet_room', which
+contains standardised logger data files. This function avoids duplicating
+files in the 'nomvet_room' and ensures file names are unique. Files will be
+named using their station and table names, their date coverage, and an
+integer (that is unique per data file & respective date-time stamps).
 }
 \details{
 Aim: Archive each standardised data files in a

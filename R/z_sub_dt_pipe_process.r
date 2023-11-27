@@ -24,6 +24,10 @@ pipe_process <- function(
   pipe_eval = TRUE,
   update_pipe_data = FALSE,
   ...) {
+  # terminte if no pipe_seq
+  if (is.null(pipe_seq) || !data.table::is.data.table(pipe_seq)) {
+    stop("Warning! pipe_seq required.")
+  }
   # run basic pipe sequence check
   pipe_seq <- ipayipi::pipe_seq(p = pipe_seq, pipe_eval = pipe_eval)
   pipe_memory <- pipe_seq

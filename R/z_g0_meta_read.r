@@ -1,4 +1,4 @@
-#' @title Open and check rainfall event metadata database.
+#' @title Open and prepare event metadata database.
 #' @description Reads standardised metadata and appends records the matching
 #'  station.
 #' @param input_dir Directory in which to search for the metadata database.

@@ -1,7 +1,8 @@
 #' @title Open and check rainfall event metadata database.
 #' @description Reads standardised metadata and appends records the matching
 #'  station.
-#' @param ipip_room Directory in which to search for the station files.
+#' @param pipe_house List of pipeline directories. __See__
+#'  `ipayipi::ipip_init()` __for details__.
 #' @param input_dir Directory from which to retreieve a metadata file
 #'  read and saved by `ipayipi::meta_read()`.
 #' @param meta_file File name of the standardised rainfall metadata
@@ -28,7 +29,7 @@
 #' @md
 #' @export
 meta_to_station <- function(
-  ipip_room = ".",
+  pipe_house = NULL,
   input_dir = NULL,
   meta_file = NULL,
   file_ext = ".rmds",
@@ -40,24 +41,25 @@ meta_to_station <- function(
 ) {
   # avoid no visible bind for data.table variables
   "%ilike%" <- NULL
+  if (is.null(input_dir)) input_dir <- pipe_house$ipip_room
   # if we need to read in object
   if (is.character(meta_file)) {
-    meta_file <- file.path(input_dir, meta_file)
+    meta_file <- file.path(input_dir, paste0(meta_file,
+      file_ext))
     if (!file.exists(meta_file)) {
       stop("The events metadata database does not exist!")
     }
-    edb <- readRDS(paste0(meta_file, file_ext))
+    edb <- readRDS(paste0(meta_file))
   }
-  if (is.null(input_dir)) input_dir <- ipip_room
   # get list of stations
-  slist <- ipayipi::dta_list(input_dir = ipip_room,
+  slist <- ipayipi::dta_list(input_dir = input_dir,
     file_ext = station_ext, ...)
   sl <- gsub(pattern = station_ext, replacement = "", x = slist)
   s <- names(edb)[names(edb) %ilike% "station|site"]
   edb <- edb[eval(parse(text = s)) %in% unique(sl)]
   slist <- slist[slist %ilike% unique(edb[[s]])]
   cr_msg <- padr(core_message =
-    paste0(" Adding metadata to", length(slist),
+    paste0(" Adding metadata to ", length(slist),
       " stations", collapes = ""),
     wdth = 80, pad_char = "=", pad_extras = c("|", "", "", "|"),
     force_extras = FALSE, justf = c(0, 0))

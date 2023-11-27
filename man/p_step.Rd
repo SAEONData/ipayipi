@@ -45,11 +45,16 @@ station file will be harvested.}
 the final table is appended to a station file object.}
 
 \item{time_interval}{Only has to be specified in the harvesting step. Only
-one time interval per stage.}
+one time interval per stage. If the time interval is left as the default
+\code{NA} then \code{time_interval} becomes discontinuous ("discnt").}
 }
 \description{
 Internal function used to unpack a data pipeline processing
 step. Essentially converts parameters into a list.
+}
+\details{
+Note that the \code{f_params} argument is parsed to text in this
+function. It is only evaluated as text again in ipayipi::dt_process().
 }
 \author{
 Paul J. Gordijn

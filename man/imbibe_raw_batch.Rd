@@ -5,7 +5,7 @@
 \title{Batch imbibe of 'flat' data files into the 'ipayipi' format}
 \usage{
 imbibe_raw_batch(
-  wait_room = NULL,
+  pipe_house = NULL,
   file_ext_in = NULL,
   file_ext_out = ".ipr",
   col_dlm = ",",
@@ -19,11 +19,13 @@ imbibe_raw_batch(
   wanted = NULL,
   unwanted = NULL,
   recurr = FALSE,
+  silent = TRUE,
   ...
 )
 }
 \arguments{
-\item{wait_room}{Path to the 'wait_room' directory.}
+\item{pipe_house}{List of pipeline directories. \strong{See}
+\code{ipayipi::ipip_init()} \strong{for details}.}
 
 \item{file_ext_in}{The file extension defaults of the raw logger data files.}
 
@@ -55,13 +57,32 @@ stations.}
 \item{recurr}{Should the function search recursively into sub directories
 for hobo rainfall csv export files? TRUE or FALSE.}
 
+\item{silent}{Logical passed to \code{attempt::attempt()} which reads the logger
+text file in with either \code{data.table::fread()} or base R.}
+
 \item{record_interval}{If there are is no discrete record interval set
 in the logger program, i.e., the sampling is event based, then this
 parameter must be set to "event_based". Defaults to "continuous".}
 }
 \description{
 Uses \code{ipayipi::imbibe_logger_dt()} to read and transfer
-data files to the begining stages of the \code{ipayipi} data pipeline.
+data files to the begining stages of the \code{ipayipi} data pipeline. Option
+to archive all 'raw' data files in the pipeline structure, \emph{see details}.
+}
+\details{
+In the pipeline structure this function should be used post
+\code{ipayipi::logger_data_import_batch()}. \code{ipayipi::imbibe_raw_batch()} is
+a wrapper for \code{ipayipi::imbibe_raw_logger_dt()} --- see this functions
+documentation for more details.
+
+\strong{'Archiving' raw data}
+Files brought into the 'wait_room' are only housed there temporarily.
+In order to archive these raw data files a 'raw_room' directory must be
+provided in the 'pipe_house' object (\emph{see} \code{ipayipi::ipip_init()}).
+Files will be archived in structured directories in the 'raw_room' named
+by the last year and month in their respective date time records. Original
+file names are maintained, and have a suffix with a unique integer plus
+the date and time of which they were archived.
 }
 \author{
 Paul J. Gordijn

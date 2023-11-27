@@ -4,11 +4,11 @@
 \alias{phenomena_read_csv}
 \title{Update meteorological file phenomena}
 \usage{
-phenomena_read_csv(input_dir = ".", file = NULL, ...)
+phenomena_read_csv(pipe_house = NULL, file = NULL, ...)
 }
 \arguments{
-\item{input_dir}{The directory where imported meteorological data
-files are stored with the phenomena table.}
+\item{pipe_house}{List of pipeline directories. \strong{See}
+\code{ipayipi::ipip_init()} \strong{for details}.}
 
 \item{file}{The (base) file name of the csv import. If NULL then the
 function searches for the most recently modified csv file to read (and

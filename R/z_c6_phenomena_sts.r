@@ -1,8 +1,9 @@
 #' @title Standardises data phenomena in 'ipayipi' format.
-#' @description Standardise raw data inputs formats and more into
-#'  the 'ipayipi' pipeline though an interactive process.
-#' @param wait_room Path to the 'wait_room' directory.
-#' @param wanted A strong containing keywords to use to filter which stations
+#' @description Standardise raw data inputs formats and more for the
+#'  'ipayipi' pipeline though an interactive process.
+#' @param pipe_house List of pipeline directories. __See__
+#'  `ipayipi::ipip_init()` __for details__.
+#' @param wanted A string of keywords to use to filter which stations
 #'  are selected for processing. Multiple search kewords should be seperated
 #'  with a bar ('|'), and spaces avoided unless part of the keyword.
 #' @param unwanted Similar to wanted, but keywords for filtering out unwanted
@@ -22,8 +23,8 @@
 #' @details The raw data formats, units, and offsets, in an 'ipayipi' station
 #'  file are standardised using this function. The function keeps a record
 #'  of phenomena (variable) metadata and uses this to implement transformations
-#'  to standardise the data. If new phenomena are detected in the data then
-#'  a csv file is generated and the user must fill in the 'blank' (actually NA)
+#'  to standardise the data. If 'new' phenomena are detected in the data then
+#'  a csv file is generated and the user must fill in the 'blank' (NA)
 #'  values. Once the csv is complete this file can be read back into the
 #'  pipeline using `ipayipi::phenomena_read_csv()`.
 #'
@@ -44,16 +45,44 @@
 #'       series event of a phenomenon, e.g., a sample or 'smp' for short. Other
 #'       measure types include; min, max, sd (standard deviation), tot (total),
 #'       and avg (mean or average). A sample is an instantaneous measurement.
-#'   1. offset -- __need to describe the implementation of this__.
+#'   1. offset -- __not yet implemented__.
 #'   1. f_convert -- a numeric multiplier for the phenomenon to be used for
 #'       unit conversion or similar. If this is left as `NA` no factor
 #'       conversion is performed on the 'raw_data'.
 #'   1. sensor_id -- the serial number of the sensor used to measure the
 #'       phenomenon.
 #'   1. notes -- any pertinent notes on a specific phenomenon.
+#'
+#'
+#'  __Editing the phenomena table__:
+#'  When unrecognised synonyms are introduced (e.g., after a change in logger
+#'  program setup, or 'new' variable from an additional station sensor) this
+#'  function creates a csv table in the `wait_room` that should be edited to
+#'  maintain a phenomena synonym database. Unstandardised phenomena metadata
+#'  (columns) are preffixed by 'uz_'._ These unstandardised columns must not be
+#'  edited by the user: standardised phenomena information can be added by
+#'  replacing corresponding `NA` values with information. The required fields,
+#'  marked with an asterix (above), must be described.
+#'
+#'  __Other__: A number of other phenomena standardisation proceedure are
+#'  included here:
+#'  - '_Interference events_': Some logger files, e.g., hobo data logger files
+#'   include useful columns that describe what within the ipayipi pipeline are
+#'   termed 'logger interference events'. Logger interference events include
+#'   events such as manual logger data downloads where the logger, or related
+#'   data recording mechanism is 'interfered' with, and consequently, data near
+#'   the time of interference may be altered undesirably. In hobo files
+#'   interference column data are generally called 'logged' events, but spelling
+#'   and capitalisation of this may change depending on the data. As part of
+#'   the phenomena standardisation process, all interference events are marked
+#'   in the data as 'logged'. Any column/phenomena in the data with the key
+#'   'interfere' will be marked as an 'interference' column. Therefore, when
+#'   selecting phenomena names, take care to include the key 'interfere' so
+#'   that the column is treated as recording 'interference' events.
+#'
 #' @md
 phenomena_sts <- function(
-  wait_room = NULL,
+  pipe_house = NULL,
   prompt = FALSE,
   recurr = TRUE,
   wanted = NULL,
@@ -66,27 +95,27 @@ phenomena_sts <- function(
     "var_type" <- "f_convert" <- "%ilike%" <- ".SD" <- "phen_name" <-
     ":=" <- NULL
   # get list of data to be imported
-  slist <- ipayipi::dta_list(input_dir = wait_room, file_ext = file_ext_in,
-    prompt = prompt, recurr = recurr, unwanted = unwanted, wanted = wanted)
-  cr_msg <- padr(core_message =
-    paste0(" Standardising ", length(slist),
-      " file(s) phenomena ", collapes = ""),
-    wdth = 80, pad_char = "=", pad_extras = c("|", "", "", "|"),
-    force_extras = FALSE, justf = c(0, 0))
+  slist <- ipayipi::dta_list(input_dir = pipe_house$wait_room, file_ext =
+    file_ext_in, prompt = prompt, recurr = recurr, unwanted = unwanted,
+    wanted = wanted)
+  cr_msg <- padr(core_message = paste0(
+      " Standardising ", length(slist), " file(s) phenomena ",
+      collapse = ""), wdth = 80, pad_char = "=", pad_extras =
+        c("|", "", "", "|"), force_extras = FALSE, justf = c(0, 0))
   message(cr_msg)
 
-  phentab <- ipayipi::phenomena_chk(wait_room = wait_room,
+  phentab <- ipayipi::phenomena_chk(pipe_house = pipe_house,
     check_phenomena = TRUE, csv_out = TRUE)
-  if (!is.na(phentab$output_csv_name)) {
-    stop("Update phenomena")
-  }
+
+  if (!is.na(phentab$output_csv_name)) stop("Update phenomena")
+
   phentab <- phentab$update_phenomena
   mfiles <- lapply(seq_along(slist), function(i) {
     cr_msg <- padr(core_message = paste0(" +> ", slist[i], collapes = ""),
       wdth = 80, pad_char = " ", pad_extras = c("|", "", "", "|"),
       force_extras = FALSE, justf = c(1, 1))
     message(cr_msg)
-    m <- readRDS(file.path(wait_room, slist[i]))
+    m <- readRDS(file.path(pipe_house$wait_room, slist[i]))
 
     # get original phen table and update
     phen_old <- m$phens
@@ -99,6 +128,54 @@ phenomena_sts <- function(
     })
     phen_new <- data.table::rbindlist(phen_new)[order(phen_name_full)]
 
+    # duplicate phen detection and resolution
+    if (any(duplicated(phen_new$phen_name))) {
+      # prompt to remove duplicated column/phen
+      message(paste0("Warning! Duplicate phenomena match!"))
+      message(paste0("Please examine the input data."))
+      message(paste0("Duplicate phenomena:"))
+      print(phen_new$phen_name[duplicated(phen_new$phen_name)])
+      message("Phenomena table:")
+      print(phen_new)
+      message("Data head:")
+      print(head(m$raw_data))
+
+      chosen_p <- function() {
+        n <- readline(
+          prompt =
+            paste0("Would you like to remove duplicate phenomena? (Y/n)  ")
+          )
+        if (!n %in% c("Y", "n")) {
+          chosen_p()
+        }
+        if (n == "Y") {
+          message(paste0("Examine the phenomena table row numbers 1 to ",
+            nrow(phen_new)))
+          ri <- readline(prompt =
+            paste0("Enter row number of duplicate, to be removed, phenomena: ")
+          )
+          ri <- as.integer(ri)[1]
+          if (!is.integer(ri) && ri > nrow(phen_new) && ri < 1) {
+            chosen_p()
+          } else {
+            m$raw_data <- m$raw_data[
+            , -c(phen_new$uz_phen_name[ri]), with = FALSE]
+            p <- phen_new[uz_phen_name != phen_new$uz_phen_name[ri]]
+          }
+        }
+        if (n == "n") {
+          stop("Please resolve duplicate phenomena!")
+        }
+        return(list(new_dta = m$raw_data, p = p))
+      }
+      pn <- chosen_p()
+      m$raw_data <- pn$new_dta
+      phen_new <- pn$p
+    }
+
+    # generate unique phen id
+    phen_new$phid <- seq_len(nrow(phen_new))
+
     # update raw_data table
     new_names <- sapply(names(m$raw_data)[
       !names(m$raw_data) %in% c("id", "date_time")], function(x) {
@@ -108,6 +185,55 @@ phenomena_sts <- function(
     data.table::setnames(m$raw_data, old = names(m$raw_data),
       new = c("id", "date_time", new_names))
 
+    # standardise varible type synonyms
+    z <- lapply(seq_along(ipayipi::sts_phen_var_type$phen_prop), function(j) {
+      v <- ipayipi::sts_phen_var_type$phen_prop[j][1]
+      s <- ipayipi::sts_phen_var_type$phen_syn[j][1]
+      z <- phen_new[var_type %ilike% s]
+      z$var_type <- v
+      return(z)
+    })
+    phen_new <- data.table::rbindlist(z)
+    # convert units
+    if (length(phen_new[var_type == "num"]$phen_name) > 0) {
+      m$raw_data[, (phen_new[var_type == "num"]$phen_name) :=
+        lapply(.SD, as.numeric),
+          .SDcols = phen_new[var_type == "num"]$phen_name]
+    }
+    if (length(phen_new[var_type == "int"]$phen_name) > 0) {
+    m$raw_data[, (phen_new[var_type == "int"]$phen_name) :=
+      lapply(.SD, as.integer),
+        .SDcols = phen_new[var_type == "int"]$phen_name]
+    }
+    # factors included here as they are first converted to character
+    if (length(phen_new[var_type %ilike% "chr|fac"]$phen_name) > 0) {
+      m$raw_data[, (phen_new[var_type %ilike% "chr|fac"]$phen_name) :=
+            lapply(.SD, as.character), .SDcols = phen_new[
+              var_type %ilike% "chr|fac"]$phen_name
+      ]
+    }
+    if (length(phen_new[var_type == "posix"]$phen_name) > 0) {
+      dt_tz <- attr(m$raw_data$date_time[1], "tz")
+      m$raw_data[, (phen_new[var_type == "posix"]$phen_name) :=
+            lapply(.SD, function(x) as.POSIXct(x, tz = dt_tz)),
+              .SDcols = phen_new[var_type == "posix"]$phen_name
+      ]
+    }
+    if (length(phen_new[phen_name %ilike% "interfere"]$phen_name) > 0) {
+      for (ii in seq_len(nrow(phen_new[phen_name %ilike% "interfere"]))) {
+        phenz <- phen_new[phen_name %ilike% "interfere"]$phen_name[ii]
+        m$raw_data[, ][[phenz]][
+          m$raw_data[, ][[phenz]] %ilike% "log"] <- "logged"
+        m$raw_data[, ][[phenz]][
+          m$raw_data[, ][[phenz]] != "logged"] <- NA
+      }
+    }
+    if (nrow(phen_new[var_type == "fac"]) > 0) {
+      m$raw_data[, (phen_new[var_type == "fac"]$phen_name) :=
+            lapply(.SD, as.factor), .SDcols = phen_new[
+              var_type == "fac"]$phen_name
+      ]
+    }
     for (ii in seq_len(nrow(phen_new[
       !is.na(offset) & var_type %in% c("num|numeric", "int|integer")]))) {
       phenz <- phen_new[
@@ -120,55 +246,10 @@ phenomena_sts <- function(
     }
     for (ii in seq_len(nrow(phen_new[!is.na(f_convert)]))) {
       phenz <- phen_new[!is.na(f_convert)]$phen_name[ii]
-      m$raw_data[, ][[phenz]]  <- as.numeric(
-        m$raw_data[[phenz]]) *
-          as.numeric(phen_new[!is.na(f_convert)]$f_convert[ii])
-    }
-    # convert units
-    if (length(phen_new[var_type %ilike% "num|numeric"]$phen_name) > 0) {
-      m$raw_data[, (phen_new[var_type %ilike% "num|numeric"]$phen_name) :=
-        lapply(.SD, as.numeric),
-          .SDcols = phen_new[var_type %ilike% "num|numeric"]$phen_name]
-    }
-    if (length(phen_new[var_type %ilike% "int|integer"]$phen_name) > 0) {
-    m$raw_data[, (phen_new[var_type %ilike% "int|integer"]$phen_name) :=
-      lapply(.SD, as.integer),
-        .SDcols = phen_new[var_type %ilike% "int|integer"]$phen_name]
-    }
-    # factors included here as they are first converted to character
-    if (length(phen_new[var_type %ilike%
-      "str|string|chr|character|char|fac|factor|fact"]$phen_name) > 0) {
-      m$raw_data[, (phen_new[
-          var_type %ilike%
-            "str|string|chr|character|char|fac|factor|fact"]$phen_name) :=
-            lapply(.SD, as.character), .SDcols = phen_new[
-              var_type %ilike%
-              "str|string|chr|character|fac|factor|fact"]$phen_name
-      ]
-    }
-    if (length(phen_new[var_type %ilike% "date|time|posix"]$phen_name) > 0) {
-      dt_tz <- attr(m$raw_data$date_time[1], "tz")
-      m$raw_data[, (phen_new[
-          var_type %ilike% "date|time|posix"]$phen_name) :=
-            lapply(.SD, as.POSIXct(tz = dt_tz)), .SDcols = phen_new[
-              var_type %ilike% "date|time|posix"]$phen_name
-      ]
-    }
-    if (length(phen_new[phen_name %ilike% "interfere"]$phen_name) > 0) {
-      for (ii in seq_len(nrow(phen_new[phen_name %ilike% "interfere"]))) {
-        phenz <- phen_new[phen_name %ilike% "interfere"]$phen_name[ii]
-        m$raw_data[, ][[phenz]][
-          m$raw_data[, ][[phenz]] %ilike% "log"] <- "logged"
-        m$raw_data[, ][[phenz]][
-          m$raw_data[, ][[phenz]] != "logged"] <- NA
-      }
-    }
-    if (nrow(phen_new[var_type %ilike% "fac|factor|fact"]) > 0) {
-      m$raw_data[, (phen_new[
-          var_type %ilike% "fac|factor|fact"]$phen_name) :=
-            lapply(.SD, as.factor), .SDcols = phen_new[
-              var_type %ilike% "fac|factor|fact"]$phen_name
-      ]
+      f <- as.numeric(phen_new[!is.na(f_convert)]$f_convert[ii])
+      m$raw_data[, ][[phenz]] <-
+        as.numeric(m$raw_data[[phenz]]) * rep_len(f, length.out =
+          nrow(m$raw_data))
     }
     m$phens <- phen_new
     # update the phenomena data summary
@@ -181,25 +262,27 @@ phenomena_sts <- function(
       end_dttm = rep(m$data_summary$end_dttm, nrow(m$phens)),
       table_name = rep(m$data_summary$table_name, nrow(m$phens))
     )
+    m$phen_data_summary <- unique(m$phen_data_summary)
     invisible(m)
   })
 
   # save files to the wait room
   saved_files <- lapply(seq_along(mfiles), function(x) {
-    fn <- file.path(wait_room, gsub(file_ext_in, file_ext_out, slist[[x]]))
+    fn <- file.path(pipe_house$wait_room,
+      gsub(file_ext_in, file_ext_out, slist[[x]]))
     saveRDS(mfiles[[x]], fn)
     invisible(fn)
   })
 
   # remove slist files
   del_metn <- lapply(slist, function(x) {
-    file.remove(file.path(wait_room, x))
-    invisible(file.path(wait_room, x))
+    file.remove(file.path(pipe_house$wait_room, x))
+    invisible(file.path(pipe_house$wait_room, x))
   })
 
-  cr_msg <- padr(core_message = paste0("", collapes = ""),
-    wdth = 80, pad_char = "=", pad_extras = c("|", "", "", "|"),
-    force_extras = FALSE, justf = c(0, 0))
+  cr_msg <- padr(core_message = paste0("  phens standardised  ",
+    collapes = ""), wdth = 80, pad_char = "=", pad_extras = c(
+      "|", "", "", "|"), force_extras = FALSE, justf = c(0, 0))
   message(cr_msg)
   invisible(list(saved_files = saved_files, deleted_files = del_metn))
 }

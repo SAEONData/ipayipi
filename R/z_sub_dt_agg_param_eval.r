@@ -36,14 +36,13 @@
 #' @details
 #'  Default aggregation functions based on measure, variable types, and
 #'   the unit of measurement. Function info is stored in the package
-#'   data, "ftbl" --- _see examples_.
+#'   data, "sts_agg_functions" --- _see examples_.
 #'
 #' @md
 #' @examples
 #' # load the table from the function data folder to see default aggregation
 #' # functions
-#' data("ftbl")
-#' print(ftbl)
+#' ipayipi::sts_agg_functions
 #'
 #' @export
 agg_param_eval <- function(
@@ -61,16 +60,7 @@ agg_param_eval <- function(
     "phen_out_name" <- ":=" <- NULL
   x <- list(...)
   # table to be passed as variable for default aggregation functions
-  ftbl <- data.table::data.table(
-    measure = c("smp", "avg", "tot", "min", "max", "sd", "logi"),
-    f_continuous_desc = c("mean", "mean", "sum", "min", "max", "mean", NA),
-    f_continuous = c("mean(<>)", "mean(<>)", "sum(<>)", "min(<>)", "max(<>)",
-      "mean(<>)", NA),
-    f_factor = c("modal", NA, NA, NA, NA, NA, NA),
-    f_circular = c("ipayipi::circular_mean(<>)", "ipayipi::circular_mean(<>)",
-      "sum(<>)", "min(<>)", "max(<>)", "mean(<>)", NA),
-    f_logical = c(NA, NA, NA, NA, NA, NA, "sum(<>)")
-  )
+  ftbl <- ipayipi::sts_agg_functions
   # full and partial eval
   if (!full_eval) { # partial evaluation
     # basic argument checks

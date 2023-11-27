@@ -2,31 +2,40 @@
 % Please edit documentation in R/z_e_station_append_batch.r
 \name{append_station_batch}
 \alias{append_station_batch}
-\title{Append meteorological station data}
+\title{Append logger data files to 'station file'}
 \usage{
 append_station_batch(
-  ipip_room = NULL,
-  nomvet_room = NULL,
+  pipe_house = NULL,
   overwrite_sf = FALSE,
   by_station_table = FALSE,
   station_ext = ".ipip",
   sts_file_ext = ".ipi",
+  prompt = FALSE,
+  phen_id = TRUE,
   ...
 )
 }
 \arguments{
-\item{station_file}{The main data set to which data will be appended.}
+\item{pipe_house}{List of pipeline directories. \strong{See}
+\code{ipayipi::ipip_init()} \strong{for details}.}
 
-\item{new_data}{The data that will be appended to the main 'hobo station'.}
-
-\item{overwrite_old}{If \code{TRUE} then original data (station data) is
+\item{overwrite_sf}{If \code{TRUE} then original data (station data) is
 disgarded in favour of new data. If TRUE both data sets will be evaluated
 and where there are NA values, a replacement, if available, will be used
 to replace the NA value. Defaults to FALSE.}
+
+\item{by_station_table}{If TRUE then multiple station tables will not be
+kept in the same station file. Defaults to FALSE.}
+
+\item{station_ext}{The extension of the station file. Defaults to 'ipip'.}
+
+\item{sts_file_ext}{Extension of standardised files in the 'nomvet_room'.}
+
+\item{prompt}{Prompt logical passed for selection of 'nomvet' files.}
 }
 \description{
-Appends two standardised 'ipayipi' meteorological' station
-files.
+Appends phenomena data and metadata into continuous or
+discontinuous data streams in the form of station files.
 }
 \details{
 This function searches for all standardised files in the \code{nomvet_room}
@@ -35,14 +44,21 @@ and existing 'station files' in the \code{ipip_room}. Files from the
 appended to appropriate stations. Appending is done via the
 \code{ipayipi::append_station()}, \code{ipayipi::append_phen_data()}, and
 \code{ipayipi::append_tables()} functions.
+
 If the data is continuous the function ensures continuous date-time values
-between missing data chuncks. Missing values are fillled as NA.
+between missing data chuncks. Missing values are fillled as NA. Event-based
+or discontinuous data are not treated as continuous data streams.
+
+New phenomena are seemlessly included in the appending process. Moreover,
+each phenomena is evaluated in turn allowing for a choise of overwring old
+data with new data or \emph{vice versa}.
 }
 \author{
-Paul J Gordijn
+Paul J. Gordijn
 }
 \keyword{append}
 \keyword{data}
 \keyword{data;}
+\keyword{logger}
 \keyword{meteorological}
 \keyword{pipeline;}

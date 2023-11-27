@@ -2,13 +2,13 @@
 % Please edit documentation in R/z_c2_read_nomtab_csv.r
 \name{read_nomtab_csv}
 \alias{read_nomtab_csv}
-\title{Read meteorological nomenclature csv}
+\title{Imbibe edited nomenclature csv}
 \usage{
-read_nomtab_csv(wait_room = NULL, file = NULL, ...)
+read_nomtab_csv(pipe_house = NULL, file = NULL, ...)
 }
 \arguments{
-\item{wait_room}{Directory into which new data is copied into --- the start
-of the data processing pipeline.}
+\item{pipe_house}{List of pipeline directories. \strong{See}
+\code{ipayipi::ipip_init()} \strong{for details}.}
 
 \item{file}{name of the csv file to be read as the nomenclature table.}
 }
@@ -17,21 +17,32 @@ Saves the read nomenclature table in 'rds' format. Prints the
 nomenclature table.
 }
 \description{
-Read in a user edited nomenclature file and save as a usable
-nomtab file in the 'waiting room' folder. Part of the hobo rainfall
-data pipeline.
+Reads a user edited nomenclature file and saves as a usable
+nomtab (nomenclature table) file in the 'waiting room' folder.
 }
 \details{
-\enumerate{
-\item Read in csv file from specified folder.
-\item Check for NA values in the table.
-\item If the nomenclature table has no NA's:
-- convert to tibble.
-- save as rds in the 'waiting room' folder.
-\item If there are NA values:
-- stop the function and.
-- produce warning, i.e. the user needs to fill in the NA values.
+\itemize{
+\item Searches for the most recently edited nomenclature table csv
+('nomtab.csv') file in the \code{wait_room} directory.
+\item Checks whether there are any \code{NA} values corresposing to unstandardised
+synonyms of the following fields: 'location', 'station', and a station's
+standard title, that is, 'stnd_title'.
+\item The 'table_name' also requires standardisation. By default this field is
+given as concatenation of a preffix, that is, 'raw_', and the standardised
+record interval (standardised by \code{ipayipi::record_interval_eval()} during
+logger data 'imbibing' (\code{ipayipi::imbibe_raw_logger_dt()})). This
+convention should be maintained for the pipelines structure. Note that for
+event based or discontinuous data the table name will default to
+'raw_discnt'.
 }
+
+\strong{NB!} Only edit these fields (above) of the nomenclature table during
+standardisation.
+
+\strong{NB!} The 'ipayipi' data pipeline strongly suggests conforming with
+tidyverse data standards. Therefore, use lower case characters, no special
+characters, except for the underscore character which should be used for
+spacing.
 }
 \author{
 Paul J. Gordijn
@@ -39,3 +50,6 @@ Paul J. Gordijn
 \keyword{Naming}
 \keyword{convention,}
 \keyword{nomenclature}
+\keyword{pipeline}
+\keyword{standardisation.}
+\keyword{synonyms,}

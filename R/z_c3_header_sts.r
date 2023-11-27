@@ -1,9 +1,11 @@
-#' @title Standardises ipayipi raw data summary information
+#' @title Standardises ipayipi header information
 #' @description Uses the nomenclature table, standardises the recording
 #'  interval string, start and end date times in the file header, and finally
 #'  the file name is copied from the standardised station name, that is, the
-#'  'standardised title'.
-#' @param wait_room Path to the 'wait_room' directory.
+#'  'standardised title'. The standardised station file header nomenclature
+#'  is retained in an ipayipi station file 'data_summary' table.
+#' @param pipe_house List of pipeline directories. __See__
+#'  `ipayipi::ipip_init()` __for details__.
 #' @param prompt Should the function use an interactive file selection function
 #'  otherwise all files are returned. TRUE or FALSE. Defaults to FALSE.
 #' @param recurr Should the function search recursively into sub directories
@@ -15,21 +17,25 @@
 #'  stations.
 #' @param file_ext_in
 #' @param file_ext_out
+#' @details This function calls `ipayipi::nomenclature_sts()` which will take
+#'  take the user interactively through a process of standardising station
+#'  names and titles.
+#'  Station phenomena can only be checked once header nomenclature has been
+#'  standardised.
+#'
+#'  Note that there is no unstandardised 'uz' location. Whatever location
+#'  provided to in nomenclature table will be used in naming conventions.
+#'  The 'location' field can be provided edited during the
+#'  `ipayipi::nomenclature_sts()` and `ipayipi::read_nomtab_csv()`
+#'  functionality.
 #' @keywords Cambell Scientific; meteorological data; automatic weather
 #'  station; batch process; file standardisation; nomenclature; header
 #'  information
 #' @author Paul J. Gordijn
 #' @md
-#' @details This function calls `ipayipi::met_nomenclature()` which will take
-#'  take the user interactively through a process of standardising station
-#'  names and titles.
-#'  The phenomena of files can only be checked once nomenclature has been
-#'  standardised.
-#'  If the fundtion requests that a check of the record interval
-#'  make sure the in function record interval table is updated.
 #' @export
 header_sts <- function(
-  wait_room = NULL,
+  pipe_house = NULL,
   prompt = FALSE,
   recurr = TRUE,
   wanted = NULL,
@@ -41,15 +47,16 @@ header_sts <- function(
   "uz_station" <- "logger_type" <- "record_interval_type" <-
     "record_interval" <- "uz_table_name" <- "old_fn" <- NULL
   # get list of data to be imported
-  slist <- ipayipi::dta_list(input_dir = wait_room, file_ext = file_ext_in,
-    prompt = prompt, recurr = recurr, unwanted = unwanted, wanted = wanted)
+  slist <- ipayipi::dta_list(input_dir = pipe_house$wait_room, file_ext =
+    file_ext_in, prompt = prompt, recurr = recurr, unwanted = unwanted,
+    wanted = wanted)
   cr_msg <- padr(core_message =
     paste0(" Standardising ", length(slist),
       " ipayipi header info ", collapes = ""),
     wdth = 80, pad_char = "=", pad_extras = c("|", "", "", "|"),
     force_extras = FALSE, justf = c(0, 0))
   message(cr_msg)
-  nomtab <- ipayipi::nomenclature_sts(wait_room = wait_room,
+  nomtab <- ipayipi::nomenclature_sts(pipe_house = pipe_house,
     check_nomenclature = TRUE, csv_out = TRUE, file_ext = file_ext_in)
   if (!is.na(nomtab$output_csv_name)) {
     stop("Update nomenclature")
@@ -60,7 +67,7 @@ header_sts <- function(
       wdth = 80, pad_char = " ", pad_extras = c("|", "", "", "|"),
       force_extras = FALSE, justf = c(1, 1))
     message(cr_msg)
-    m <- readRDS(file.path(wait_room, slist[i]))
+    m <- readRDS(file.path(pipe_house$wait_room, slist[i]))
 
     # update the start and end date_times
     m$data_summary$start_dttm <- min(m$raw_data$date_time)
@@ -81,8 +88,6 @@ header_sts <- function(
     m$phen_data_summary$table_name <- nt$table_name[1]
     invisible(m)
   })
-
-  # update the raw data table name
 
   # sort out file names
   file_names <- lapply(seq_along(mfiles), function(i) {
@@ -123,19 +128,21 @@ header_sts <- function(
 
   # save files to the wait room
   saved_files <- lapply(seq_along(mfiles), function(x) {
-    fn <- file.path(wait_room, paste0(split_file_name_dt$file_name[x],
-      "__", split_file_name_dt$rep[x], file_ext_out))
+    fn <- file.path(pipe_house$wait_room, paste0(
+      split_file_name_dt$file_name[x], "__", split_file_name_dt$rep[x],
+      file_ext_out))
     saveRDS(mfiles[[x]], fn)
     invisible(fn)
   })
 
   # remove slist files
   del_metn <- lapply(slist, function(x) {
-    file.remove(file.path(wait_room, x))
-    invisible(file.path(wait_room, x))
+    file.remove(file.path(pipe_house$wait_room, x))
+    invisible(file.path(pipe_house$wait_room, x))
   })
 
-  cr_msg <- padr(core_message = paste0("", collapes = ""),
+  cr_msg <- padr(core_message = paste0(
+    "  headers standarised  ", collapes = ""),
     wdth = 80, pad_char = "=", pad_extras = c("|", "", "", "|"),
     force_extras = FALSE, justf = c(0, 0))
   message(cr_msg)

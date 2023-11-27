@@ -19,7 +19,9 @@ dt_harvest <- function(
   f_params = NULL,
   time_interval = NULL,
   sf = NULL,
+  dt_working = NULL,
   ...) {
+  "hsf_table" <- NULL
   # harvest data from tables
   if (station_file == unique(f_params$hsf_station)[1]) {
     hsf <- sf
@@ -34,8 +36,14 @@ dt_harvest <- function(
   hsf <- lapply(hsf_names, function(x) {
     n <- c(names(hsf[[x]])[names(hsf[[x]]) %in%
       f_params[hsf_table == x]$phen_name])
-    if ("date_time" %in% names(hsf[[x]])) n <- c("date_time", n)
+    if ("date_time" %in% names(hsf[[x]])) {
+      n <- c("date_time", n[!n %in% "date_time"])
+    }
     hsf <- hsf[[x]][, n, with = FALSE]
+    if ("id" %in% names(hsf)) {
+      n <- c("id", n[!n %in% "id"])
+    }
+    hsf <- hsf[, n, with = FALSE]
     return(hsf)
   })
   names(hsf) <- hsf_names

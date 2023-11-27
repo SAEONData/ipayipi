@@ -16,6 +16,7 @@ imbibe_raw_logger_dt(
   data_setup = NULL,
   remove_prompt = FALSE,
   logg_interfere_type = "on_site",
+  silent = TRUE,
   ...
 )
 }
@@ -52,11 +53,11 @@ and the record interval cannot be evaluated by
 instrument data outputs. Mandatory fields are indicated with an '\emph{'.
 File header options include}^1^:
 \enumerate{
-\item *file_format -- the native/raw file format.
-\item *station_title -- the supplied instrument station title.
-\item *location -- the standardised location (name) of the station.
-\item *logger_type -- the type of logger.
-\item *logger_sn -- the serial number of the logger.
+\item *\strong{file_format} -- the native/raw file format.
+\item *\strong{station_title} -- the supplied instrument station title.
+\item location -- the standardised location (name) of the station.
+\item *\strong{logger_type} -- the type of logger.
+\item *\strong{logger_sn} -- the serial number of the logger.
 \item logger_os -- the operating system (or firmware version) on the logger.
 \item logger_program_name -- the name of the program installed on the logger
 (also 'DLD name' on Cambel Scientific systems).
@@ -76,7 +77,7 @@ e.g., 3.
 
 File phenomena information and data *^2^:
 \enumerate{
-\item *phen_name -- a list of row and column numbers corresponding to the
+\item *\strong{phen_name} -- a list of row and column numbers corresponding to the
 names of phenomena (variables).
 \item phen_unit -- a list of row and column numbers corresponding to the
 names of phenomena units.
@@ -99,9 +100,9 @@ as a vector of character strings with the actual values. If using
 found and the columns wherein these lie are required. See
 ?ipayipi::rng_rici() for more details.
 \enumerate{
-\item *data_row -- a single integer value designating the row where phenomena
-data begin from.
-\item *id_col -- a single integer value designating a data row unique
+\item *\strong{data_row} -- a single integer value designating the row where
+phenomena data begin from.
+\item *\strong{id_col} -- a single integer value designating a data row unique
 identifier row.
 }}
 
@@ -113,6 +114,9 @@ Activate a readline prompt to choose whether or not filter our records from
 time a logger is visited is counted as a logger interference event.
 Type \emph{'remote'} occurs when data is downloaded remotely. Type \emph{'on_site'}
 is when data was downloaded on site. \emph{See details} ...}
+
+\item{silent}{Logical passed to \code{attempt::attempt()} which reads the logger
+text file in with either \code{data.table::fread()} or base R.}
 }
 \value{
 A list of class "ipayipi_raw_data" that contains a 'data_summary',
