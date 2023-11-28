@@ -19,7 +19,7 @@ imbibe_raw_batch(
   wanted = NULL,
   unwanted = NULL,
   recurr = FALSE,
-  silent = TRUE,
+  verbose = FALSE,
   ...
 )
 }
@@ -57,12 +57,12 @@ stations.}
 \item{recurr}{Should the function search recursively into sub directories
 for hobo rainfall csv export files? TRUE or FALSE.}
 
-\item{silent}{Logical passed to \code{attempt::attempt()} which reads the logger
-text file in with either \code{data.table::fread()} or base R.}
-
 \item{record_interval}{If there are is no discrete record interval set
 in the logger program, i.e., the sampling is event based, then this
 parameter must be set to "event_based". Defaults to "continuous".}
+
+\item{silent}{Logical passed to \code{attempt::attempt()} which reads the logger
+text file in with either \code{data.table::fread()} or base R.}
 }
 \description{
 Uses \code{ipayipi::imbibe_logger_dt()} to read and transfer

@@ -14,6 +14,7 @@
 #'  in the import.
 #' @param file_ext The file extension defaults to ".dat". Other file types could
 #'  be incorporatted if required.
+#' @param verbose Print some details on the files being processed? Logical.
 #' @keywords import logger data files; meteorological data; automatic weather
 #'  station; batch process; hydrological data;
 #' @author Paul J. Gordijn
@@ -25,10 +26,11 @@
 logger_data_import_batch <- function(
   pipe_house = NULL,
   prompt = FALSE,
-  recurr = FALSE,
+  recurr = TRUE,
   wanted = NULL,
   unwanted = NULL,
   file_ext = ".dat",
+  verbose = TRUE,
   ...
 ) {
 
@@ -41,7 +43,7 @@ logger_data_import_batch <- function(
       " data files into the pipeline waiting room", collapes = ""),
     wdth = 80, pad_char = "=", pad_extras = c("|", "", "", "|"),
     force_extras = FALSE, justf = c(0, 0))
-  message(cr_msg)
+  ipayipi::msg(cr_msg, verbose)
   slist_df <- data.table::data.table(
     name = slist,
     basename = basename(slist),
@@ -66,12 +68,12 @@ logger_data_import_batch <- function(
       paste0(basename(slist[x]), " done ...", collapes = ""),
       wdth = 80, pad_char = " ", pad_extras = c("|", "", "", "|"),
       force_extras = FALSE, justf = c(-1, 2))
-    message(cr_msg)
+    ipayipi::msg(cr_msg, verbose)
   })
   rm(ccat)
   cr_msg <- padr(core_message =
     paste0("  import complete  ", collapes = ""),
     wdth = 80, pad_char = "=", pad_extras = c("|", "", "", "|"),
     force_extras = FALSE, justf = c(0, 0))
-  return(message(cr_msg))
+  return(ipayipi::msg(cr_msg, verbose))
 }

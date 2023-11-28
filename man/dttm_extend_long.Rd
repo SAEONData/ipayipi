@@ -2,14 +2,17 @@
 % Please edit documentation in R/z_sub_extend_long.r
 \name{dttm_extend_long}
 \alias{dttm_extend_long}
-\title{Extend date time series data}
+\title{Generate date-time data for sequence gaps}
 \usage{
-dttm_extend_long(data_sets = NULL, ri = NULL, remove_overlap = FALSE, ...)
+dttm_extend_long(data_sets = NULL, ri = NULL, ...)
+}
+\arguments{
+\item{data_sets}{List of time-series data sets with a 'date_time' column.}
+
+\item{ri}{Standardised record interval. Function will not process 'event-based' data; requires a regular time-interval.}
 }
 \description{
-Internnal function to generate time series data tables to
-fill in missing date time values in a list of non-overlapping data sets
-with their date and time value in a column named "date_time".
+Internal function to generate time-series data tables, with 'date_time' sequences only, to fill missing date-time values in a list of non-overlapping data sets.
 }
 \author{
 Paul J. Gordijn

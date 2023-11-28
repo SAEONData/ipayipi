@@ -16,7 +16,7 @@ imbibe_raw_logger_dt(
   data_setup = NULL,
   remove_prompt = FALSE,
   logg_interfere_type = "on_site",
-  silent = TRUE,
+  verbose = TRUE,
   ...
 )
 }
@@ -115,8 +115,9 @@ time a logger is visited is counted as a logger interference event.
 Type \emph{'remote'} occurs when data is downloaded remotely. Type \emph{'on_site'}
 is when data was downloaded on site. \emph{See details} ...}
 
-\item{silent}{Logical passed to \code{attempt::attempt()} which reads the logger
-text file in with either \code{data.table::fread()} or base R.}
+\item{verbose}{Logical passed to \code{attempt::attempt()} which reads the logger
+text file in with either \code{data.table::fread()} or base R. Also whether to
+print progress.}
 }
 \value{
 A list of class "ipayipi_raw_data" that contains a 'data_summary',

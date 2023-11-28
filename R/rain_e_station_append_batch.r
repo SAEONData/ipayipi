@@ -23,7 +23,6 @@
 #'  1. Pass the 'new data' to `ipayipi::rain_station_append()` and save the
 #'   appended outputs in the 'rainr_room'.
 #' @keywords hobo rainfall data; batch processing; append data
-#' @return
 #' @author Paul J. Gordijn
 #' @export
 rain_station_append_batch <- function(

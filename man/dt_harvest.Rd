@@ -9,6 +9,7 @@ dt_harvest(
   f_params = NULL,
   time_interval = NULL,
   sf = NULL,
+  dt_working = NULL,
   ...
 )
 }

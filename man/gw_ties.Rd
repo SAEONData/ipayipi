@@ -48,6 +48,9 @@ for R data files in sub directories i.e., a recursive search.}
 enable selection of which files in the working directory require
 drift correction.}
 }
+\value{
+Table of dummy dipper readings, or tie points.
+}
 \description{
 Generated tie points are used as artificial calibration
 points (dipper readings) for drift correction.

@@ -13,9 +13,9 @@
 #' @param prompt If TRUE, a command line prompt will be used to
 #'  enable selection of which files in the working directory require
 #'  drift correction.
-#' @keywords
+#' @keywords data cleaning, anomaly removal, outliers, prior-informed outliers
 #' @author Paul J. Gordijn
-#' @return
+#' @return Saves data with a table of manually declared outliers. List of station names of processed data.
 #' @export
 gw_data_handler <- function(
   input_dir = ".",

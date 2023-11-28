@@ -13,6 +13,9 @@ rain_transfer_batch(hobo_in = NULL, nomvet_room = NULL, ...)
 \item{nomvet_room}{The directory where the standardised hobo rainfall files
 are archived.}
 }
+\value{
+Names of transferred files.
+}
 \description{
 Once the hobo rainfall file exports have been standardised,
 and have their nomenclature checked, this function saves the data from

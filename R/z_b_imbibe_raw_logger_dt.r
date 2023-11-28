@@ -81,8 +81,9 @@
 #'  time a logger is visited is counted as a logger interference event.
 #'  Type _'remote'_ occurs when data is downloaded remotely. Type _'on_site'_
 #'  is when data was downloaded on site. _See details_ ...
-#' @param silent Logical passed to `attempt::attempt()` which reads the logger
-#'  text file in with either `data.table::fread()` or base R.
+#' @param verbose Logical passed to `attempt::attempt()` which reads the logger
+#'  text file in with either `data.table::fread()` or base R. Also whether to 
+#'  print progress.
 #' @details This function uses `data.table::fread` which is optimized for
 #'  processing 'big data'. Apart from usual the usual options which can be
 #'  parsed to `data.table::fread` this function generates some standardised
@@ -125,12 +126,12 @@ imbibe_raw_logger_dt <- function(
   data_setup = NULL,
   remove_prompt = FALSE,
   logg_interfere_type = "on_site",
-  silent = TRUE,
+  verbose = TRUE,
   ...
 ) {
   file <- attempt::attempt(data.table::fread(file = file_path, header = FALSE,
     check.names = FALSE, blank.lines.skip = FALSE, sep = col_dlm,
-    strip.white = FALSE, fill = TRUE), silent = silent)
+    strip.white = FALSE, fill = TRUE), silent = verbose)
   # if there was an error then we try and read the file using base r
   if (attempt::is_try_error(file)) {
     file <- attempt::attempt(data.table::as.data.table(read.csv(

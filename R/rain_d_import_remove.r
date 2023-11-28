@@ -9,7 +9,7 @@
 #'  hobo rainfall file exports, which have been extracted from files imported
 #'  into the 'wait_room', then deletes the files.
 #' @keywords hobo rainfall data; batch processing; append data
-#' @return
+#' @return Removes files from the waiting room.
 #' @author Paul J. Gordijn
 #' @export
 rain_import_remove <- function(

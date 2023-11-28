@@ -1,7 +1,6 @@
 #' @title Update meteorological file phenomena
 #' @description A function to check standardisation of meteorological data
 #'  phenomena to be run before introducing data into the pipeline.
-#' @details
 #' @param pipe_house List of pipeline directories. __See__
 #'  `ipayipi::ipip_init()` __for details__.
 #' @param file The (base) file name of the csv import. If NULL then the

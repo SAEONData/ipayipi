@@ -18,7 +18,7 @@
 #' @param nomvet_room The directory where the standardised hobo rainfall files
 #'  are archived.
 #' @keywords hobo rainfall data pipeline; archive data; save data
-#' @return
+#' @return Names of transferred files.
 #' @author Paul J. Gordijn
 #' @export
 rain_transfer_batch <- function(

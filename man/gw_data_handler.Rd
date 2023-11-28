@@ -30,6 +30,9 @@ drift correction.}
 \item{recurr}{Should the function work recurrsively in the parent
 directory.}
 }
+\value{
+Saves data with a table of manually declared outliers. List of station names of processed data.
+}
 \description{
 Read in manually entered values which are used for correcting
 anomalous data or removing outliers. The data handle information is
@@ -38,3 +41,10 @@ appended to the standardised data files and saved.
 \author{
 Paul J. Gordijn
 }
+\keyword{anomaly}
+\keyword{cleaning,}
+\keyword{data}
+\keyword{outliers}
+\keyword{outliers,}
+\keyword{prior-informed}
+\keyword{removal,}

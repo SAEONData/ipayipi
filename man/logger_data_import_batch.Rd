@@ -7,10 +7,11 @@
 logger_data_import_batch(
   pipe_house = NULL,
   prompt = FALSE,
-  recurr = FALSE,
+  recurr = TRUE,
   wanted = NULL,
   unwanted = NULL,
   file_ext = ".dat",
+  verbose = TRUE,
   ...
 )
 }
@@ -32,6 +33,8 @@ in the import.}
 
 \item{file_ext}{The file extension defaults to ".dat". Other file types could
 be incorporatted if required.}
+
+\item{verbose}{Print some details on the files being processed? Logical.}
 }
 \description{
 Locates, copies, then pastes logger data files into the

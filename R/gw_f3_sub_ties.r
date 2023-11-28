@@ -33,7 +33,7 @@
 #'  1. The drift corrected water level, or
 #'  1. Something else ...
 #' @keywords drift correction; linear drift; tie points; dummy dipper readings
-#' @return 
+#' @return Table of dummy dipper readings, or tie points.
 #' @export
 gw_ties <- function(
   file = NULL,

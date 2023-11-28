@@ -63,7 +63,7 @@ imbibe_raw_batch <- function(
   wanted = NULL,
   unwanted = NULL,
   recurr = FALSE,
-  silent = TRUE,
+  verbose = FALSE,
   ...
 ) {
 
@@ -75,13 +75,13 @@ imbibe_raw_batch <- function(
       " logger files and converting ", collapes = ""),
     wdth = 80, pad_char = "=", pad_extras = c("|", "", "", "|"),
     force_extras = FALSE, justf = c(0, 0))
-  message(cr_msg)
+  ipayipi::msg(cr_msg, verbose = verbose)
 
   cfiles <- lapply(seq_along(slist), function(i) {
     cr_msg <- padr(core_message = paste0(" +> ", slist[i], collapes = ""),
       wdth = 80, pad_char = " ", pad_extras = c("|", "", "", "|"),
       force_extras = FALSE, justf = c(1, 1))
-    message(cr_msg)
+    ipayipi::msg(cr_msg, verbose)
       fl <- ipayipi::imbibe_raw_logger_dt(
         file_path = file.path(pipe_house$wait_room, slist[i]),
         file_ext = file_ext_in,
@@ -168,6 +168,6 @@ imbibe_raw_batch <- function(
   cr_msg <- padr(core_message = paste0(" imbibed  ", collapes = ""),
     wdth = 80, pad_char = "=", pad_extras = c("|", "", "", "|"),
     force_extras = FALSE, justf = c(0, 0))
-  message(cr_msg)
+  ipayipi::msg(cr_msg, verbose)
   invisible(cfiles)
 }

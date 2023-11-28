@@ -15,8 +15,8 @@
 #'  with a bar ('|'), and spaces avoided unless part of the keyword.
 #' @param unwanted Similar to wanted, but keywords for filtering out unwanted
 #'  stations.
-#' @param file_ext_in
-#' @param file_ext_out
+#' @param file_ext_in Extension of the file to check header standards. Defaults to ".ipr".
+#' @param file_ext_out Extension of the standardised file (i.e., extension to use for saving a file). Defaults to ".iph".
 #' @details This function calls `ipayipi::nomenclature_sts()` which will take
 #'  take the user interactively through a process of standardising station
 #'  names and titles.

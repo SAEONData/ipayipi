@@ -22,9 +22,9 @@
 #' @param dt_tz Recognized time-zone (character string) of the data locale. The
 #'  default for the package is South African, i.e., "Africa/Johannesburg" which
 #'  is equivalent to "SAST".
-#' @keywords
+#' @keywords drift correction, dummy values, data correction
 #' @author Paul J. Gordijn
-#' @return
+#' @return Saves station files with table of dummy-drift readings.
 #' @export
 gw_alpine_butter <- function(
   input_dir = ".",

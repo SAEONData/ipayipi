@@ -44,6 +44,9 @@ well for most logger outputs.}
 default for the package is South African, i.e., "Africa/Johannesburg" which
 is equivalent to "SAST".}
 }
+\value{
+Saves station files with table of dummy-drift readings.
+}
 \description{
 Generates dummy dipper readings using linear interpolation and
 adds these to the 'log_retreive' table. These will be used for in subsequent
@@ -52,3 +55,9 @@ drift correction.
 \author{
 Paul J. Gordijn
 }
+\keyword{correction}
+\keyword{correction,}
+\keyword{data}
+\keyword{drift}
+\keyword{dummy}
+\keyword{values,}

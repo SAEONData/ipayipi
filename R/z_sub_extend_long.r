@@ -1,13 +1,12 @@
-#' @title Extend date time series data
-#' @description Internnal function to generate time series data tables to
-#'  fill in missing date time values in a list of non-overlapping data sets
-#'  with their date and time value in a column named "date_time".
+#' @title Generate date-time data for sequence gaps
+#' @description Internal function to generate time-series data tables, with 'date_time' sequences only, to fill missing date-time values in a list of non-overlapping data sets.
+#' @param data_sets List of time-series data sets with a 'date_time' column.
+#' @param ri Standardised record interval. Function will not process 'event-based' data; requires a regular time-interval.
 #' @export
 #' @author Paul J. Gordijn
 dttm_extend_long <- function(
   data_sets = NULL,
   ri = NULL,
-  remove_overlap = FALSE,
   ...
 ) {
   # remove data sets with no rows
