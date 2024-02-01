@@ -5,14 +5,19 @@
 \title{Appends data tables by phenomena}
 \usage{
 append_phen_overlap_data2(
+  sf_max = NULL,
+  sf_min = NULL,
   sfo = NULL,
   ndt = NULL,
-  phen_dt = NULL,
-  phens = NULL,
+  nd_min = NULL,
+  nd_max = NULL,
   phen_id = FALSE,
+  phens = NULL,
+  phen_dt = NULL,
   sf_phen_ds = NULL,
   new_phen_ds = NULL,
   ri = NULL,
+  rit = NULL,
   tn = NULL,
   overwrite_sf = FALSE,
   cores = getOption("mc.cores", 2L),
@@ -20,21 +25,31 @@ append_phen_overlap_data2(
 )
 }
 \arguments{
+\item{sf_max}{Maximum date-time of the 'station-file'  data table.}
+
+\item{sf_min}{Minimum date-time of the 'station-file' data table.}
+
 \item{sfo}{Overlapping phenomena data table from the 'x' (left) table or station file.}
 
 \item{ndt}{Data from the new data file (or 'y' or right table).}
 
-\item{phen_dt}{Phenomena table of both the station and new data files combined. These are combined and phids standarised in \code{ipayipi::station_append()}.}
+\item{nd_min}{Minimum date-time of the 'new data' being added to the station file.}
+
+\item{nd_max}{Maximum date-time of the 'new data' being added to the station file.}
+
+\item{phen_id}{Set this to TRUE for generating updated station file phenomena data summaries. When set to FALSE processing to produce this data summary will not be executed.}
 
 \item{phens}{Ordered names of phenomena to include in the joined table.}
 
-\item{phen_id}{Set this to TRUE for generating updated station file phenomena data summaries. When set to FALSE processing to produce this data summary will not be executed.}
+\item{phen_dt}{Phenomena table of both the station and new data files combined. These are combined and phids standarised in \code{ipayipi::station_append()}.}
 
 \item{sf_phen_ds}{Phenomena summary from the station file.}
 
 \item{new_phen_ds}{Phenomena summary for the new data.}
 
 \item{ri}{The record interval associated with the data sets. As a standardised string. Used to generate a time-series sequence using base::seq().}
+
+\item{rit}{Record interval type. One of the following options for time-series data: 'continuous', 'event_based', or 'mixed'.}
 
 \item{tn}{The name of the phenomena data tables. Argument only required for processing phenomena summary data.}
 

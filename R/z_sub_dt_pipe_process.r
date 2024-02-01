@@ -1,5 +1,5 @@
 #' @title Organise and update a data processing pipeline
-#' @description 
+#' description 
 #' @param pipe_seq Pipeline processing steps generated using a list of
 #'  `ipayipi::p_dt()`. Both or either the `pipe_seq` or `pipe_memory` must be
 #'  supplied.

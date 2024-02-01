@@ -7,11 +7,11 @@
 #' @param y_key Column name. Similar to `x_key` if not provided.
 #' @param time_seq If `TRUE` then a continuous sequence of date-time values are ensured for both _x_ and _y_ tables. If a vector of two logial values is provided then this is applied to _x_ and _y_ tables seperately, in that order, and the final joined table.
 #' @param fuzzy String or logical. If string, this argument is evaluated to determine the fuzzy interval used to ...
-#' @param full_eval
-#' @param f_params
-#' @param f_summary
-#' @param ppsi
-#' @param sf
+#' param full_eval
+#' param f_params
+#' param f_summary
+#' param ppsi
+#' param sf
 #' @details
 #' __Join types__
 #' - `full_join`: Merges matching `x_tbl` and `y_tbl` rows, and retains all unmatching records.

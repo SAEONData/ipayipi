@@ -52,33 +52,37 @@ read_nomtab_csv <- function(
     })
     file <- names(nom_dts[which(nom_dts == max(nom_dts))])
   }
-  nomtab <- data.table::setDT(read.csv(
-    file.path(pipe_house$wait_room, file), row.names = 1, header = TRUE))
-  cans <- sum(sapply(nomtab[, c("location", "station", "stnd_title")],
-    function(x) sum(is.na(x))))
+  nomtab <- data.table::fread(file.path(pipe_house$wait_room, file),
+    header = TRUE)
+  ck_cols <- c("location", "station", "stnd_title")
+  cans <- sum(
+    sapply(nomtab[, ck_cols, with = FALSE], function(x) sum(is.na(x)))
+  )
   if (cans > 0) {
-    message("There are unconfirmed identities in the nomenclature!")
+    message("There are unconfirmed identities in the header nomenclature!")
     message("Please edit the csv file to remove NAs.")
+    print(nomtab[rowSums(is.na(nomtab[, ck_cols, with = FALSE])) > 0])
   }
-  if (cans == 0) {
-    nomtab <- transform(nomtab,
-      uz_station = as.character(nomtab$uz_station),
-      location = as.character(nomtab$location),
-      station = as.character(nomtab$station),
-      stnd_title = as.character(nomtab$stnd_title),
-      logger_type = as.character(nomtab$logger_type),
-      logger_title = as.character(nomtab$logger_title),
-      record_interval_type = as.character(nomtab$record_interval_type),
-      record_interval = as.character(nomtab$record_interval),
-      uz_table_name = as.character(nomtab$uz_table_name),
-      table_name = as.character(nomtab$table_name)
-    )
-    # standardise raw table name preffix
-    nomtab$table_name <- data.table::fifelse(
-      !grepl(pattern = "raw_", x = nomtab$table_name),
-      paste0("raw_", nomtab$table_name), nomtab$table_name
-    )
-    saveRDS(nomtab, file.path(pipe_house$wait_room, "nomtab.rns"))
-  }
+
+  nomtab <- transform(nomtab,
+    uz_station = as.character(nomtab$uz_station),
+    location = as.character(nomtab$location),
+    station = as.character(nomtab$station),
+    stnd_title = as.character(nomtab$stnd_title),
+    logger_type = as.character(nomtab$logger_type),
+    logger_title = as.character(nomtab$logger_title),
+    uz_record_interval_type = as.character(nomtab$uz_record_interval_type),
+    uz_record_interval = as.character(nomtab$uz_record_interval),
+    record_interval_type = as.character(nomtab$record_interval_type),
+    record_interval = as.character(nomtab$record_interval),
+    uz_table_name = as.character(nomtab$uz_table_name),
+    table_name = as.character(nomtab$table_name)
+  )
+  # standardise raw table name preffix
+  nomtab$table_name <- data.table::fifelse(
+    !grepl(pattern = "raw_", x = nomtab$table_name),
+    paste0("raw_", nomtab$table_name), nomtab$table_name
+  )
+  saveRDS(nomtab, file.path(pipe_house$wait_room, "nomtab.rns"))
   invisible(nomtab)
 }

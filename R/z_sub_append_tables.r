@@ -2,9 +2,9 @@
 #' @description Appends lists of tables (and other list objects) based
 #'  on date-time stamps, and unique rows.
 #' @param original_tbl List of original tables (and other named
-#'  objects in the list) to append. Both original and new table lists
-#'  must be named.
-#' @param new_tbl Named list of new tables (and other objects) to append
+#'  objects in the list) to append. _Both original and new table lists
+#'  must be named_.
+#' @param new_tbl _Named_ list of new tables (and other objects) to append
 #'  to the originals.
 #' @param overwrite_old If `TRUE` then original data is disgarded in favour of
 #'  new data. Defaults to FALSE. In the case of non-data.table items new

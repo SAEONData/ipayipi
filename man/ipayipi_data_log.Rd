@@ -4,14 +4,24 @@
 \alias{ipayipi_data_log}
 \title{Generate a log of data files within a directory.}
 \usage{
-ipayipi_data_log(log_dir = NULL, file_ext = ".ipi", ...)
+ipayipi_data_log(
+  log_dir = NULL,
+  file_ext = ".ipi",
+  cores = getOption("mc.cores", 2L),
+  ...
+)
 }
 \arguments{
+\item{cores}{Number of CPU's to use for processing in parallel. Only applies when working on Linux.}
+
 \item{hobo_in}{Converted hobo rainfall files as produced by
 \code{rain_hobo_conversion()}.}
 
 \item{nomvet_room}{The directory where the standardised hobo rainfall files
 are archived.}
+}
+\value{
+A table describing station file data within a directory, and the file extension of the station files.
 }
 \description{
 Once the hobo rainfall file exports have been standardised,

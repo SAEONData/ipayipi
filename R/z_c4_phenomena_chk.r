@@ -10,6 +10,13 @@
 #'  not appended erraneously.
 #' @param out_csv Logical. If `TRUE` a csv file is made in the working
 #'  directory if there are files with unrecognised phenomena.
+#' @param cores  Number of CPU's to use for processing in parallel. Only applies when working on Linux.
+#' @param wanted A string of keywords to use to filter which stations
+#'  are selected for processing. Multiple search kewords should be seperated
+#'  with a bar ('|'), and spaces avoided unless part of the keyword.
+#' @param unwanted Similar to wanted, but keywords for filtering out unwanted
+#'  stations.
+#' @param verbose Print some details on the files being processed? Logical.
 #' @details Logger data phenomena must be standardised prior to being
 #'  transferred to the nomenclature vetted room. This standardisation step
 #'  must only be run once header information has been standardised using the
@@ -26,14 +33,39 @@
 #' @author Paul J. Gordijn
 #' @export
 phenomena_chk <- function(
-    pipe_house = NA,
+    pipe_house = NULL,
     check_phenomena = TRUE,
     file_ext_in = ".iph",
     csv_out = TRUE,
+    verbose = FALSE,
+    wanted = NULL,
+    unwanted = NULL,
+    cores = getOption("mc.cores", 2L),
     ...
   ) {
     "uz_phen_name" <- "phen_name" <- "measure" <- "uz_units" <-
       "uz_measure" <- "sensor_id" <- "phen_name_full" <- NULL
+  # if there is a more recent csv phentab update the phentab.rps
+  # update phentab.rps if csv is more recently modified
+  # generate phentab.rps if there is a csv
+  plist <- ipayipi::dta_list(input_dir = pipe_house$wait_room, file_ext =
+    ".csv", unwanted = unwanted, wanted = "phentab")
+  p_dts <- lapply(plist, function(x) {
+    mtime <- file.info(file.path(pipe_house$wait_room, x))$mtime
+    invisible(mtime)
+  })
+  names(p_dts) <- plist
+  t1 <- attempt::attempt(max(unlist(p_dts)), silent = !verbose)
+  t2 <- attempt::attempt(silent = !verbose, as.numeric(max(
+      file.info(file.path(pipe_house$wait_room, "phentab.rps"))$mtime)))
+  c1 <- file.exists(file.path(pipe_house$wait_room, "phentab.rps"))
+  if (is.na(t2)) t2 <- attempt::attempt(0)
+  if (all(!attempt::is_try_error(t1), !attempt::is_try_error(t2), t1 > t2)) {
+    ipayipi::read_phentab_csv(pipe_house = pipe_house)
+  }
+  if (all(!attempt::is_try_error(t1), attempt::is_try_error(t2), c1)) {
+    ipayipi::read_phentab_csv(pipe_house = pipe_house)
+  }
   if (file.exists(file.path(pipe_house$wait_room, "phentab.rps"))) {
     phentab <- readRDS(file.path(pipe_house$wait_room, "phentab.rps"))
   } else {
@@ -58,32 +90,29 @@ phenomena_chk <- function(
   # extract phenomena from files
   slist <- ipayipi::dta_list(input_dir = pipe_house$wait_room, file_ext =
     file_ext_in, prompt = FALSE, recurr = TRUE, unwanted = NULL)
-  mfiles <- lapply(slist, function(x) {
-    mfile <- readRDS(file.path(pipe_house$wait_room, x))
-    invisible(mfile)
-  })
-  phen_import <- lapply(mfiles, function(x) {
+  phen_import <- parallel::mclapply(slist, function(x) {
+    m <- readRDS(file.path(pipe_house$wait_room, x))
     phentabo <- data.table::data.table(
-      phid = as.integer(seq_along(x$phens$phen_name)),
+      phid = as.integer(seq_along(m$phens$phen_name)),
       phen_name_full = NA_character_,
       phen_type = NA_character_,
       phen_name = NA_character_,
       units = NA_character_,
       measure = NA_character_,
-      offset = as.character(x$phens$offset),
+      offset = as.character(m$phens$offset),
       var_type = NA_character_,
-      uz_phen_name = as.character(x$phens$phen_name),
-      uz_units = as.character(x$phens$units),
-      uz_measure = as.character(x$phens$measure),
+      uz_phen_name = as.character(m$phens$phen_name),
+      uz_units = as.character(m$phens$units),
+      uz_measure = as.character(m$phens$measure),
       f_convert = NA_real_,
       sensor_id = NA_character_,
       notes = NA_character_
     )
     invisible(phentabo)
-  })
+  }, mc.cores = cores)
   phen_import <- data.table::rbindlist(phen_import)
-
   phentab <- rbind(phentab, phen_import)
+
   # phens must have a column name
   phentab <- phentab[!is.na(uz_phen_name), ]
   phentab <- phentab[order(phen_name, units, measure, uz_phen_name,

@@ -5,20 +5,24 @@
 \title{Append meteorological station data}
 \usage{
 append_station(
+  pipe_house = NULL,
   station_file = NULL,
   new_data = NULL,
   overwrite_sf = TRUE,
   by_station_table = FALSE,
   phen_id = TRUE,
+  cores = getOption("mc.cores", 2L),
   ...
 )
 
 append_station(
+  pipe_house = NULL,
   station_file = NULL,
   new_data = NULL,
   overwrite_sf = TRUE,
   by_station_table = FALSE,
   phen_id = TRUE,
+  cores = getOption("mc.cores", 2L),
   ...
 )
 }
@@ -32,6 +36,8 @@ append_station(
 
 \item{by_station_table}{If TRUE then multiple station tables will not be
 kept in the same station file. Defaults to FALSE.}
+
+\item{cores}{Number of CPU's to use for processing in parallel. Only applies when working on Linux.}
 
 \item{overwrite_old}{Logical. Defaults to FALSE so that data from the
 \code{station_file} is not over written by the \code{new_data}.}
@@ -51,14 +57,6 @@ another. Specifically, the standardised ptitle in the data summary is the
 identifier for stations, and records in the \code{nomvet_name} field are used to
 determine which files have been included in any given \code{SAEON_rain_data}
 object.
-
-Special attention is given to the \verb{data summary} table of
-\code{SAEON_rain_data} objects. The data summary contains information
-which is used in the pipeline to determine which files are appended to
-another. Specifically, the standardised ptitle in the data summary is the
-identifier for stations, and records in the \code{nomvet_name} field are used to
-determine which files have been included in any given \code{SAEON_rain_data}
-object.
 }
 \author{
 Paul J. Gordijn
@@ -66,5 +64,6 @@ Paul J. Gordijn
 \keyword{append}
 \keyword{data}
 \keyword{data;}
+\keyword{logger}
 \keyword{meteorological}
 \keyword{pipeline;}

@@ -15,6 +15,7 @@
 #' @param file_ext The file extension defaults to ".dat". Other file types could
 #'  be incorporatted if required.
 #' @param verbose Print some details on the files being processed? Logical.
+#' @param cores  Number of CPU's to use for processing in parallel. Only applies when working on Linux.
 #' @keywords import logger data files; meteorological data; automatic weather
 #'  station; batch process; hydrological data;
 #' @author Paul J. Gordijn
@@ -29,12 +30,16 @@ logger_data_import_batch <- function(
   recurr = TRUE,
   wanted = NULL,
   unwanted = NULL,
-  file_ext = ".dat",
-  verbose = TRUE,
+  file_ext = NULL,
+  verbose = FALSE,
+  cores = getOption("mc.cores", 2L),
   ...
 ) {
 
   # get list of data to be imported
+  unwanted <- paste(".ipr|.ipi|.iph|.xls|.rps|.rns|.ods|.doc", unwanted,
+    sep = "|")
+  unwanted <- gsub(pattern = "\\|$", replacement = "", x = unwanted)
   slist <- ipayipi::dta_list(input_dir = pipe_house$source_dir,
     file_ext = file_ext, prompt = prompt, recurr = recurr,
     unwanted = unwanted, wanted = wanted)
@@ -55,7 +60,12 @@ logger_data_import_batch <- function(
     return(x)
   })
   slist_dfs <- data.table::rbindlist(slist_dfs)
-  ccat <- lapply(seq_len(nrow(slist_dfs)), function(x) {
+  parallel::mclapply(seq_len(nrow(slist_dfs)), function(x) {
+    if (is.null(file_ext)) {
+      file_ext <- tools::file_ext(slist_dfs$name[x])
+      file_ext <- paste0(
+        ".", sub(pattern = "\\.", replacement = "", file_ext))
+    }
     file.copy(
       from = file.path(pipe_house$source_dir, slist_dfs$name[x]),
       to = file.path(pipe_house$wait_room,
@@ -69,8 +79,8 @@ logger_data_import_batch <- function(
       wdth = 80, pad_char = " ", pad_extras = c("|", "", "", "|"),
       force_extras = FALSE, justf = c(-1, 2))
     ipayipi::msg(cr_msg, verbose)
-  })
-  rm(ccat)
+  }, mc.cores = cores)
+
   cr_msg <- padr(core_message =
     paste0("  import complete  ", collapes = ""),
     wdth = 80, pad_char = "=", pad_extras = c("|", "", "", "|"),

@@ -8,10 +8,10 @@ append_tables(original_tbl = NULL, new_tbl = NULL, overwrite_old = FALSE, ...)
 }
 \arguments{
 \item{original_tbl}{List of original tables (and other named
-objects in the list) to append. Both original and new table lists
-must be named.}
+objects in the list) to append. \emph{Both original and new table lists
+must be named}.}
 
-\item{new_tbl}{Named list of new tables (and other objects) to append
+\item{new_tbl}{\emph{Named} list of new tables (and other objects) to append
 to the originals.}
 
 \item{overwrite_old}{If \code{TRUE} then original data is disgarded in favour of

@@ -1,13 +1,18 @@
 #' @title Appends data tables by phenomena
 #' @description Custom full join of overlapping time series data. The function is designed to append phenomena data and associated phenomena standards efficiently, and can retain temporal metadata records for each phenomena if a phenomena summary data table is provided. Missing data is evaluated to avoid loosing data.
 #' @param sfo Overlapping phenomena data table from the 'x' (left) table or station file.
+#' @param sf_min Minimum date-time of the 'station-file' data table.
+#' @param sf_max Maximum date-time of the 'station-file'  data table.
 #' @param ndt Data from the new data file (or 'y' or right table).
-#' @param phen_dt Phenomena table of both the station and new data files combined. These are combined and phids standarised in `ipayipi::station_append()`.
-#' @param phens Ordered names of phenomena to include in the joined table.
+#' @param nd_min Minimum date-time of the 'new data' being added to the station file.
+#' @param nd_max Maximum date-time of the 'new data' being added to the station file.
 #' @param phen_id Set this to TRUE for generating updated station file phenomena data summaries. When set to FALSE processing to produce this data summary will not be executed.
+#' @param phens Ordered names of phenomena to include in the joined table.
+#' @param phen_dt Phenomena table of both the station and new data files combined. These are combined and phids standarised in `ipayipi::station_append()`.
 #' @param sf_phen_ds Phenomena summary from the station file.
 #' @param new_phen_ds Phenomena summary for the new data.
 #' @param ri The record interval associated with the data sets. As a standardised string. Used to generate a time-series sequence using base::seq().
+#' @param rit Record interval type. One of the following options for time-series data: 'continuous', 'event_based', or 'mixed'.
 #' @param tn The name of the phenomena data tables. Argument only required for processing phenomena summary data.
 #' @param overwrite_sf Logical. If TRUE the station file or 'x' table values, if not NA, will be overwritten by values from the 'y' or new data table.
 #' @param cores Integer representing the number of cores available for processing data.
@@ -17,14 +22,19 @@
 #' @export
 #' @details This function is an internal function called by `ipayipi::append_phen_data()`.
 append_phen_overlap_data2 <- function(
+  sf_max = NULL,
+  sf_min = NULL,
   sfo = NULL,
   ndt = NULL,
-  phen_dt = NULL,
-  phens = NULL,
+  nd_min = NULL,
+  nd_max = NULL,
   phen_id = FALSE,
+  phens = NULL,
+  phen_dt = NULL,
   sf_phen_ds = NULL,
   new_phen_ds = NULL,
   ri = NULL,
+  rit = NULL,
   tn = NULL,
   overwrite_sf = FALSE,
   cores = getOption("mc.cores", 2L),
@@ -33,8 +43,8 @@ append_phen_overlap_data2 <- function(
   "date_time" <- "%ilike%" <- "phen_name" <- "d1" <- "d2" <- "table_name" <-
     "phid" <- "d1_old" <- "d2_old" <- "var_type" <- "d1_new" <- "d2_new" <-
     "dttm" <- NULL
-  # if there is overlap data
-  if (nrow(sfo) == 0) {
+  # if there is no overlap data
+  if (all(nrow(sfo) == 0, nd_min > sf_max | nd_max < sf_min)) {
     phen_dtos <- NULL
     raw_dto <- NULL
     sfo_max <- NULL
@@ -42,10 +52,20 @@ append_phen_overlap_data2 <- function(
     return(list(phen_dtos = phen_dtos, raw_dto = raw_dto,
       sfo_max = sfo_max, sfo_min = sfo_min))
   }
+  # if there is limited overlap
+  if (all(nrow(sfo) == 0, nd_min < sf_max, nd_max > sf_min)) {
+    phen_dtos <- new_phen_ds
+    raw_dto <- ndt
+    sfo_max <- nd_max
+    sfo_min <- nd_min
+    return(list(phen_dtos = phen_dtos, raw_dto = raw_dto,
+      sfo_max = sfo_max, sfo_min = sfo_min))
+  }
 
-  # extract dates
+  # mod sfo min max dates
   sfo_min <- min(sfo$date_time)
   sfo_max <- max(sfo$date_time)
+
   # overlap data --- sf = station file, nd = new data
   ndo <- ndt[date_time >= sfo_min][date_time <= sfo_max]
   phens <- phens[!phens %in% c("id", "date_time")]
@@ -133,8 +153,9 @@ append_phen_overlap_data2 <- function(
       dta <- ipayipi::phen_vars_sts(phen_table = ptab, dta_in = x)
       return(dta)
     }, mc.cores = cores)
-  } else {
-    # if phen_id is FALSE ----
+  }
+  # if phen_id is FALSE ----
+  if (!phen_id) {
     ndo <- rbind(ndo, sfo[0, ], fill = TRUE)
     dnew_l <- parallel::mclapply(seq_along(phens), function(i) {
       old_names <- names(ndo)[names(ndo) %in% c("id", "date_time", phens[i])]
@@ -174,108 +195,111 @@ append_phen_overlap_data2 <- function(
     }
   }
 
-    # bind these data to a common date-time series
-    if (!"discnt" %in% ri) {
-      start_dttm <- min(c(sfo$date_time, ndo$date_time))
-      end_dttm <- max(c(sfo$date_time, ndo$date_time))
-      start_dttm <- lubridate::round_date(start_dttm, unit = ri)
-      end_dttm <- lubridate::round_date(end_dttm, unit = ri)
-      dt_seq <- seq(from = start_dttm, to = end_dttm, by = ri)
+  # bind these data to a common date-time series
+  if (!"discnt" %in% ri) {
+    start_dttm <- min(c(sfo$date_time, ndo$date_time))
+    end_dttm <- max(c(sfo$date_time, ndo$date_time))
+    start_dttm <- lubridate::round_date(start_dttm, unit = ri)
+    end_dttm <- lubridate::round_date(end_dttm, unit = ri)
+    dt_seq <- seq(from = start_dttm, to = end_dttm, by = ri)
+  } else {
+    dt_seq <- unique(c(sfo$date_time, ndo$date_time))
+  }
+  dt_seq <- data.table::data.table(dttm = dt_seq)
+  dt_seq <- dt_seq[order(dttm)]
+  if (overwrite_sf) f <- c("_old", "_new") else f <- c("_new", "_old")
+  dto <- parallel::mclapply(seq_along(phens), function(i) {
+    # join old to dt_seq then new
+    z <- dold_l[[i]]
+    if (nrow(dold_l[[i]]) > 0) {
+      z <- merge(x = z, y = dt_seq, by.x = "date_time_old", by.y = "dttm",
+        all.y = TRUE, all.x = FALSE)
     } else {
-      dt_seq <- unique(c(sfo$date_time, ndo$date_time))
+      z <- rbind(dt_seq, dold_l[[i]], fill = TRUE)
+      z$date_time_old <- z$dttm
     }
-    dt_seq <- data.table::data.table(dttm = dt_seq)
-    dt_seq <- dt_seq[order(dttm)]
-    if (overwrite_sf) f <- c("_old", "_new") else f <- c("_new", "_old")
-    dto <- parallel::mclapply(seq_along(phens), function(i) {
-      # join old to dt_seq then new
-      z <- dold_l[[i]]
-      if (nrow(dold_l[[i]]) > 0) {
-        z <- merge(x = z, y = dt_seq, by.x = "date_time_old", by.y = "dttm",
-          all.y = TRUE, all.x = FALSE)
-      } else {
-        z <- rbind(dt_seq, dold_l[[i]], fill = TRUE)
-      }
-      if (nrow(dnew_l[[i]]) > 0) {
-        z <- merge(x = z, y = dnew_l[[i]], by.x = "date_time_old",
-          by.y = "date_time_new", all.x = TRUE, all.y = FALSE)
-      } else {
-        z <- rbind(z, dnew_l[[i]], fill = TRUE)
-      }
-      z[[phens[i]]] <- data.table::fifelse(
-        is.na(z[[paste0(phens[i], f[2])]]),
-        z[[paste0(phens[i], f[1])]],
-        z[[paste0(phens[i], f[2])]]
+    if (nrow(dnew_l[[i]]) > 0) {
+      z <- merge(x = z, y = dnew_l[[i]], by.x = "date_time_old",
+        by.y = "date_time_new", all.x = TRUE, all.y = FALSE)
+    } else {
+      z <- rbind(z, dnew_l[[i]], fill = TRUE)
+    }
+    z[[phens[i]]] <- data.table::fifelse(
+      is.na(z[[paste0(phens[i], f[2])]]),
+      z[[paste0(phens[i], f[1])]],
+      z[[paste0(phens[i], f[2])]]
+    )
+    if ("id" %in% names(z)) {
+      z[["id"]] <- data.table::fifelse(
+        is.na(z[[paste0("id", f[2])]]),
+        as.integer(z[[paste0("id", f[1])]]),
+        as.integer(z[[paste0("id", f[2])]])
       )
-      if ("id" %in% names(z)) {
-        z[["id"]] <- data.table::fifelse(
-          is.na(z[[paste0("id", f[2])]]),
-          as.integer(z[[paste0("id", f[1])]]),
-          as.integer(z[[paste0("id", f[2])]])
-        )
-      } else {
-        z[["id"]] <- seq_len(nrow(z))
-      }
-      if (paste0("phid", f[2]) %in% names(z)) {
-        z[["phid"]] <- data.table::fifelse(
-          is.na(z[[paste0("phid", f[2])]]),
-          as.integer(z[[paste0("phid", f[1])]]),
-          as.integer(z[[paste0("phid", f[2])]])
-        )
-      }
-      z <- z[, names(z)[names(z) %in% c(phens[i], "id", "phid")], with = FALSE]
+    } else {
+      z[["id"]] <- seq_len(nrow(z))
+    }
+    if (paste0("phid", f[2]) %in% names(z)) {
+      z[["phid"]] <- data.table::fifelse(
+        is.na(z[[paste0("phid", f[2])]]),
+        as.integer(z[[paste0("phid", f[1])]]),
+        as.integer(z[[paste0("phid", f[2])]])
+      )
+    }
+    z <- z[, names(z)[names(z) %in% c(phens[i], "id", "phid")], with = FALSE]
+  })
+  names(dto) <- phens
+  # put all phenomena in one table
+  naj <- parallel::mclapply(seq_along(dto), function(i) {
+    naj <- is.na(dto[[i]][["id"]][])[
+      is.na(dto[[i]][["id"]][]) == TRUE]
+    naj <- length(naj)
+    return(naj)
+  }, mc.cores = cores)
+  naj <- unlist(naj)
+  naj <- which(naj == min(naj))[1]
+  raw_dto <- lapply(dto, function(x) {
+    x <- x[, names(x)[!names(x) %in% c("id", "phid")], with = FALSE]
+    x$date_time <- dt_seq$dttm
+    data.table::setkey(x, date_time)
+    return(x)
+  })
+  raw_dto <- Reduce(function(...) merge(..., all = TRUE), raw_dto)
+  raw_dto$id <- dto[[naj]][["id"]]
+  data.table::setcolorder(raw_dto, c("id", "date_time", names(dto)))
+  if (!is.null(phen_dt)) {
+    raw_dto <- ipayipi::phen_vars_sts(dta_in = raw_dto, phen_table = phen_dt)
+  }
+  # generate phen table for the overlapping data
+  if (phen_id) {
+    zap <- lapply(dto, function(x) {
+      all(!is.na(x$id))
     })
-    names(dto) <- phens
-    # put all phenomena in one table
-    naj <- parallel::mclapply(seq_along(dto), function(i) {
-      naj <- is.na(dto[[i]][["id"]][])[
-        is.na(dto[[i]][["id"]][]) == TRUE]
-      naj <- length(naj)
-      return(naj)
-    }, mc.cores = cores)
-    naj <- unlist(naj)
-    naj <- which(naj == min(naj))[1]
-    raw_dto <- lapply(dto, function(x) {
-      x <- x[, names(x)[!names(x) %in% c("id", "phid")], with = FALSE]
-      x$date_time <- dt_seq$dttm
-      data.table::setkey(x, date_time)
+    rm(zap)
+    dto <- dto[unlist(lapply(dto, function(x) all(!is.na(x$id))))]
+    phen_dtos <- parallel::mclapply(dto, function(x) {
+      x$date_time <- raw_dto$date_time
+      if (nrow(x[!is.na(phid)]) == 0) return(NULL)
+      x$ph_int <- ipayipi::change_intervals(int_dta = x$phid)
+      x$f <- as.integer(as.factor(paste0(x$ph_int)))
+      x$f <- ipayipi::change_intervals(int_dta = x$f)
+      x <- split.data.frame(x, f = as.factor(x$f))
+      x <- lapply(x, function(z) {
+        z <- data.table::data.table(
+          start_dttm = min(z$date_time),
+          end_dttm = max(z$date_time),
+          phid = z$phid[1]
+        )
+        return(z)
+      })
+      x <- data.table::rbindlist(x)
+      x <- x[!is.na(phid)]
       return(x)
     })
-    raw_dto <- Reduce(function(...) merge(..., all = TRUE), raw_dto)
-    raw_dto$id <- dto[[naj]][["id"]]
-    data.table::setcolorder(raw_dto, c("id", "date_time", names(dto)))
-    if (!is.null(phen_dt)) {
-      raw_dto <- ipayipi::phen_vars_sts(dta_in = raw_dto, phen_table = phen_dt)
-    }
-    # generate phen table for the overlapping data
-    if (phen_id) {
-      zap <- lapply(dto, function(x) {
-        all(!is.na(x$id))
-      })
-      rm(zap)
-      dto <- dto[unlist(lapply(dto, function(x) all(!is.na(x$id))))]
-      phen_dtos <- parallel::mclapply(dto, function(x) {
-        x$date_time <- raw_dto$date_time
-        x$ph_int <- ipayipi::change_intervals(int_dta = x$phid)
-        x$f <- as.integer(as.factor(paste0(x$ph_int)))
-        x$f <- ipayipi::change_intervals(int_dta = x$f)
-        x <- split.data.frame(x, f = as.factor(x$f))
-        x <- lapply(x, function(z) {
-          z <- data.table::data.table(
-            start_dttm = min(z$date_time),
-            end_dttm = max(z$date_time),
-            phid = z$phid[1]
-          )
-          return(z)
-        })
-        x <- data.table::rbindlist(x)
-        return(x)
-      })
-      phen_dtos <- data.table::rbindlist(phen_dtos)
-    } else {
-      phen_dtos <- NULL
-    }
+    phen_dtos <- data.table::rbindlist(phen_dtos)
+  } else {
+    phen_dtos <- NULL
+  }
 
   return(list(phen_dtos = phen_dtos, raw_dto = raw_dto,
-    sfo_max = sfo_max, sfo_min = sfo_min))
+    sfo_min = sfo_min, sfo_max = sfo_max))
 }

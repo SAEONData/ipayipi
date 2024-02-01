@@ -1,7 +1,0 @@
-"","uz_station","location","station","stnd_title","logger_type","logger_title","record_interval_type","record_interval","uz_table_name","table_name"
-"1","88296",NA,NA,NA,"CR1000",NA,"continuous","1_days","Daily","raw_NA"
-"2","88296",NA,NA,NA,"CR1000",NA,"continuous","5_mins","Five_mins","raw_NA"
-"3","88296",NA,NA,NA,"CR1000",NA,"continuous","1_hours","Hourly","raw_NA"
-"4","Science Centre AWS",NA,NA,NA,"CR1000",NA,"continuous","1_days","Daily","raw_NA"
-"5","Science Centre AWS",NA,NA,NA,"CR1000",NA,"continuous","5_mins","Five_mins","raw_NA"
-"6","Science Centre AWS",NA,NA,NA,"CR1000",NA,"continuous","1_hours","Hourly","raw_NA"

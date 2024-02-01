@@ -2,7 +2,8 @@
 % Please edit documentation in R/z_sub_dt_pipe_process.r
 \name{pipe_process}
 \alias{pipe_process}
-\title{Organise and update a data processing pipeline}
+\title{Organise and update a data processing pipeline
+description}
 \usage{
 pipe_process(
   pipe_seq = NULL,
@@ -38,6 +39,7 @@ processing pipelines data.
 }
 \description{
 Organise and update a data processing pipeline
+description
 }
 \author{
 Paul J. Gordijn

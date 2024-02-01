@@ -10,8 +10,9 @@ logger_data_import_batch(
   recurr = TRUE,
   wanted = NULL,
   unwanted = NULL,
-  file_ext = ".dat",
-  verbose = TRUE,
+  file_ext = NULL,
+  verbose = FALSE,
+  cores = getOption("mc.cores", 2L),
   ...
 )
 }
@@ -35,6 +36,8 @@ in the import.}
 be incorporatted if required.}
 
 \item{verbose}{Print some details on the files being processed? Logical.}
+
+\item{cores}{Number of CPU's to use for processing in parallel. Only applies when working on Linux.}
 }
 \description{
 Locates, copies, then pastes logger data files into the

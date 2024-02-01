@@ -67,7 +67,7 @@
 #' __See `ipayipi::imbibe_raw_logger_dt()` documentation for a describtion of
 #' a `data_setup`.
 #' @source Internal.
-#' "cs_toa5"
+"cs_toa5"
 
 #' Header harvest: Exported hobo rainfall files
 #'
@@ -82,4 +82,17 @@
 #' __See `ipayipi::imbibe_raw_logger_dt()` documentation for a describtion of
 #' a `data_setup`.
 #' @source Internal
-#' "hobo_rain"
+"hobo_rain"
+
+#' File reading metadata
+#'
+#' File defaults used when imbibing raw logger data
+#'
+#' @format ## 'file_read_meta'
+#' iPayipi file_read_meta table used for setting defaults when attempting to
+#' read/imbibe raw data files. This table is used in:
+#' `ipayipi::imbibe_raw_batch()`. If the `file_ext` and/or `col_dlm`
+#' arguments are `NULL` this table assists with reading in data in the
+#' correct format.
+#' @source Internal
+"hobo_rain"
