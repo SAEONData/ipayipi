@@ -5,6 +5,7 @@
 \title{Imbibes logger data exports}
 \usage{
 imbibe_raw_logger_dt(
+  pipe_house = NULL,
   file_path = NULL,
   file_ext = NULL,
   col_dlm = NULL,
@@ -21,12 +22,14 @@ imbibe_raw_logger_dt(
 )
 }
 \arguments{
+\item{pipe_house}{List of pipeline directories. \strong{See}
+\code{ipayipi::ipip_init()} \strong{for details}.}
+
 \item{file_path}{Path and name of file (excluding the file extension).}
 
-\item{file_ext}{The extension of the 'flat' logger file.}
+\item{file_ext}{The file extension defaults of the raw logger data files. This can be left as \code{NULL} so 'all' files but those with extensions that cannot be imbibed (".ipr|.ipi|.iph|.xls|.rps|.rns|.ods|.doc").}
 
-\item{col_dlm}{The column delimter of the 'flat' logger file which is fed
-to \code{data.table::fread()} or \code{base::read.csv()}.`}
+\item{col_dlm}{The column delimter which is fed to \code{data.table::fread()}. Defaults to NULL. When \code{NULL} the function uses \code{data.table::fread} ability to 'guess' the delimeter.}
 
 \item{dt_format}{The function attempts to work out the date-time format
 from a vector of format types supplied to this argument. The testing is
@@ -40,7 +43,7 @@ default for the package is South African, i.e., "Africa/Johannesburg" which
 is equivalent to "SAST".}
 
 \item{record_interval_type}{If there are is no discrete record interval set
-in the logger program, i.e., the sampling is event based, then this
+in the logger program, i.e., the sampling is event-based, then this
 parameter must be set to "event_based". By default this function has this
 parameter set to "continuous", but the record interval is scrutinized by
 'ipayipi::record_interval_eval()' --- see the help files for this function
@@ -139,9 +142,7 @@ this can be used as a standard for further imports.
 This function also attempts to check whether the recording interval in the
 data date-time stamp has been consistent. A prompt is called if there are
 inconsistent time intervals between record events, and data rows with
-inconsistent time intervals will be removed if approved. The requirement of
-consistent time intervals can be relaxted by setting \code{record_interval_type}
-to "event_based".
+inconsistent time intervals will be removed if approved.
 A basic check is performed to check the success of converting date-time
 values to a recognised format in R (i.e., POSIXct).
 Regarding the \code{logg_interfere_type} parameter. Owing to potential

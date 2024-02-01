@@ -9,7 +9,7 @@ dttm_extend_long(data_sets = NULL, ri = NULL, ...)
 \arguments{
 \item{data_sets}{List of time-series data sets with a 'date_time' column.}
 
-\item{ri}{Standardised record interval. Function will not process 'event-based' data; requires a regular time-interval.}
+\item{ri}{Standardised record interval. Function will not process event-based/'discontinuous' ('discnt') data; requires a regular time-interval.}
 }
 \description{
 Internal function to generate time-series data tables, with 'date_time' sequences only, to fill missing date-time values in a list of non-overlapping data sets.

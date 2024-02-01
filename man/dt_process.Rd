@@ -6,6 +6,7 @@
 \usage{
 dt_process(
   station_file = NULL,
+  pipe_house = NULL,
   pipe_seq = NULL,
   output_dt_preffix = "dt_",
   output_dt_suffix = NULL,
@@ -15,6 +16,8 @@ dt_process(
 }
 \arguments{
 \item{station_file}{Name of the station being processed.}
+
+\item{pipe_house}{List of pipeline directories. \strong{See} \code{ipayipi::ipip_init()} \strong{for details}.}
 
 \item{pipe_seq}{Generated processing pipeline structure performed by
 \code{ipayipi::pipe_seq()}.}

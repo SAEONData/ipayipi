@@ -1,0 +1,47 @@
+uz_station,location,station,stnd_title,logger_type,logger_title,uz_record_interval_type,uz_record_interval,record_interval_type,record_interval,uz_table_name,table_name
+Mabasa AWS,mcp,mabasa_aws,mcp_mabasa_aws,CR1000X,CR1000,mixed,1_days,mixed,1_days,TableDay,raw_1_days
+Mabasa AWS,mcp,mabasa_aws,mcp_mabasa_aws,CR1000X,CR1000,mixed,1_hours,mixed,1_hours,TableHour,raw_1_hours
+Mabasa AWS,mcp,mabasa_aws,mcp_mabasa_aws,CR1000X,CR1000X,continuous,1_days,continuous,1_days,TableDay,raw_1_days
+Mabasa AWS,mcp,mabasa_aws,mcp_mabasa_aws,CR1000X,CR1000X,continuous,1_hours,continuous,1_hours,TableHour,raw_1_hours
+Station2,mcp,mabasa_aws,mcp_mabasa_aws,CR1000X,CR1000X,continuous,1_days,continuous,1_days,TableDay,raw_1_days
+Station2,mcp,mabasa_aws,mcp_mabasa_aws,CR1000X,CR1000X,continuous,1_hours,continuous,1_hours,TableHour,raw_1_hours
+Sibayi AWS,mcp,sibayi_aws,mcp_sibayi_aws,CR200X,CR200X,continuous,1_days,continuous,1_days,Daily,raw_1_days
+Sibayi AWS,mcp,sibayi_aws,mcp_sibayi_aws,CR200X,CR200X,continuous,5_mins,continuous,5_mins,Five_Minutes,raw_5_mins
+Sibayi AWS,mcp,sibayi_aws,mcp_sibayi_aws,CR200X,CR200X,continuous,1_hours,continuous,1_hours,Hourly_,raw_1_hours
+84923,mcp,vasi_science_centre_aws,mcp_vasi_science_centre_aws,CR1000,CR1000,continuous,1_days,continuous,1_days,Daily,raw_1_days
+84923,mcp,vasi_science_centre_aws,mcp_vasi_science_centre_aws,CR1000,CR1000,continuous,5_mins,continuous,5_mins,Five_mins,raw_5_mins
+84923,mcp,vasi_science_centre_aws,mcp_vasi_science_centre_aws,CR1000,CR1000,continuous,1_hours,continuous,1_hours,Hourly,raw_1_hours
+88296,mcp,vasi_science_centre_aws,mcp_vasi_science_centre_aws,CR1000,CR1000,continuous,1_days,continuous,1_days,Daily,raw_1_days
+88296,mcp,vasi_science_centre_aws,mcp_vasi_science_centre_aws,CR1000,CR1000,continuous,5_mins,continuous,5_mins,Five_mins,raw_5_mins
+88296,mcp,vasi_science_centre_aws,mcp_vasi_science_centre_aws,CR1000,CR1000,continuous,1_hours,continuous,1_hours,Hourly,raw_1_hours
+CR1000 - Vasi_Science Centre AWS,mcp,vasi_science_centre_aws,mcp_vasi_science_centre_aws,CR1000,CR1000,continuous,1_days,continuous,1_days,Daily,raw_1_days
+CR1000 - Vasi_Science Centre AWS,mcp,vasi_science_centre_aws,mcp_vasi_science_centre_aws,CR1000,CR1000,continuous,5_mins,continuous,5_mins,Five_mins,raw_5_mins
+CR1000 - Vasi_Science Centre AWS,mcp,vasi_science_centre_aws,mcp_vasi_science_centre_aws,CR1000,CR1000,continuous,1_hours,continuous,1_hours,Hourly,raw_1_hours
+CR1000_Vasi Science Centre AWS,mcp,vasi_science_centre_aws,mcp_vasi_science_centre_aws,CR1000,CR1000,continuous,1_days,continuous,1_days,Daily,raw_1_days
+CR1000_Vasi Science Centre AWS,mcp,vasi_science_centre_aws,mcp_vasi_science_centre_aws,CR1000,CR1000,continuous,discnt,continuous,discnt,Daily,raw_1_days
+CR1000_Vasi Science Centre AWS,mcp,vasi_science_centre_aws,mcp_vasi_science_centre_aws,CR1000,CR1000,continuous,5_mins,continuous,5_mins,Five_mins,raw_5_mins
+CR1000_Vasi Science Centre AWS,mcp,vasi_science_centre_aws,mcp_vasi_science_centre_aws,CR1000,CR1000,continuous,1_hours,continuous,1_hours,Hourly,raw_1_hours
+Science Center AWS,mcp,vasi_science_centre_aws,mcp_vasi_science_centre_aws,CR1000,CR1000,continuous,1_days,continuous,1_days,Daily,raw_1_days
+Science Center AWS,mcp,vasi_science_centre_aws,mcp_vasi_science_centre_aws,CR1000,CR1000,continuous,5_mins,continuous,5_mins,Five_mins,raw_5_mins
+Science Center AWS,mcp,vasi_science_centre_aws,mcp_vasi_science_centre_aws,CR1000,CR1000,continuous,1_hours,continuous,1_hours,Hourly,raw_1_hours
+Science Centre AWS,mcp,vasi_science_centre_aws,mcp_vasi_science_centre_aws,CR1000,CR1000,continuous,1_days,continuous,1_days,Daily,raw_1_days
+Science Centre AWS,mcp,vasi_science_centre_aws,mcp_vasi_science_centre_aws,CR1000,CR1000,continuous,5_mins,continuous,5_mins,Five_mins,raw_5_mins
+Science Centre AWS,mcp,vasi_science_centre_aws,mcp_vasi_science_centre_aws,CR1000,CR1000,mixed,5_mins,mixed,5_mins,Five_mins,raw_5_mins
+Science Centre AWS,mcp,vasi_science_centre_aws,mcp_vasi_science_centre_aws,CR1000,CR1000,continuous,1_hours,continuous,1_hours,Hourly,raw_1_hours
+CR200Series,mcp,sibayi_aws,mcp_sibayi_aws,CR200X,NA,continuous,1_days,continuous,1_days,Daily,raw_1_days
+CR200Series,mcp,sibayi_aws,mcp_sibayi_aws,CR200X,NA,continuous,5_mins,continuous,5_mins,Five_Minutes,raw_5_mins
+CR200Series,mcp,sibayi_aws,mcp_sibayi_aws,CR200X,NA,continuous,1_hours,continuous,1_hours,Hourly_,raw_1_hours
+Sibayi,mcp,sibayi_aws,mcp_sibayi_aws,CR300,NA,continuous,1_hours,continuous,1_hours,Table1,raw_1_hours
+Sibayi,mcp,sibayi_aws,mcp_sibayi_aws,CR300,NA,continuous,1_days,continuous,1_days,Table2,raw_1_days
+Sibayi,mcp,sibayi_aws,mcp_sibayi_aws,CR300,NA,continuous,5_mins,continuous,5_mins,Table3,raw_5_mins
+Sibayi AWS,mcp,sibayi_aws,mcp_sibayi_aws,CR200X,NA,continuous,discnt,continuous,discnt,Daily,raw_1_days
+Sibayi Camp Mini AWS,mcp,sibayi_aws,mcp_sibayi_aws,CR200X,NA,mixed,1_days,mixed,1_days,Daily,raw_1_days
+Sibayi Camp Mini AWS,mcp,sibayi_aws,mcp_sibayi_aws,CR200X,NA,continuous,1_days,continuous,1_days,Daily,raw_1_days
+Sibayi Camp Mini AWS,mcp,sibayi_aws,mcp_sibayi_aws,CR200X,NA,continuous,5_mins,continuous,5_mins,Five_Minutes,raw_5_mins
+Sibayi Camp Mini AWS,mcp,sibayi_aws,mcp_sibayi_aws,CR200X,NA,continuous,1_hours,continuous,1_hours,Hourly_,raw_1_hours
+Sibayi Mini AWS,mcp,sibayi_aws,mcp_sibayi_aws,CR200X,NA,continuous,1_days,continuous,1_days,Daily,raw_1_days
+Sibayi Mini AWS,mcp,sibayi_aws,mcp_sibayi_aws,CR200X,NA,continuous,5_mins,continuous,5_mins,Five_Minutes,raw_5_mins
+Sibayi Mini AWS,mcp,sibayi_aws,mcp_sibayi_aws,CR200X,NA,continuous,1_hours,continuous,1_hours,Hourly_,raw_1_hours
+Sibayi Mini Station,mcp,sibayi_aws,mcp_sibayi_aws,CR200X,NA,continuous,1_days,continuous,1_days,Daily,raw_1_days
+Sibayi Mini Station,mcp,sibayi_aws,mcp_sibayi_aws,CR200X,NA,continuous,5_mins,continuous,5_mins,Five_Minutes,raw_5_mins
+Sibayi Mini Station,mcp,sibayi_aws,mcp_sibayi_aws,CR200X,NA,continuous,1_hours,continuous,1_hours,Hourly_,raw_1_hours

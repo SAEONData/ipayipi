@@ -12,6 +12,8 @@ header_sts(
   unwanted = NULL,
   file_ext_in = ".ipr",
   file_ext_out = ".iph",
+  verbose = FALSE,
+  cores = getOption("mc.cores", 2L),
   ...
 )
 }
@@ -22,35 +24,29 @@ header_sts(
 \item{prompt}{Should the function use an interactive file selection function
 otherwise all files are returned. TRUE or FALSE. Defaults to FALSE.}
 
-\item{recurr}{Should the function search recursively into sub directories
-for hobo rainfall csv export files? TRUE or FALSE.}
+\item{recurr}{Should the function search recursively into sub directories for hobo rainfall csv export files? TRUE or FALSE.}
 
-\item{wanted}{A strong containing keywords to use to filter which stations
-are selected for processing. Multiple search kewords should be seperated
-with a bar ('|'), and spaces avoided unless part of the keyword.}
+\item{wanted}{A strong containing keywords to use to filter which stations are selected for processing. Multiple search kewords should be seperated with a bar ('|'), and spaces avoided unless part of the keyword.}
 
-\item{unwanted}{Similar to wanted, but keywords for filtering out unwanted
-stations.}
+\item{unwanted}{Similar to wanted, but keywords for filtering out unwanted stations.}
+
+\item{file_ext_in}{Extension of the file to check header standards. Defaults to ".ipr".}
+
+\item{file_ext_out}{Extension of the standardised file (i.e., extension to use for saving a file). Defaults to ".iph".}
+
+\item{verbose}{Print some details on the files being processed? Logical.}
+
+\item{cores}{Number of CPU's to use for processing in parallel. Only applies when working on Linux.}
 }
 \description{
-Uses the nomenclature table, standardises the recording
-interval string, start and end date times in the file header, and finally
-the file name is copied from the standardised station name, that is, the
-'standardised title'. The standardised station file header nomenclature
-is retained in an ipayipi station file 'data_summary' table.
+Uses the nomenclature table, to standardise the record-interval string, start and end date-times in the file header, and the file name is copied from the standardised station name, that is, the 'standardised title'. The standardised station file header nomenclature is retained in an ipayipi station file 'data_summary' table.
 }
 \details{
-This function calls \code{ipayipi::nomenclature_sts()} which will take
-take the user interactively through a process of standardising station
-names and titles.
-Station phenomena can only be checked once header nomenclature has been
-standardised.
+This function calls \code{ipayipi::nomenclature_chk()} which will take take the user interactively through a process of standardising station names and titles.
+Station phenomena can only be checked once header nomenclature has been standardised.
 
-Note that there is no unstandardised 'uz' location. Whatever location
-provided to in nomenclature table will be used in naming conventions.
-The 'location' field can be provided edited during the
-\code{ipayipi::nomenclature_sts()} and \code{ipayipi::read_nomtab_csv()}
-functionality.
+Note that there is no unstandardised 'uz' location. Whatever location provided to in nomenclature table will be used in naming conventions.
+The 'location' field can be provided edited during the \code{ipayipi::nomenclature_chk()} and \code{ipayipi::read_nomtab_csv()} functionality.
 }
 \author{
 Paul J. Gordijn

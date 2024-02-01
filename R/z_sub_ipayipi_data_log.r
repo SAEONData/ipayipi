@@ -17,23 +17,25 @@
 #'  `rain_hobo_conversion()`.
 #' @param nomvet_room The directory where the standardised hobo rainfall files
 #'  are archived.
+#' @param cores  Number of CPU's to use for processing in parallel. Only applies when working on Linux.
 #' @keywords data pipeline; archive data; save data
-#' @return
+#' @return A table describing station file data within a directory, and the file extension of the station files.
 #' @author Paul J. Gordijn
 #' @export
 ipayipi_data_log <- function(
   log_dir = NULL,
   file_ext = ".ipi",
+  cores = getOption("mc.cores", 2L),
   ...) {
   # merge data sets into a station for given time periods
   slist <- ipayipi::dta_list(input_dir = log_dir, file_ext = file_ext,
     prompt = FALSE, recurr = FALSE, unwanted = NULL)
   # make table to guide merging by record interval, date_time, and station
-  methdr <- lapply(slist, function(x) {
+  methdr <- parallel::mclapply(slist, function(x) {
     m <- readRDS(file.path(log_dir, x))
     methdr <- m$data_summary
     invisible(methdr)
-  })
+  }, mc.cores = cores)
   methdr <- data.table::rbindlist(methdr)
   methdr$input_file <- slist
   if (nrow(methdr) == 0) {
@@ -52,6 +54,8 @@ ipayipi_data_log <- function(
       logger_os = NA_character_,
       logger_program_name = NA_character_,
       logger_program_sig = NA_character_,
+      uz_record_interval_type = NA_character_,
+      uz_record_interval = NA_character_,
       record_interval_type = NA_character_,
       record_interval = NA_character_,
       uz_table_name = NA_character_,

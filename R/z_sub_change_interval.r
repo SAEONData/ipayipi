@@ -11,7 +11,7 @@
 change_intervals <- function(
   int_dta = NULL,
   ...) {
-  ":=" <- NULL
+  ":=" <- "q1" <- "id" <- NULL
   qt <- data.table::data.table(
     id = seq_along(int_dta),
     int_dta = int_dta,
@@ -22,8 +22,7 @@ change_intervals <- function(
       seq_len(length(nona_int_dta) - 1)])
   qt_na <- qt[is.na(q1)]
   qt <- qt[!is.na(q1)]
-  qt <- qt[q1 == FALSE, aphid := seq_len(
-    nrow(qt[q1 == FALSE, ]))]
+  qt <- qt[q1 == FALSE, aphid := seq_len(nrow(qt[q1 == FALSE, ]))]
   # add penultimate fake row
   fake_id <- max(qt$id) + 1
   qtf <- data.table::data.table(

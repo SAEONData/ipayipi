@@ -6,12 +6,15 @@
 \usage{
 phenomena_sts(
   pipe_house = NULL,
+  remove_dups = FALSE,
   prompt = FALSE,
   recurr = TRUE,
   wanted = NULL,
   unwanted = NULL,
   file_ext_in = ".iph",
   file_ext_out = ".ipi",
+  verbose = FALSE,
+  cores = getOption("mc.cores", 2L),
   ...
 )
 }
@@ -34,6 +37,10 @@ stations.}
 
 \item{file_ext_in}{The file extension defaults to ".iph". Other file types
 could be incorporatted if required.}
+
+\item{verbose}{Print some details on the files being processed? Logical.}
+
+\item{cores}{Number of CPU's to use for processing in parallel. Only applies when working on Linux.}
 }
 \description{
 Standardise raw data inputs formats and more for the
@@ -84,6 +91,9 @@ maintain a phenomena synonym database. Unstandardised phenomena metadata
 edited by the user: standardised phenomena information can be added by
 replacing corresponding \code{NA} values with information. The required fields,
 marked with an asterix (above), must be described.
+
+\strong{Duplicate phenomena names}:
+Duplicate phenomena in a single data series table cannot be tolerated. If a duplicate phenomena name is detected a prompt will work with the user to delete the duplicate. Most logger programmes avoid generating duplicates, but the situation can arise where perhaps a table is recording the same phenomenon multiple times.
 
 \strong{Other}: A number of other phenomena standardisation proceedure are
 included here:

@@ -2,10 +2,11 @@
 #' @md
 #' @description Function to read in 'flat' loggers files into R. A first step
 #'  towards processing data in `ipayipi`.
+#' @param pipe_house List of pipeline directories. __See__
+#'  `ipayipi::ipip_init()` __for details__.
 #' @param file_path Path and name of file (excluding the file extension).
-#' @param file_ext The extension of the 'flat' logger file.
-#' @param col_dlm The column delimter of the 'flat' logger file which is fed
-#'  to `data.table::fread()` or `base::read.csv()`.`
+#' @param file_ext The file extension defaults of the raw logger data files. This can be left as `NULL` so 'all' files but those with extensions that cannot be imbibed (".ipr|.ipi|.iph|.xls|.rps|.rns|.ods|.doc").
+#' @param col_dlm The column delimter which is fed to `data.table::fread()`. Defaults to NULL. When `NULL` the function uses `data.table::fread` ability to 'guess' the delimeter.
 #' @param dt_format The function attempts to work out the date-time format
 #'  from a vector of format types supplied to this argument. The testing is
 #'  done via `lubridate::parse_date_time()`. `lubridate::parse_date_time()`
@@ -16,7 +17,7 @@
 #'  default for the package is South African, i.e., "Africa/Johannesburg" which
 #'  is equivalent to "SAST".
 #' @param record_interval_type If there are is no discrete record interval set
-#'  in the logger program, i.e., the sampling is event based, then this
+#'  in the logger program, i.e., the sampling is event-based, then this
 #'  parameter must be set to "event_based". By default this function has this
 #'  parameter set to "continuous", but the record interval is scrutinized by
 #'  'ipayipi::record_interval_eval()' --- see the help files for this function
@@ -95,9 +96,7 @@
 #'  This function also attempts to check whether the recording interval in the
 #'  data date-time stamp has been consistent. A prompt is called if there are
 #'  inconsistent time intervals between record events, and data rows with
-#'  inconsistent time intervals will be removed if approved. The requirement of
-#'  consistent time intervals can be relaxted by setting `record_interval_type`
-#'  to "event_based".
+#'  inconsistent time intervals will be removed if approved.
 #'  A basic check is performed to check the success of converting date-time
 #'  values to a recognised format in R (i.e., POSIXct).
 #'  Regarding the `logg_interfere_type` parameter. Owing to potential
@@ -114,6 +113,7 @@
 #' @export
 #' @author Paul J. Gordijn
 imbibe_raw_logger_dt <- function(
+  pipe_house = NULL,
   file_path = NULL,
   file_ext = NULL,
   col_dlm = NULL,
@@ -129,16 +129,43 @@ imbibe_raw_logger_dt <- function(
   verbose = TRUE,
   ...
 ) {
+  "%ilike%" <- "phen_name" <- NULL
+  if (is.null(file_ext)) {
+    file_ext <- tools::file_ext(file_path)
+    file_ext <- paste0("\\.", sub(pattern = "\\.", replacement = "", file_ext))
+  }
+  if (is.null(col_dlm) && !is.null(file_ext)) {
+    fx <- file_ext
+    col_dlm <- ipayipi::file_read_meta[file_ext %ilike% fx]$sep[1]
+  }
   file <- attempt::attempt(data.table::fread(file = file_path, header = FALSE,
     check.names = FALSE, blank.lines.skip = FALSE, sep = col_dlm,
-    strip.white = FALSE, fill = TRUE), silent = verbose)
+    showProgress = verbose, strip.white = FALSE, fill = TRUE),
+    silent = !verbose)
   # if there was an error then we try and read the file using base r
-  if (attempt::is_try_error(file)) {
-    file <- attempt::attempt(data.table::as.data.table(read.csv(
-      file_path, header = FALSE, colClasses = "character")))
-    if (attempt::is_try_error(file)) {
-      stop("Failed reading file using base R.")
+  if (attempt::is_try_error(file) || ncol(file) == 1) {
+    # use auto fread
+    dyno_read <- function(file_path = NULL, ...) {
+      file <- data.table::fread(file_path, header = FALSE, ...)
+      l <- R.utils::countLines(file_path)[1]
+      file_head <- readLines(file_path)[1:(l - nrow(file))]
+      #if (all(col_dlm %in% "\t", file_ext %ilike% ".txt")) col_dlm <- ""
+      file_head <- lapply(file_head, function(x) {
+        x <- strsplit(x, split = col_dlm)
+        x <- unlist(c(x, rep(NA, ncol(file) - length(x))))
+        x <- lapply(x, function(z) gsub("\"", "", z))
+        names(x) <- names(file)
+        return(data.table::as.data.table(x))
+      })
+      file_head <- data.table::rbindlist(file_head)
+      file <- rbind(file_head, file, use.names = TRUE)
+      return(file)
     }
+    file <- attempt::attempt(dyno_read(file_path))
+  }
+  if (attempt::is_try_error(file)) {
+    warning("Failed reading file check recognised file format")
+    return(ipayipi_data_raw = file)
   }
   data_setup_names <- c(
     "file_format", "station_title", "location", "logger_type",
@@ -307,6 +334,7 @@ imbibe_raw_logger_dt <- function(
       dta_in = dta, remove_prompt = remove_prompt,
       record_interval_type = record_interval_type
     )
+
     dta <- dri$new_data
     # finalize the data_summary
     data_summary <- data.table::data.table(
@@ -324,12 +352,14 @@ imbibe_raw_logger_dt <- function(
       logger_os = as.character(head_info_i$logger_os),
       logger_program_name = as.character(head_info_i$logger_program_name),
       logger_program_sig = as.character(head_info_i$logger_program_sig),
-      record_interval_type = dri$record_interval_type,
-      record_interval = dri$record_interval,
+      uz_record_interval_type = dri$record_interval_type,
+      uz_record_interval = dri$record_interval,
+      record_interval_type = NA_character_,
+      record_interval = NA_character_,
       uz_table_name = as.character(head_info_i$table_name),
       table_name = NA_character_,
       nomvet_name = NA_character_,
-      file_origin = as.character(file_path)
+      file_origin = file.path(pipe_house$source_dir, basename(file_path))
     )
     # generate a logger interference table
     logg_interfere <- data.table::data.table(

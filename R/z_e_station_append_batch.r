@@ -12,6 +12,8 @@
 #' @param station_ext The extension of the station file. Defaults to 'ipip'.
 #' @param sts_file_ext Extension of standardised files in the 'nomvet_room'.
 #' @param prompt Prompt logical passed for selection of 'nomvet' files.
+#' @param verbose Print some details on the files being processed? Logical.
+#' @param cores  Number of CPU's to use for processing in parallel. Only applies when working on Linux.
 #' @author Paul J. Gordijn
 #' @keywords meteorological data; data pipeline; append data; logger data
 #' @details
@@ -37,7 +39,12 @@ append_station_batch <- function(
   station_ext = ".ipip",
   sts_file_ext = ".ipi",
   prompt = FALSE,
+  wanted = NULL,
+  unwanted = NULL,
   phen_id = TRUE,
+  verbose = FALSE,
+  keep_open = FALSE,
+  cores = getOption("mc.cores", 2L),
   ...
 ) {
 
@@ -61,9 +68,12 @@ append_station_batch <- function(
     return(nomvet_station)
   })
   station_files <- gsub(station_ext, "", station_files)
+  ## statread
   all_station_files <- unlist(sapply(station_files, function(x) {
-    all_station_files <- readRDS(file.path(pipe_house$ipip_room,
-      paste0(x, station_ext)))$data_summary$nomvet_name
+    sfc <- ipayipi::open_sf_con(pipe_house = pipe_house,
+      station_file = paste0(x, station_ext))
+    all_station_files <- readRDS(sfc[names(sfc) %in% "data_summary"])[[
+      "nomvet_name"]]
     return(all_station_files)
   }))
   new_station_files <- nom_stations[
@@ -74,7 +84,7 @@ append_station_batch <- function(
       length(new_station_files), " standarised files ... ", collape = ""),
     wdth = 80, pad_char = "=", pad_extras = c("|", "", "", "|"),
     force_extras = FALSE, justf = c(0, 0))
-  message(cr_msg)
+  msg(cr_msg, verbose)
 
   # update and/or create new stations
   # upgraded_stations <- lapply(seq_along(new_station_files), function(i) {
@@ -88,31 +98,47 @@ append_station_batch <- function(
         " +> ", names(new_station_files[i]), collapes = ""),
       wdth = 80, pad_char = " ", pad_extras = c("|", "", "", "|"),
       force_extras = FALSE, justf = c(1, 1))
-    message(cr_msg)
+    msg(cr_msg, verbose)
     # get/make station file
     if (!file.exists(file.path(
       pipe_house$ipip_room, paste0(new_station_files[i], station_ext)))) {
       # create station file
-      saveRDS(new_data, file.path(pipe_house$ipip_room,
-        paste0(new_station_files[i], station_ext))
-      )
+      ## statread
+      ipayipi::write_station(pipe_house = pipe_house, sf = new_data,
+        station_file = paste0(new_station_files[i], station_ext),
+          overwrite = TRUE, append = FALSE, keep_open = TRUE)
+      # saveRDS(new_data, file.path(pipe_house$ipip_room,
+      #   paste0(new_station_files[i], station_ext))
+      # )
     } else {
       # append data
-      station_file <- file.path(
-        pipe_house$ipip_room, paste0(new_station_files[i], station_ext))
+      station_file <- paste0(new_station_files[i], station_ext)
       # append function, then save output as new station
-      station_file <- ipayipi::append_station(station_file = station_file,
-        new_data = new_data, overwrite_sf = overwrite_sf,
-        by_station_table = by_station_table, phen_id = phen_id)
-      saveRDS(station_file, file = file.path(pipe_house$ipip_room,
-        paste0(new_station_files[i], station_ext)))
+      station_file <- ipayipi::append_station(pipe_house = pipe_house,
+        station_file = station_file, new_data = new_data,
+        overwrite_sf = overwrite_sf, by_station_table = by_station_table,
+        phen_id = phen_id)
+    }
+    # close station file connection if finished with the station
+    j <- i + 1
+    if (j > length(new_station_files)) j <- length(new_station_files)
+    if (any(new_station_files[i] != new_station_files[j], i == j)) {
+      ipayipi::write_station(pipe_house = pipe_house, station_file =
+        paste0(new_station_files[i], station_ext), append = TRUE,
+        overwrite = TRUE, keep_open = keep_open)
     }
     invisible(new_station_files[i])
   })
   upgraded_stations <- unique(upgraded_stations)
+  # sapply(station_files, function(x) {
+  #   ipayipi::write_station(pipe_house = pipe_house,
+  #     station_file = paste0(x, station_ext), append = FALSE, overwrite =
+  #     FALSE, keep_open = keep_open)
+  #   return(x)
+  # })
   cr_msg <- padr(core_message = paste0("  stations appended  ", collapes = ""),
     wdth = 80, pad_char = "=", pad_extras = c("|", "", "", "|"),
     force_extras = FALSE, justf = c(0, 0))
-  message(cr_msg)
+  msg(cr_msg, verbose)
   invisible(upgraded_stations)
 }

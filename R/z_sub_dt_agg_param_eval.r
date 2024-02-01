@@ -1,5 +1,5 @@
 #' @title 'dt' processing pipeline: genearte aggregation criteria.
-#' @descriptions Used in the processing pipeline to generate aggregation
+#' @description Used in the processing pipeline to generate aggregation
 #'  criteria. Data is aggregated by the time interval specified for the
 #'  harvested data (_in_ `ipayipi::hsf_param_eval()`).
 #' @param full_eval Logical indicating whether to perform a full evaluation

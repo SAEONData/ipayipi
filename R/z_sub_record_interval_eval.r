@@ -10,7 +10,7 @@
 #'  whether or not filter our records from `dta_in` with inconsistent
 #'  record intervals.
 #' @param record_interval_type If there is only one data record the
-#'  this provided parameter will be used for the default. This must be either
+#'  this parameter will be used as the default. This must be either
 #'  "event_based" or "continuous".
 #' @description This function tests record intervals from a data.table
 #'  with a time stamp. The test then describes the data as "continuous" for
@@ -18,10 +18,11 @@
 #'  recordings. A combination of "continuous" and "event_based" is described
 #'  as "mixed". Note monthly data are considered to be 'continuous'.
 #' @details If the record iterval is set to "continuous" then the function
-#'  checks a series of date time values for inconsistencies in record
+#'  checks a series of date-time values for inconsistencies in record
 #'  intervals. Data records can be removed if the data is provided and
 #'  the user selects to do so in the `remove_prompt`. For data to be considered
-#'  'continuous' 98% of intervals in the data table must be continuous.
+#'  'continuous' 98% of intervals in the data table must be continuous, _and_
+#'  more than 98% of date-time stamp second values must equals zero.
 #'  If between 20 and 98% (and time values include second values other than
 #'  zero) of intervals are regular then the 'series' is classified as "mixed".
 #'  If < 20% of intervals are regular, then the series is considered to be
@@ -50,6 +51,7 @@ record_interval_eval <- function(
   record_interval_type = NULL,
   ...
 ) {
+  "second" <- NULL
   # determine record interval
   getmode <- function(v) {
     uniqv <- unique(v)
@@ -69,6 +71,7 @@ record_interval_eval <- function(
     record_interval_difftime = NA,
     new_data = dta_in)
   } else {
+    # monthly data
     if (any(diff(dt) %in% c(28:31)) &&
         attr(diff(dt), "units") %in% c("days") &&
         all(data.table::second(dt) == 0) && all(data.table::minute(dt) == 0)) {
@@ -76,20 +79,25 @@ record_interval_eval <- function(
       ri_cks <- rep(TRUE, length(dt))
       record_interval_type <- "continuous"
     } else {
+      # other record intervals
       # extract modal record interval
       record_interval <- mondate::as.difftime(getmode(diff(dt)),
         units = attr(diff(dt), "units"))
       ri_cks <- diff(dt) == record_interval
-      if (length(ri_cks[ri_cks == TRUE]) / length(ri_cks) > 0.98) {
+      # continuous
+      if ((length(ri_cks[ri_cks == TRUE]) / length(ri_cks)) > 0.98 &&
+          (sum(second(dt) %in% 0) / length(dt)) > 0.98) {
         record_interval_type <- "continuous"
         record_interval <- mondate::as.difftime(getmode(diff(dt[ri_cks])),
           units = attr(diff(dt[ri_cks]), "units"))
-      } else if (length(ri_cks[ri_cks == TRUE]) / length(ri_cks) < 0.98 &&
-        length(ri_cks[ri_cks == TRUE]) / length(ri_cks) > 0.2 &&
-        length(dt[ri_cks]) > 4 && any(second(dt) %in% 0)) {
+      # mixed
+      } else if ((length(ri_cks[ri_cks == TRUE]) / length(ri_cks)) < 0.98 &&
+          (length(ri_cks[ri_cks == TRUE]) / length(ri_cks)) > 0.2 &&
+          length(dt[ri_cks]) > 4 && any(second(dt) %in% 0)) {
         record_interval_type <- "mixed"
         record_interval <- mondate::as.difftime(getmode(diff(dt[ri_cks])),
           units = attr(diff(dt[ri_cks]), "units"))
+      # discontinuous
       } else {
         record_interval_type <- "event_based"
         record_interval <- "discnt"

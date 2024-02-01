@@ -33,11 +33,10 @@ dt_join(
 \arguments{
 \item{station_file}{Name of the station being processed.}
 
-\item{dta_in}{Arugment for pipeline processing. Instead of providing the 'x' and 'y' tables to \code{x_tbl} and \code{y_tbl} The pipeline feeds data to this argument. A list of data to be processed.}
-
-\item{input_dt}{}
-
-\item{output_dt}{}
+\item{dta_in}{Arugment for pipeline processing. Instead of providing the 'x' and 'y' tables to \code{x_tbl} and \code{y_tbl} The pipeline feeds data to this argument. A list of data to be processed.
+param input_dt
+param output_dt
+param f_params}
 
 \item{f_summary}{A summary table of function parameters. This
 summary table is stored in the station file object. If there
@@ -54,4 +53,5 @@ Calculations are parsed to data.table.
 }
 \author{
 Paul J. Gordijn
+details
 }

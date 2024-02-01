@@ -12,6 +12,8 @@ transfer_sts_files(
   wanted = NULL,
   file_ext_in = ".ipi",
   file_ext_out = ".ipi",
+  verbose = FALSE,
+  cores = getOption("mc.cores", 2L),
   ...
 )
 }
@@ -36,6 +38,10 @@ included in the import.}
 
 \item{file_ext_out}{The file extension that will be used for the saving of
 files in the 'nomvet_room'. Defaults to ".ipi".}
+
+\item{verbose}{Print some details on the files being processed? Logical.}
+
+\item{cores}{Allocate number of cores for processing function. Utilises \code{parallel::mclapply()}; only works on linux.}
 }
 \value{
 Saves files in native R format for 'ipayipi'. Returns a list of

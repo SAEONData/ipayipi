@@ -11,7 +11,12 @@ append_station_batch(
   station_ext = ".ipip",
   sts_file_ext = ".ipi",
   prompt = FALSE,
+  wanted = NULL,
+  unwanted = NULL,
   phen_id = TRUE,
+  verbose = FALSE,
+  keep_open = FALSE,
+  cores = getOption("mc.cores", 2L),
   ...
 )
 }
@@ -32,6 +37,10 @@ kept in the same station file. Defaults to FALSE.}
 \item{sts_file_ext}{Extension of standardised files in the 'nomvet_room'.}
 
 \item{prompt}{Prompt logical passed for selection of 'nomvet' files.}
+
+\item{verbose}{Print some details on the files being processed? Logical.}
+
+\item{cores}{Number of CPU's to use for processing in parallel. Only applies when working on Linux.}
 }
 \description{
 Appends phenomena data and metadata into continuous or

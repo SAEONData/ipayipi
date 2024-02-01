@@ -2,9 +2,9 @@
 #' @description Calculations are parsed to data.table.
 #' @param station_file Name of the station being processed.
 #' @param dta_in A list of data to be processed.
-#' @param input_dt 
-#' @param output_dt 
-#' @param f_params
+#' param input_dt 
+#' param output_dt 
+#' @param f_params Function parameters evaluated by `ipayipi::calc_param_eval()`. These are parsed to `dt_calc()` from `dt_process()`.
 #' @param f_summary A summary table of function parameters. This
 #'  summary table is stored in the station file object. If there
 #'  is a summary table for the function, differences between the
@@ -13,7 +13,7 @@
 #'  of for a slice of the series.
 #' @return A list containing the processed data sets 'dts_dt'.
 #' @author Paul J. Gordijn
-#' @details
+#' details
 #' 
 #' @export
 dt_calc <- function(

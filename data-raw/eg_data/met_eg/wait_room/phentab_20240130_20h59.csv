@@ -1,0 +1,24 @@
+,phid,phen_name_full,phen_type,phen_name,units,measure,offset,var_type,uz_phen_name,uz_units,uz_measure,f_convert,sensor_id,notes
+1,6,"Temperature, air: average","Temperature, air",temp_air_avg,deg_c,avg,0,num,AirTC_Avg,Deg C,Avg,NA,NA,NA
+2,6,"Temperature, air: maximum","Temperature, air",temp_air_max,deg_c,max,0,num,AirTC_Max,Deg C,Max,NA,NA,NA
+3,5,"Temperature, air: minimum","Temperature, air",temp_air_min,deg_c,min,0,num,AirTC_Min,Deg C,Min,NA,NA,NA
+4,2,"Pressure, atmosphere: sample","Pressure, atmosphere",pressure_atm,kpa,smp,0,num,BP_kPa,kPa,Smp,NA,NA,NA
+5,1,Battery level: minimum voltage,Battery level,batt_min_v,v,min,0,num,BattV_Min,Volts,Min,NA,NA,NA
+6,13,UV radiation: total,UV radiation,uv_rad_tot,mj_per_m2,tot,0,num,CUV5_MJ_Tot,MJ/m^2,Tot,NA,NA,NA
+7,9,UV radiation: average,UV radiation,uv_rad_avg,w_per_m2,avg,0,num,CUV5_W_Avg,W/m^2,Avg,NA,NA,NA
+8,11,UV radiation: maximum,UV radiation,uv_rad_max,w_per_m2,max,0,num,CUV5_W_Max,W/m^2,Max,NA,NA,NA
+9,12,UV radiation: standard deviation,UV radiation,uv_rad_sd,w_per_m2,sd,0,num,CUV5_W_Std,W/m^2,Std,NA,NA,NA
+10,7,"Humidity, relative: percent","Humidity, relative",humid_rel_pcnt,pcnt,smp,0,num,RH,%,Smp,NA,NA,NA
+11,8,"Humidity, relative: maximum","Humidity, relative",humid_rel_max_pcnt,pcnt,max,0,num,RH_Max,%,Max,NA,NA,NA
+12,7,"Humidity, relative: minimum","Humidity, relative",humid_rel_min,pcnt,min,0,num,RH_Min,%,Min,NA,NA,NA
+13,14,Rainfall: total,Rainfall,rain_tot,mm,tot,0,num,Rain_mm_Tot,mm,Tot,NA,NA,NA
+14,8,Solar radiation: average,Solar radiation,solar_rad_avg,w_per_m2,avg,0,num,SlrW_Avg,W/m^2,Avg,NA,NA,NA
+15,9,Solar radiation: maximum,Solar radiation,solar_rad_max,w_per_m2,max,0,num,SlrW_Max,W/m^2,Max,NA,NA,NA
+16,10,Solar radiation: standard deviation,Solar radiation,solar_rad_sd,w_per_m2,sd,0,num,SlrW_Std,W/m^2,Std,NA,NA,NA
+17,16,"Temperature, ground level: average","Temperature, ground level",temp_ground_avg,deg_c,avg,0,num,T107_C_Avg,Deg C,Avg,NA,NA,NA
+18,15,"Temperature, ground level: minimum","Temperature, ground level",temp_ground_min,deg_c,min,0,num,T107_C_Min,Deg C,Min,NA,NA,NA
+19,17,Wind speed: average,Wind speed,wind_speed_avg,m_per_sec,avg,0,num,VW_Avg,,Avg,NA,NA,NA
+20,4,Wind speed: maximum,Wind speed,wind_speed_max,m_per_sec,max,0,num,WS_ms_Max,meters/second,Max,NA,NA,NA
+21,1,Wind speed: sample,Wind speed,wind_speed,m_per_sec,smp,0,num,WS_ms_S_WVT,meters/second,WVc,NA,NA,NA
+22,2,Wind direction: sample,Wind direction,wind_dir,deg,smp,0,num,WindDir_D1_WVT,Deg,WVc,NA,NA,NA
+23,3,Wind direction: standard deviation,Wind direction,wind_dir_sd,deg,sd,0,num,WindDir_SD1_WVT,Deg,WVc,NA,NA,NA

@@ -18,6 +18,8 @@
 #'  'wait_room'. Defaults to ".ipi". Note the full-stop must be included.
 #' @param file_ext_out The file extension that will be used for the saving of
 #'  files in the 'nomvet_room'. Defaults to ".ipi".
+#' @param verbose Print some details on the files being processed? Logical.
+#' @param cores Allocate number of cores for processing function. Utilises `parallel::mclapply()`; only works on linux.
 #' @details  Aim: Archive each standardised data files in a
 #'  set directory, that is, the '__nomvet_room__' --- part of the
 #'  'ipayipi'  data pipeline. Once archived the data will be used for
@@ -44,6 +46,8 @@ transfer_sts_files <- function(
   wanted = NULL,
   file_ext_in = ".ipi",
   file_ext_out = ".ipi",
+  verbose = FALSE,
+  cores = getOption("mc.cores", 2L),
   ...) {
     # merge data sets into a station for given time periods
     slist <- ipayipi::dta_list(input_dir = pipe_house$wait_room, file_ext =
@@ -51,7 +55,7 @@ transfer_sts_files <- function(
       wanted = wanted)
     if (length(slist) < 1) stop(" No files to transfer")
     # make table to guide merging by record interval, date_time, and station
-    merge_dt <- lapply(slist, function(x) {
+    merge_dt <- parallel::mclapply(slist, function(x) {
       m <- readRDS(file.path(pipe_house$wait_room, x))
       mdt <- data.table::data.table(
         file = x,
@@ -61,16 +65,16 @@ transfer_sts_files <- function(
         end_dttm = m$header_info$end_dttm[1]
       )
       invisible(mdt)
-    })
+    }, mc.cores = cores)
     merge_dt <- data.table::rbindlist(merge_dt)
 
     # generate inventories of met files in wait_room and nomvet_room
     # note that in this function only standardised files are being processed
     wr_lg <- ipayipi::ipayipi_data_log(log_dir = pipe_house$wait_room,
-      file_ext = file_ext_in)
+      file_ext = file_ext_in, cores = cores)
     wr_lg <- wr_lg$log
     nr_lg <- ipayipi::ipayipi_data_log(log_dir = pipe_house$nomvet_room,
-      file_ext = file_ext_out)
+      file_ext = file_ext_out, cores = cores)
     nr_lg <- nr_lg$log
     to_transfer <- data.table::fsetdiff(
       wr_lg, data.table::fintersect(wr_lg, nr_lg))
@@ -98,7 +102,7 @@ transfer_sts_files <- function(
     })
     to_transfer$rds_names <- unlist(bnames)
     # transfer files
-    transferrr <- lapply(seq_len(nrow(to_transfer)), function(x) {
+    transferrr <- parallel::mclapply(seq_len(nrow(to_transfer)), function(x) {
       m <- readRDS(file.path(pipe_house$wait_room, to_transfer$input_file[x]))
       class(m) <- "ipayipi_data"
       # tab_name <- paste0("raw_", m$data_summary$table_name[1])
@@ -110,17 +114,18 @@ transfer_sts_files <- function(
           to_transfer$rds_names[x], collapes = ""),
         wdth = 80, pad_char = " ", pad_extras = c("|", "", "", "|"),
         force_extras = FALSE, justf = c(-1, 1))
-      message(cr_msg)
+      msg(cr_msg, verbose)
       invisible(to_transfer$rds_names[x])
-    })
+    }, mc.cores = cores)
     # remove files in the waiting room
-    deleted_files <- lapply(seq_len(nrow(to_transfer)), function(x) {
-      file.remove(file.path(pipe_house$wait_room, to_transfer$input_file[x]))
-      invisible(to_transfer$input_file[x])
-    })
+    deleted_files <- parallel::mclapply(
+      seq_len(nrow(to_transfer)), function(x) {
+        file.remove(file.path(pipe_house$wait_room, to_transfer$input_file[x]))
+        invisible(to_transfer$input_file[x])
+    }, mc.cores = cores)
     rm(deleted_files)
     cr_msg <- padr(core_message = "  transferred  ", wdth = 80, pad_char = "=",
       pad_extras = c("|", "", "", "|"), force_extras = FALSE, justf = c(1, 1))
-    message(cr_msg)
+    msg(cr_msg, verbose)
     invisible(transferrr)
   }

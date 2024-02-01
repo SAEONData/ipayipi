@@ -5,6 +5,7 @@
 \title{Appends data tables by phenomena}
 \usage{
 append_phen_data2(
+  pipe_house = NULL,
   station_file = NULL,
   sf_phen_ds = NULL,
   ndt = NULL,
@@ -14,6 +15,8 @@ append_phen_data2(
   overwrite_sf = FALSE,
   tn = NULL,
   ri = NULL,
+  rit = NULL,
+  cores = getOption("mc.cores", 2L),
   ...
 )
 }
@@ -41,6 +44,8 @@ the NA value. Defaults to FALSE.}
 
 \item{ri}{The record interval associated with the data sets. As a
 standardised string.}
+
+\item{rit}{Record interval type. One of the following options for time-series data: 'continuous', 'event_based', or 'mixed'.}
 }
 \value{
 A phenomena table that contains the start and end dates of each

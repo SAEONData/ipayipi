@@ -40,7 +40,12 @@ defaults to the working data table, and therefore, this argument need not be sup
 
 \item{time_seq}{If \code{TRUE} then a continuous sequence of date-time values are ensured for both \emph{x} and \emph{y} tables. If a vector of two logial values is provided then this is applied to \emph{x} and \emph{y} tables seperately, in that order, and the final joined table.}
 
-\item{fuzzy}{String or logical. If string, this argument is evaluated to determine the fuzzy interval used to ...}
+\item{fuzzy}{String or logical. If string, this argument is evaluated to determine the fuzzy interval used to ...
+param full_eval
+param f_params
+param f_summary
+param ppsi
+param sf}
 }
 \description{
 Flexible and fast joining of \code{ipayipi} data.

@@ -6,9 +6,10 @@
 \usage{
 imbibe_raw_batch(
   pipe_house = NULL,
+  wipe_source = FALSE,
   file_ext_in = NULL,
   file_ext_out = ".ipr",
-  col_dlm = ",",
+  col_dlm = NULL,
   dt_format = c("Ymd HMS", "Ymd IMSp", "ymd HMS", "ymd IMSp", "mdY HMS", "mdy IMSp",
     "dmY HMS", "dmy IMSp", "Ymd HMOS", "Ymd IMOSp", "ymd HMOS", "ymd IMOSp", "mdY HMOS",
     "mdy IMOSp", "dmY HMOS", "dmy IMOSp"),
@@ -20,6 +21,7 @@ imbibe_raw_batch(
   unwanted = NULL,
   recurr = FALSE,
   verbose = FALSE,
+  cores = getOption("mc.cores", 2L),
   ...
 )
 }
@@ -27,27 +29,25 @@ imbibe_raw_batch(
 \item{pipe_house}{List of pipeline directories. \strong{See}
 \code{ipayipi::ipip_init()} \strong{for details}.}
 
-\item{file_ext_in}{The file extension defaults of the raw logger data files.}
+\item{wipe_source}{Logical. If \code{TRUE} then raw data files in the source location will be deleted. \emph{See details}}
+
+\item{file_ext_in}{The file extension defaults of the raw logger data files. This can be left as \code{NULL} so 'all' files but those with extensions that cannot be imbibed (".ipr|.ipi|.iph|.xls|.rps|.rns|.ods|.doc").}
 
 \item{file_ext_out}{The file extension used when raw logger data which has
-been imbibed into the \code{ipayipi} data pipeline.}
+been imbibed into the \code{ipayipi} data pipeline. Advisable to leave this as the default (".ipr") for the pipeline structure.}
 
-\item{col_dlm}{The column delimter which is fed to \code{data.table::fread()}.
-Defaults to a comma for 'csv' files.}
+\item{col_dlm}{The column delimter which is fed to \code{data.table::fread()}. Defaults to NULL. When \code{NULL} the function uses \code{data.table::fread} ability to 'guess' the delimeter.}
 
-\item{dt_format}{The input date-time format of the time series, e.g.,
-"\%y-\%m-\%d \%H:\%M:\%S". See ?base::strptime() for details.}
+\item{dt_format}{Argument passed to \code{ipayipi::imbibe_raw_logger_dt()}. The function attempts to work out the date-time format from a vector of format types supplied to this argument. The testing is done via \code{lubridate::parse_date_time()}. \code{lubridate::parse_date_time()} prioritizes the tesing of date-time formats in the order vector of formats supplied. The default vector of date-time formats supplied should work well for most logger outputs.}
 
 \item{dt_tz}{recognized time-zone of the data locale.}
 
-\item{data_setup}{List of options used to extract data and metadata from
-instrument data outputs. For a description of the \code{data_setup} see
-\code{ipayipi::read_logger_dt()}.}
+\item{data_setup}{List of options used to extract data and metadata from instrument data outputs. For a description of the \code{data_setup} \emph{see} \code{ipayipi::read_logger_dt()}.}
 
 \item{prompt}{Should the function use an interactive file selection function
 otherwise all files are returned. TRUE or FALSE.}
 
-\item{wanted}{A strong containing keywords to use to filter which stations
+\item{wanted}{A string containing keywords to use to filter which stations
 are selected for processing. Multiple search kewords should be seperated
 with a bar ('|'), and spaces avoided unless part of the keyword.}
 
@@ -57,9 +57,9 @@ stations.}
 \item{recurr}{Should the function search recursively into sub directories
 for hobo rainfall csv export files? TRUE or FALSE.}
 
-\item{record_interval}{If there are is no discrete record interval set
-in the logger program, i.e., the sampling is event based, then this
-parameter must be set to "event_based". Defaults to "continuous".}
+\item{cores}{Number of CPU's to use for processing in parallel. Only applies when working on Linux.}
+
+\item{record_interval}{If there are is no discrete, record interval set in the logger program, i.e., the sampling is event based, then this parameter must be set to "event_based". Defaults to "continuous".}
 
 \item{silent}{Logical passed to \code{attempt::attempt()} which reads the logger
 text file in with either \code{data.table::fread()} or base R.}
@@ -70,19 +70,10 @@ data files to the begining stages of the \code{ipayipi} data pipeline. Option
 to archive all 'raw' data files in the pipeline structure, \emph{see details}.
 }
 \details{
-In the pipeline structure this function should be used post
-\code{ipayipi::logger_data_import_batch()}. \code{ipayipi::imbibe_raw_batch()} is
-a wrapper for \code{ipayipi::imbibe_raw_logger_dt()} --- see this functions
-documentation for more details.
+In the pipeline structure this function should be used post \code{ipayipi::logger_data_import_batch()}. \code{ipayipi::imbibe_raw_batch()} is a wrapper for \code{ipayipi::imbibe_raw_logger_dt()} --- see this functions documentation for more details.
 
 \strong{'Archiving' raw data}
-Files brought into the 'wait_room' are only housed there temporarily.
-In order to archive these raw data files a 'raw_room' directory must be
-provided in the 'pipe_house' object (\emph{see} \code{ipayipi::ipip_init()}).
-Files will be archived in structured directories in the 'raw_room' named
-by the last year and month in their respective date time records. Original
-file names are maintained, and have a suffix with a unique integer plus
-the date and time of which they were archived.
+Files brought into the 'wait_room' are only housed there temporarily. In order to archive these raw data files a 'raw_room' directory must be provided in the 'pipe_house' object (\emph{see} \code{ipayipi::ipip_init()}). Files will be archived in structured directories in the 'raw_room' named by the last year and month in their respective date time records. Original  file names are maintained, and have a suffix with a unique integer plus the date and time of which they were archived. N.B. Files in the source directory (\code{source_dir}) are only deleted when \code{wipe_source} is set to \code{TRUE}.
 }
 \author{
 Paul J. Gordijn

@@ -23,7 +23,8 @@ Imports:
     XML,
     xml2,
     xts,
-    mondate
+    mondate,
+    readr
 globalVariables(c(": ="),
     c("Location", "Borehole", "SN", "Start", "End",
         "Location_uz", "Borehole_uz",

@@ -11,7 +11,7 @@
 #' @param f_params A vector of phenomena name to be extracted from the
 #'  harvested data table. If NULL all column names are extracted.
 #' @author Paul J. Gordijn
-#' @details
+#' details
 #'
 #' @export
 dt_harvest <- function(

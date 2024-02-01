@@ -5,10 +5,14 @@
 \title{Update logger data file phenomena/variable metadata}
 \usage{
 phenomena_chk(
-  pipe_house = NA,
+  pipe_house = NULL,
   check_phenomena = TRUE,
   file_ext_in = ".iph",
   csv_out = TRUE,
+  verbose = FALSE,
+  wanted = NULL,
+  unwanted = NULL,
+  cores = getOption("mc.cores", 2L),
   ...
 )
 }
@@ -19,6 +23,17 @@ phenomena_chk(
 \item{check_phenomena}{Should the file naming be check. This helps ensure
 that files are named consistently and that data from different stations are
 not appended erraneously.}
+
+\item{verbose}{Print some details on the files being processed? Logical.}
+
+\item{wanted}{A string of keywords to use to filter which stations
+are selected for processing. Multiple search kewords should be seperated
+with a bar ('|'), and spaces avoided unless part of the keyword.}
+
+\item{unwanted}{Similar to wanted, but keywords for filtering out unwanted
+stations.}
+
+\item{cores}{Number of CPU's to use for processing in parallel. Only applies when working on Linux.}
 
 \item{nomtab_import}{Is there an update to the extant (or non-existant)
 phenomena table? This parameter can be used to input these updates.}

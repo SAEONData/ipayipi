@@ -19,6 +19,7 @@
 #' @param tn The name of the phenomena data tables.
 #' @param ri The record interval associated with the data sets. As a
 #'  standardised string.
+#' @param rit Record interval type. One of the following options for time-series data: 'continuous', 'event_based', or 'mixed'.
 #' @keywords append phenomena data, overwrite data, join tables,
 #' @author Paul J Gordijn
 #' @return A phenomena table that contains the start and end dates of each
@@ -28,6 +29,7 @@
 #' @details This function is an internal function called by others in the
 #'  pipeline.
 append_phen_data2 <- function(
+  pipe_house = NULL,
   station_file = NULL,
   sf_phen_ds = NULL,
   ndt = NULL,
@@ -37,12 +39,17 @@ append_phen_data2 <- function(
   overwrite_sf = FALSE,
   tn = NULL,
   ri = NULL,
+  rit = NULL,
+  cores = getOption("mc.cores", 2L),
   ...) {
   ":=" <- "phid" <- "start_dttm" <- "table_name" <- "date_time" <-
     "end_dttm" <- NULL
   # get station/main data table ----
   if (is.character(station_file)) {
-    sf <- readRDS(station_file)[[tn]]
+    sfc <- ipayipi::open_sf_con(pipe_house = pipe_house, station_file =
+      station_file)
+    sf <- ipayipi::sf_read(sfc = sfc, station_file = station_file, tv = tn,
+      tmp = TRUE, pipe_house = pipe_house)[[tn]]
   } else if (data.table::is.data.table(station_file)) {
     sf <- station_file
   }
@@ -61,10 +68,18 @@ append_phen_data2 <- function(
   }
   sfo <- sfo[!duplicated(sfo$date_time)]
 
+  # non-overlap data
+  sfno1 <- sf[date_time < nd_min]
+  sfno2 <- sf[date_time > nd_max]
+  sf_min <- min(sf$date_time)
+  sf_max <- min(sf$date_time)
+
   ovlap <- ipayipi::append_phen_overlap_data2(
-    nd_min = nd_min, nd_max = nd_max, sfo = sfo, ndt = ndt, phen_dt = phen_dt,
-    phens = phens, sf_phen_ds = sf_phen_ds, new_phen_ds = new_phen_ds,
-    ri = ri, tn = tn, overwrite_sf = overwrite_sf, phen_id = phen_id)
+    sfo = sfo, sf_max = sf_max, sf_min = sf_min,
+    ndt = ndt, nd_min = nd_min, nd_max = nd_max,
+    phen_id = phen_id, phens = phens, phen_dt = phen_dt,
+    sf_phen_ds = sf_phen_ds, new_phen_ds = new_phen_ds,
+    ri = ri, tn = tn, overwrite_sf = overwrite_sf, cores = cores)
   phen_dtos <- ovlap$phen_dtos
   raw_dto <- ovlap$raw_dto
   sfo_max <- ovlap$sfo_max
@@ -138,6 +153,7 @@ append_phen_data2 <- function(
   data_sets <- list(
     data.table::rbindlist(data_sets, fill = TRUE), raw_dto, dtsnd)
   app_dta <- data.table::rbindlist(data_sets, fill = TRUE)[order(date_time)]
-  #message(paste0(min(app_dta$date_time), "--", max(app_dta$date_time)))
+  # message(paste0(min(app_dta$date_time), "--", max(app_dta$date_time)))
+  # message(nrow(app_dta))
   return(list(app_dta = app_dta, phen_ds = phen_ds))
 }

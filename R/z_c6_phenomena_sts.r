@@ -16,6 +16,8 @@
 #'  otherwise all files are returned. TRUE or FALSE.
 #' @param recurr Should the function search recursively into sub directories
 #'  for hobo rainfall csv export files? TRUE or FALSE.
+#' @param verbose Print some details on the files being processed? Logical.
+#' @param cores  Number of CPU's to use for processing in parallel. Only applies when working on Linux.
 #' @keywords time series data; automatic weather station; batch process;
 #'  file standardisation; standardise variables; transform variables
 #' @author Paul J. Gordijn
@@ -63,6 +65,9 @@
 #'  edited by the user: standardised phenomena information can be added by
 #'  replacing corresponding `NA` values with information. The required fields,
 #'  marked with an asterix (above), must be described.
+#' 
+#'  __Duplicate phenomena names__:
+#'  Duplicate phenomena in a single data series table cannot be tolerated. If a duplicate phenomena name is detected a prompt will work with the user to delete the duplicate. Most logger programmes avoid generating duplicates, but the situation can arise where perhaps a table is recording the same phenomenon multiple times.
 #'
 #'  __Other__: A number of other phenomena standardisation proceedure are
 #'  included here:
@@ -83,12 +88,15 @@
 #' @md
 phenomena_sts <- function(
   pipe_house = NULL,
+  remove_dups = FALSE,
   prompt = FALSE,
   recurr = TRUE,
   wanted = NULL,
   unwanted = NULL,
   file_ext_in = ".iph",
   file_ext_out = ".ipi",
+  verbose = FALSE,
+  cores = getOption("mc.cores", 2L),
   ...
 ) {
   "uz_phen_name" <- "uz_units" <- "uz_measure" <- "phen_name_full" <-
@@ -102,34 +110,41 @@ phenomena_sts <- function(
       " Standardising ", length(slist), " file(s) phenomena ",
       collapse = ""), wdth = 80, pad_char = "=", pad_extras =
         c("|", "", "", "|"), force_extras = FALSE, justf = c(0, 0))
-  message(cr_msg)
+  msg(cr_msg, verbose)
 
   phentab <- ipayipi::phenomena_chk(pipe_house = pipe_house,
-    check_phenomena = TRUE, csv_out = TRUE)
+    check_phenomena = TRUE, csv_out = TRUE, wanted = wanted,
+    unwanted = unwanted)
 
-  if (!is.na(phentab$output_csv_name)) stop("Update phenomena")
+  if (!is.na(phentab$output_csv_name)) message("Update phenomena")
 
   phentab <- phentab$update_phenomena
-  mfiles <- lapply(seq_along(slist), function(i) {
+  fupdates <- lapply(seq_along(slist), function(i) {
     cr_msg <- padr(core_message = paste0(" +> ", slist[i], collapes = ""),
       wdth = 80, pad_char = " ", pad_extras = c("|", "", "", "|"),
       force_extras = FALSE, justf = c(1, 1))
-    message(cr_msg)
+    msg(cr_msg, verbose)
     m <- readRDS(file.path(pipe_house$wait_room, slist[i]))
-
+    update <- FALSE # only set to TRUE if phen update is required
     # get original phen table and update
     phen_old <- m$phens
     phen_new <- lapply(seq_len(nrow(phen_old)), function(j) {
       phen_new <- phentab[
         uz_phen_name == phen_old$phen_name[j] & uz_units == phen_old$units[j] &
           uz_measure == phen_old$measure[j]]
-      if (nrow(phen_new) > 1) stop("Multiple possible phenomena matches!")
+      if (nrow(phen_new) > 1) {
+        message("Multiple possible phenomena matches: printing data summary")
+        print(m$data_summary)
+      }
       invisible(phen_new)
     })
     phen_new <- data.table::rbindlist(phen_new)[order(phen_name_full)]
+    phen_new_chk <- phen_new[, c("phid", "phen_name_full", "phen_name", "units",
+      "measure", "offset", "var_type"), with = FALSE]
+    if (anyNA.data.frame(phen_new_chk)) update <- TRUE
 
     # duplicate phen detection and resolution
-    if (any(duplicated(phen_new$phen_name))) {
+    if (any(duplicated(phen_new$phen_name)) && remove_dups) {
       # prompt to remove duplicated column/phen
       message(paste0("Warning! Duplicate phenomena match!"))
       message(paste0("Please examine the input data."))
@@ -173,6 +188,19 @@ phenomena_sts <- function(
       phen_new <- pn$p
     }
 
+    # if there are dups but we don't want to fix them now
+    if (any(any(duplicated(phen_new$phen_name)) && !remove_dups, update)) {
+      # do nothing return?
+      msg <- paste0(file.path(pipe_house$wait_room, slist[i]),
+        ": not processed")
+      orig_fn <- m$data_summary$file_origin
+      fn <- file.path(pipe_house$wait_room, slist[i])
+      z <- list(update = TRUE, fn = fn, old_fn = fn, orig_fn = orig_fn)
+      message(msg)
+      return(z)
+    }
+
+    # if there are no dups
     # generate unique phen id
     phen_new$phid <- seq_len(nrow(phen_new))
 
@@ -195,22 +223,22 @@ phenomena_sts <- function(
     })
     phen_new <- data.table::rbindlist(z)
     # convert units
-    if (length(phen_new[var_type == "num"]$phen_name) > 0) {
-      m$raw_data[, (phen_new[var_type == "num"]$phen_name) :=
-        lapply(.SD, as.numeric),
-          .SDcols = phen_new[var_type == "num"]$phen_name]
+    # factors&num included here as they are first converted to character
+    if (length(phen_new[var_type %ilike% "chr|fac|num|int"]$phen_name) > 0) {
+      m$raw_data[, (phen_new[var_type %ilike% "chr|fac|num|int"]$phen_name) :=
+            lapply(.SD, as.character), .SDcols = phen_new[
+              var_type %ilike% "chr|fac|num|int"]$phen_name
+      ]
+    }
+    if (length(phen_new[var_type %ilike% "num|int"]$phen_name) > 0) {
+      m$raw_data[, (phen_new[var_type %ilike% "num|int"]$phen_name) :=
+        lapply(.SD, function(x) readr::parse_number(x, na = c("NA", "NAN"))),
+          .SDcols = phen_new[var_type %ilike% "num|int"]$phen_name]
     }
     if (length(phen_new[var_type == "int"]$phen_name) > 0) {
     m$raw_data[, (phen_new[var_type == "int"]$phen_name) :=
       lapply(.SD, as.integer),
         .SDcols = phen_new[var_type == "int"]$phen_name]
-    }
-    # factors included here as they are first converted to character
-    if (length(phen_new[var_type %ilike% "chr|fac"]$phen_name) > 0) {
-      m$raw_data[, (phen_new[var_type %ilike% "chr|fac"]$phen_name) :=
-            lapply(.SD, as.character), .SDcols = phen_new[
-              var_type %ilike% "chr|fac"]$phen_name
-      ]
     }
     if (length(phen_new[var_type == "posix"]$phen_name) > 0) {
       dt_tz <- attr(m$raw_data$date_time[1], "tz")
@@ -239,17 +267,16 @@ phenomena_sts <- function(
       phenz <- phen_new[
           !is.na(offset) & var_type %in% c("num|numeric", "int|integer")
         ]$phen_name[ii]
-      m$raw_data[, ][[phenz]]  <- as.numeric(
-        m$raw_data[[phenz]]) + rep_len(as.numeric(
-          phen_new[!is.na(offset)]$offset[ii]),
+      m$raw_data[, ][[phenz]]  <- readr::parse_number(m$raw_data[[phenz]]) +
+        rep_len(readr::parse_number(phen_new[!is.na(offset)]$offset[ii]),
             length.out = nrow(m$raw_data))
     }
     for (ii in seq_len(nrow(phen_new[!is.na(f_convert)]))) {
       phenz <- phen_new[!is.na(f_convert)]$phen_name[ii]
-      f <- as.numeric(phen_new[!is.na(f_convert)]$f_convert[ii])
-      m$raw_data[, ][[phenz]] <-
-        as.numeric(m$raw_data[[phenz]]) * rep_len(f, length.out =
-          nrow(m$raw_data))
+      f <- as.character(phen_new[!is.na(f_convert)]$f_convert[ii])
+      f <- readr::parse_number(f)
+      m$raw_data[, ][[phenz]] <- m$raw_data[[phenz]] * rep_len(f, length.out =
+        nrow(m$raw_data))
     }
     m$phens <- phen_new
     # update the phenomena data summary
@@ -263,26 +290,36 @@ phenomena_sts <- function(
       table_name = rep(m$data_summary$table_name, nrow(m$phens))
     )
     m$phen_data_summary <- unique(m$phen_data_summary)
-    invisible(m)
-  })
-
-  # save files to the wait room
-  saved_files <- lapply(seq_along(mfiles), function(x) {
+    old_fn <- file.path(pipe_house$wait_room, slist[[i]])
     fn <- file.path(pipe_house$wait_room,
-      gsub(file_ext_in, file_ext_out, slist[[x]]))
-    saveRDS(mfiles[[x]], fn)
-    invisible(fn)
+      gsub(file_ext_in, file_ext_out, slist[[i]]))
+    saveRDS(m, old_fn)
+    orig_fn <- m$data_summary$file_origin
+    z <- list(update = update, fn = fn, old_fn = old_fn, orig_fn = orig_fn)
+    invisible(z)
   })
 
-  # remove slist files
-  del_metn <- lapply(slist, function(x) {
-    file.remove(file.path(pipe_house$wait_room, x))
-    invisible(file.path(pipe_house$wait_room, x))
-  })
-
+  fupdates <- data.table::rbindlist(fupdates)
+  # rename saved files if they don't still need phen updates
+  no_update <- fupdates[update == TRUE]
+  tbl_update <- fupdates[update == FALSE]
+  parallel::mclapply(seq_len(nrow(tbl_update)), function(i) {
+    fn <- file.path(pipe_house$wait_room, basename(tbl_update$fn[i]))
+    old_fn <- file.path(pipe_house$wait_room, basename(tbl_update$old_fn[i]))
+    if (file.exists(old_fn)) {
+      s <- file.rename(from = old_fn, to = fn)
+    } else {
+      s <- FALSE
+    }
+    invisible(s)
+  }, mc.cores = cores)
+  data.table::setnames(tbl_update, old = c("fn", "old_fn", "orig_fn"),
+    new = c("file_name", "old_file_name", "original_file_name"))
+  data.table::setnames(no_update, old = c("fn", "old_fn", "orig_fn"),
+    new = c("file_name", "old_file_name", "original_file_name"))
   cr_msg <- padr(core_message = paste0("  phens standardised  ",
     collapes = ""), wdth = 80, pad_char = "=", pad_extras = c(
       "|", "", "", "|"), force_extras = FALSE, justf = c(0, 0))
-  message(cr_msg)
-  invisible(list(saved_files = saved_files, deleted_files = del_metn))
+  msg(cr_msg, verbose)
+  invisible(list(updated_files = tbl_update, no_updates = no_update))
 }

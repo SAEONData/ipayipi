@@ -55,7 +55,9 @@ process. The final evaluation tables are appended to the station file.}
 phenomena that will be aggregated by \code{ipayipi::dt_agg()}.}
 }
 \description{
-'dt' processing pipeline: genearte aggregation criteria.
+Used in the processing pipeline to generate aggregation
+criteria. Data is aggregated by the time interval specified for the
+harvested data (\emph{in} \code{ipayipi::hsf_param_eval()}).
 }
 \details{
 Default aggregation functions based on measure, variable types, and

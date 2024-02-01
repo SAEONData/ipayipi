@@ -1,0 +1,67 @@
+phen_name_full,phen_type,phen_name,units,measure,offset,var_type,uz_phen_name,uz_units,uz_measure,f_convert,sensor_id,notes
+Battery level: maximum voltage,Battery level,batt_max_v,v,max,0,num,BattV_Max,Volts,Max,NA,NA,NA
+Battery level: maximum voltage,Battery level,batt_max_v,v,max,0,num,LoggerBatt_Max,Volts,Max,NA,NA,NA
+Battery level: time of maximum,Battery level,batt_max_v_time,time,smp,0,posix,BattV_TMx,Volts,TMx,NA,NA,NA
+Battery level: minimum voltage,Battery level,batt_min_v,v,min,0,num,BattV_Min,Volts,Min,NA,NA,NA
+Battery level: time of minimum,Battery level,batt_min_v_time,time,smp,0,posix,BattV_TMn,Volts,TMn,NA,NA,NA
+Data logger: serial number,Data logger: serial number,data_logger_sn,smp,smp,0,chr,DataloggerSerialNumber,,Smp,NA,NA,NA
+"Humidity, relative: maximum","Humidity, relative",humid_rel_max_pcnt,pcnt,max,0,num,RH_Max,%,Max,NA,NA,NA
+"Humidity, relative: time of maximum","Humidity, relative",humid_rel_max_time,time,smp,0,posix,RH_TMx,,TMx,NA,NA,NA
+"Humidity, relative: minimum","Humidity, relative",humid_rel_min,pcnt,min,0,num,RH_Min,%,Min,NA,NA,NA
+"Humidity, relative: percent","Humidity, relative",humid_rel_pcnt,pcnt,smp,0,num,RH,%,Smp,NA,NA,NA
+Leaf wetness: total time con,Leaf wetness: time con,leaf_con_tot_time,mins,tot,0,num,LWMCon_Tot,Minutes,Tot,NA,NA,NA
+Leaf wetness: total time dry,Leaf wetness: time dry,leaf_dry_tot_time,mins,tot,0,num,LWMDry_Tot,Minutes,Tot,NA,NA,NA
+Leaf wetness: average,Leaf wetness: conductivity,leaf_wet_avg,mv,avg,0,num,LWmV_Avg,mV,Avg,NA,NA,NA
+Leaf wetness: maximum,Leaf wetness,leaf_wet_max,mv,max,0,num,LWmV_Max,mV,Max,NA,NA,NA
+Leaf wetness: time of maximum,Leaf wetness,leaf_wet_max_time,time,smp,0,posix,LWmV_TMx,,TMx,NA,NA,NA
+Leaf wetness: minimum,Leaf wetness,leaf_wet_min,mv,min,0,num,LWmV_Min,mV,Min,NA,NA,NA
+Leaf wetness: time of minimum,Leaf wetness,leaf_wet_min_time,time,smp,0,posix,LWmV_TMn,,TMn,NA,NA,NA
+Leaf wetness: total time wet,Leaf wetness: time wet,leaf_wet_tot_time,mins,tot,0,num,LWMWet_Tot,Minutes,Tot,NA,NA,NA
+"Moisture, soil: average percent","Moisture, soil",moisture_soil_pcnt,pcnt,avg,0,num,VW_Avg,,Avg,NA,NA,NA
+"Pressure, atmosphere: sample","Pressure, atmosphere",pressure_atm,kpa,smp,0,num,BP_kPa,kPa,Smp,NA,NA,NA
+"Pressure, atmosphere: average","Pressure, atmosphere",pressure_atm_avg,kpa,avg,0,num,BPressure_Avg,kPa,Avg,NA,NA,NA
+"Pressure, atmosphere: average","Pressure, atmosphere",pressure_atm_avg,kpa,avg,0,num,BPressure_Avg,mbar,Avg,0.1,NA,Converted to kilopascals by multiplying by 0.1.
+"Pressure, atmosphere: time of maximum","Pressure, atmosphere",pressure_atm_max_time,time,smp,0,posix,BPressure_TMx,,TMx,NA,NA,NA
+"Pressure, atmosphere: minimum","Pressure, atmosphere",pressure_atm_min,kpa,min,0,num,BPressure_Min,kPa,Min,NA,NA,NA
+"Pressure, atmosphere: time of minimum","Pressure, atmosphere",pressure_atm_min_time,time,smp,0,posix,BPressure_TMn,,TMn,NA,NA,NA
+Rainfall: total,Rainfall,rain_tot,mm,tot,0,num,Rain_Tot,mm,Tot,NA,NA,NA
+Rainfall: total,Rainfall,rain_tot,mm,tot,0,num,Rain_mm_Tot,mm,Tot,NA,NA,NA
+Solar radiation: average,Solar radiation,solar_rad_avg,mj_per_m2,avg,0,num,SlrW_Avg,W/m^2,Avg,NA,NA,NA
+Solar radiation: maximum,Solar radiation,solar_rad_max,mj_per_m2,max,0,num,SlrW_Max,W/m^2,Max,NA,NA,NA
+Solar radiation: time of maximum,Solar radiation,solar_rad_max_time,time,smp,0,posix,SlrW_TMx,,TMx,NA,NA,NA
+Solar radiation: standard deviation,Solar radiation,solar_rad_sd,w_per_m2,sd,0,num,SlrW_Std,W/m^2,Std,NA,NA,NA
+Solar radiation: total,Solar radiation,solar_rad_tot,mj_per_m2,tot,0,num,SlrMJ_Tot,MJ/m^2,Tot,NA,NA,NA
+"Temperature, air: average","Temperature, air",temp_air_avg,deg_c,avg,0,num,AirTC_Avg,Deg C,Avg,NA,NA,NA
+"Temperature, air: maximum","Temperature, air",temp_air_max,deg_c,max,0,num,AirTC_Max,Deg C,Max,NA,NA,NA
+"Temperature, air: time of maximum","Temperature, air",temp_air_max_time,time,smp,0,posix,AirTC_TMx,Deg C,TMx,NA,NA,NA
+"Temperature, air: minimum","Temperature, air",temp_air_min,deg_c,min,0,num,AirTC_Min,Deg C,Min,NA,NA,NA
+"Temperature, air: time of minimum","Temperature, air",temp_air_min_time,time,smp,0,posix,AirTC_TMn,Deg C,TMn,NA,NA,NA
+"Temperature, ground level: average","Temperature, ground level",temp_ground_avg,deg_c,avg,0,num,T107_C_Avg,Deg C,Avg,NA,NA,NA
+"Temperature, ground level: minimum","Temperature, ground level",temp_ground_min,deg_c,min,0,num,T107_C_Min,Deg C,Min,NA,NA,NA
+"Temperature, logger: average","Temperature, logger",temp_logg_avg,deg_c,avg,0,num,LoggerTemp_Avg,DegC,Avg,NA,NA,NA
+"Temperature, logger: maximum","Temperature, logger",temp_logg_max,deg_c,max,0,num,LoggerTemp_Max,DegC,Max,NA,NA,NA
+"Temperature, logger: time of maximum","Temperature, logger",temp_logg_max_time,time,smp,0,posix,LoggerTemp_TMx,,TMx,NA,NA,NA
+"Temperature, logger: minimum","Temperature, logger",temp_logg_min,deg_c,min,0,num,LoggerTemp_Min,DegC,Min,NA,NA,NA
+"Temperature, logger: time of minimum","Temperature, logger",temp_logg_min_time,time,smp,0,posix,LoggerTemp_TMn,,TMn,NA,NA,NA
+"Temperature, soil: average","Temperature, soil",temp_soil_avg,deg_c,avg,0,num,SoilTemp_Avg,Deg C,Avg,NA,NA,NA
+"Temperature, soil: maximum","Temperature, soil",temp_soil_max,deg_c,max,0,num,SoilTemp_Max,Deg C,Max,NA,NA,NA
+"Temperature, soil: time of maximum","Temperature, soil",temp_soil_max_time,time,smp,0,posix,SoilTemp_TMx,,TMx,NA,NA,NA
+"Temperature, soil: minimum","Temperature, soil",temp_soil_min,deg_c,min,0,num,SoilTemp_Min,Deg C,Min,NA,NA,NA
+"Temperature, soil: time of minimum","Temperature, soil",temp_soil_min_time,time,smp,0,posix,SoilTemp_TMn,,TMn,NA,NA,NA
+UV radiation: average,UV radiation,uv_rad_avg,mj_per_m2,avg,0,num,CUV5_W_Avg,W/m^2,Avg,NA,NA,NA
+UV radiation: average,UV radiation,uv_rad_avg,w_per_m2,avg,0,num,UV_W_Avg,W/m^2,Avg,NA,NA,NA
+UV radiation: maximum,UV radiation,uv_rad_max,mj_per_m2,max,0,num,CUV5_W_Max,W/m^2,Max,NA,NA,NA
+UV radiation: time of maximum,UV radiation,uv_rad_max_time,time,smp,0,posix,UV_W_TMx,,TMx,NA,NA,NA
+UV radiation: standard deviation,UV radiation,uv_rad_sd,mj_per_m2,sd,0,num,CUV5_W_Std,W/m^2,Std,NA,NA,NA
+UV radiation: sensitivity,"UV radiation, sensor",uv_rad_sensi,desc,smp,0,num,UV_Sensitivity,,Smp,NA,NA,NA
+UV radiation: sensor sn,"UV radiation, sensor",uv_rad_sn,desc,smp,0,int,UV_SN,,Smp,NA,NA,NA
+UV radiation: total,UV radiation,uv_rad_tot,mj_per_m2,tot,0,num,CUV5_MJ_Tot,MJ/m^2,Tot,NA,NA,NA
+Wind direction: instantaneous,Wind direction,wind_dir,deg,smp,0,num,WindDir_D1_WVT,Deg,WVc,NA,NA,NA
+Wind direction: standard deviation,Wind direction,wind_dir_sd,deg,sd,0,num,WindDir_SD1_WVT,Deg,WVc,NA,NA,NA
+Wind speed: sample,Wind speed,wind_speed,m_per_sec,smp,0,num,WS_ms,meters/second,Smp,NA,NA,NA
+Wind speed: average,Wind speed,wind_speed_avg,m_per_sec,avg,0,num,WS_ms_Avg,meters/second,Avg,NA,NA,NA
+Wind speed: maximum,Wind speed,wind_speed_max,m_per_sec,max,0,num,WS_ms_Max,meters/sec,Max,NA,NA,NA
+Wind speed: time of maximum,Wind speed,wind_speed_max_time,time,smp,0,posix,WS_ms_TMx,meters/second,TMx,NA,NA,NA
+Wind speed: minimum,Wind speed,wind_speed_min,m_per_sec,min,0,num,WS_ms_Min,meters/second,Min,NA,NA,NA
+Wind speed: minimum,Wind speed,wind_speed_min,m_per_sec,min,0,num,WSpeed_Min,meters/second,Min,NA,NA,NA
+Wind speed: time of minimum,Wind speed,wind_speed_min_time,time,smp,0,posix,WS_ms_TMn,meters/second,TMn,NA,NA,NA

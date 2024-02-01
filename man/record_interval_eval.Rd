@@ -31,7 +31,7 @@ whether or not filter our records from \code{dta_in} with inconsistent
 record intervals.}
 
 \item{record_interval_type}{If there is only one data record the
-this provided parameter will be used for the default. This must be either
+this parameter will be used as the default. This must be either
 "event_based" or "continuous".}
 }
 \value{
@@ -53,10 +53,11 @@ as "mixed". Note monthly data are considered to be 'continuous'.
 }
 \details{
 If the record iterval is set to "continuous" then the function
-checks a series of date time values for inconsistencies in record
+checks a series of date-time values for inconsistencies in record
 intervals. Data records can be removed if the data is provided and
 the user selects to do so in the \code{remove_prompt}. For data to be considered
-'continuous' 98\% of intervals in the data table must be continuous.
+'continuous' 98\% of intervals in the data table must be continuous, \emph{and}
+more than 98\% of date-time stamp second values must equals zero.
 If between 20 and 98\% (and time values include second values other than
 zero) of intervals are regular then the 'series' is classified as "mixed".
 If < 20\% of intervals are regular, then the series is considered to be
