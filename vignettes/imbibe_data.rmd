@@ -39,8 +39,9 @@ getwd()
 1. Load `R ipayipi` (install from [GitHub](https://github.com/SAEONData/ipayipi)),
 1. Initiate pipeline,
 1. Imbibe data,
-1. Standardise data, \&
-1. Make station files.
+1. Standardise data,
+1. Make station files, \&
+1. Identify gaps.
 
 An overview of the code to execute these five steps are shown below. This code is all that is required to run each time new data is available. For more details and options for each step, see respective function documentation/help files.
 
@@ -73,6 +74,9 @@ transfer_sts_files(pipe_house)
 
 ## 5. append standardised data files ----
 append_station_batch(pipe_house)
+
+## 6. identify gaps ----
+gap_eval_batch(pipe_house)
 ```
 
 
@@ -178,7 +182,7 @@ _In step with good [tidy data](https://www.tidyr.tidyverse.org/articles/tidy-dat
 Standardising _phenomena_ metadata follows a similar process as for header-data standardisation. If the phenomena standards have been described and there is a 'phentab.rps' in the 'waiting room', running the below code updates all files phenomena details.
 
 ```{r, phen standard, eval = FALSE}
-phenomena_sts(pipe_house = pipe_house, unwanted = "display")
+phenomena_sts(pipe_house = pipe_house)
 ```
 
 If there is no 'phenomena table' ('phentab.rps'), one `NA` values in the 'csv' copy need to be described. The following fields in the 'csv' phentab must be populated:
@@ -195,7 +199,7 @@ Additional fields that are not mandatory include:
 
 If an 'f_convert' factor (_scroll right on the table below_) is applied to phenomena, the standardised units must be different from the unstandardised units (<span style="background-color:#df9a86">uz_units</span>) in the phenomena table. This ensures that phenomena that are appended have similar units.
 
-```{r, phen standard_eg, eval = FALSE, echo = FALSE}
+```{r, phen standard_eg, eval = TRUE, echo = FALSE}
 pt <- read.csv("ipayipi/data-raw/eg_data/met_eg/phentab_display.csv")
 kbl(pt) |>
   kable_paper("hover") |>
@@ -310,10 +314,9 @@ p <- p$plot_availability + scale_colour_sunset(discrete = TRUE) +
       theme(legend.position = "none")
 plotly::ggplotly(p)
 ```
+Gaps highlighted in the dark-red colour.
 
 ```{r, remove nomvet and raw files, eval = TRUE, results = 'hide', echo = FALSE}
 unlink(pipe_house$raw_room, recursive = TRUE)
 unlink(pipe_house$nomvet_room, recursive = TRUE)
 ```
-
-

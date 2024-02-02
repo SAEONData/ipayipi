@@ -56,7 +56,7 @@ imbibe_raw_batch <- function(
 ) {
 
   # get list of data to be imported
-  unwanted <- paste(".ipr|.ipi|.iph|.xls|.rps|.rns|.ods|.doc", unwanted,
+  unwanted <- paste(".ipr|.ipi|.iph|.xls|.rps|.rns|.ods|.doc|.md", unwanted,
     sep = "|")
   unwanted <- gsub(pattern = "\\|$", replacement = "", x = unwanted)
   slist <- ipayipi::dta_list(input_dir = pipe_house$wait_room, file_ext =

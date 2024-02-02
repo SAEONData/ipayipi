@@ -141,7 +141,7 @@ phenomena_sts <- function(
     phen_new <- data.table::rbindlist(phen_new)[order(phen_name_full)]
     phen_new_chk <- phen_new[, c("phid", "phen_name_full", "phen_name", "units",
       "measure", "offset", "var_type"), with = FALSE]
-    if (anyNA.data.frame(phen_new_chk)) update <- TRUE
+    if (anyNA.data.frame(subset(phen_new_chk, select = -offset))) update <- TRUE
 
     # duplicate phen detection and resolution
     if (any(duplicated(phen_new$phen_name)) && remove_dups) {
