@@ -164,8 +164,8 @@ imbibe_raw_logger_dt <- function(
     file <- attempt::attempt(dyno_read(file_path))
   }
   if (attempt::is_try_error(file)) {
-    warning("Failed reading file check recognised file format")
-    return(ipayipi_data_raw = file)
+    message("Failed reading file check recognised file format")
+    return(list(ipayipi_data_raw = file, err = TRUE))
   }
   data_setup_names <- c(
     "file_format", "station_title", "location", "logger_type",
@@ -182,14 +182,16 @@ imbibe_raw_logger_dt <- function(
       message(paste0("The following names were not supplied: ",
       data_setup_names[!data_setup_names[c(1:2, 4:5, 11, 16)] %in%
         names(data_setup)], sep = "\n"))
-      stop("Supply all required information in the 'data_setup'!")
+      message("Supply all required information in the 'data_setup'!")
+      return(list(ipayipi_data_raw = file, err = TRUE))
     }
     # check for unrecognised names
     if (any(!names(data_setup) %in% data_setup_names)) {
       message(paste0("The following names were not supported: ",
       names(data_setup)[!names(data_setup) %in% data_setup_names],
         sep = "\n"))
-      stop("Unsupported names in the 'data_setup'!")
+      message("Unsupported names in the 'data_setup'!")
+      return(list(ipayipi_data_raw = file, err = TRUE))
     }
     # get header information
     head_names <- data_setup_names[1:10]
@@ -294,6 +296,7 @@ imbibe_raw_logger_dt <- function(
         data_setup$date_time]][1:5])
       message("Read as:")
       print(date_time[1:5])
+      return(list(ipayipi_data_raw = file, err = TRUE))
     }
     dta$date_time <- date_time
     if (is.null(data_setup$id_col)) {
@@ -383,5 +386,5 @@ imbibe_raw_logger_dt <- function(
     phens = phens, phen_data_summary = phen_data_summary,
     logg_interfere = logg_interfere)
   class(ipayipi_data_raw) <- "ipayipi_raw_data"
-  return(ipayipi_data_raw)
+  return(list(ipayipi_data_raw = ipayipi_data_raw, err = FALSE))
 }

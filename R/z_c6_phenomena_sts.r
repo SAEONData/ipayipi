@@ -103,6 +103,9 @@ phenomena_sts <- function(
     "var_type" <- "f_convert" <- "%ilike%" <- ".SD" <- "phen_name" <-
     ":=" <- NULL
   # get list of data to be imported
+  unwanted <- paste(".ipr|.ipi|.xls|.rps|.rns|.ods|.doc|.md", unwanted,
+    sep = "|")
+  unwanted <- gsub(pattern = "\\|$", replacement = "", x = unwanted)
   slist <- ipayipi::dta_list(input_dir = pipe_house$wait_room, file_ext =
     file_ext_in, prompt = prompt, recurr = recurr, unwanted = unwanted,
     wanted = wanted)
@@ -141,7 +144,7 @@ phenomena_sts <- function(
     phen_new <- data.table::rbindlist(phen_new)[order(phen_name_full)]
     phen_new_chk <- phen_new[, c("phid", "phen_name_full", "phen_name", "units",
       "measure", "offset", "var_type"), with = FALSE]
-    if (anyNA.data.frame(phen_new_chk)) update <- TRUE
+    if (anyNA.data.frame(subset(phen_new_chk, select = -offset))) update <- TRUE
 
     # duplicate phen detection and resolution
     if (any(duplicated(phen_new$phen_name)) && remove_dups) {
@@ -301,6 +304,13 @@ phenomena_sts <- function(
 
   fupdates <- data.table::rbindlist(fupdates)
   # rename saved files if they don't still need phen updates
+  if (nrow(fupdates) == 0) {
+    cr_msg <- padr(core_message = paste0("  phens standardised  ",
+      collapes = ""), wdth = 80, pad_char = "=", pad_extras = c(
+      "|", "", "", "|"), force_extras = FALSE, justf = c(0, 0))
+    msg(cr_msg, verbose)
+    return(list(updated_files = NULL, no_updates = NULL))
+  }
   no_update <- fupdates[update == TRUE]
   tbl_update <- fupdates[update == FALSE]
   parallel::mclapply(seq_len(nrow(tbl_update)), function(i) {
