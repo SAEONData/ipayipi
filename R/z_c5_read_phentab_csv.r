@@ -44,7 +44,7 @@ read_phentab_csv <- function(
     print(phentab[rowSums(is.na(phentab[, ck_cols, with = FALSE])) > 0])
   }
 
-  phentab <- data.table::data.table(
+  suppressWarnings(phentab <- data.table::data.table(
     phid = as.integer(phentab$phid),
     phen_name_full = as.character(phentab$phen_name_full),
     phen_type = as.character(phentab$phen_type),
@@ -59,7 +59,7 @@ read_phentab_csv <- function(
     f_convert = as.numeric(phentab$f_convert),
     sensor_id = as.character(phentab$sensor_id),
     notes = as.character(phentab$notes)
-  )
+  ))
   saveRDS(phentab, file.path(pipe_house$wait_room, "phentab.rps"))
   invisible(phentab)
 }

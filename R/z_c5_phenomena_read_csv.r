@@ -42,7 +42,7 @@ phenomena_read_csv <- function(
     message("Please edit the csv file to remove NAs.")
   }
   if (cans == 0) {
-    phentab <- data.table::data.table(
+    suppressMessages(phentab <- data.table::data.table(
       phid = as.integer(phentab$phid),
       phen_name_full = as.character(phentab$phen_name_full),
       phen_type = as.character(phentab$phen_type),
@@ -57,7 +57,7 @@ phenomena_read_csv <- function(
       f_convert = as.numeric(phentab$f_convert),
       sensor_id = as.character(phentab$sensor_id),
       notes = as.character(phentab$notes)
-    )
+    ))
     saveRDS(phentab, file.path(pipe_house$wait_room, "phentab.rps"))
   }
   invisible(phentab)

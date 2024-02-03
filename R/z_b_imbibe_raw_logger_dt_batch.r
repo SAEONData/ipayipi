@@ -96,10 +96,11 @@ imbibe_raw_batch <- function(
       )
     invisible(fl)
   }, mc.cores = cores)
-  err_files <- sapply(cfiles, function(x) attempt::is_try_error(x))
-  cfiles <- cfiles[!err_files]
-  slist_err <- slist[err_files]
-  slist <- slist[!err_files]
+  ers <- sapply(cfiles, function(x) x$err)
+  cfiles <- lapply(cfiles, function(x) x$ipayipi_data_raw)
+  cfiles <- cfiles[!ers]
+  slist_err <- slist[ers]
+  slist <- slist[!ers]
   # generate file names for all files
   file_names <- parallel::mclapply(seq_along(cfiles), function(x) {
     st_dt <- min(cfiles[[x]]$raw_data$date_time)
@@ -151,45 +152,47 @@ imbibe_raw_batch <- function(
   }
 
   # check for duplicates and make unique integers
-  split_file_name_dt <- split(file_name_dt, f = factor(file_name_dt$file_name))
-  split_file_name_dt <- parallel::mclapply(split_file_name_dt, function(x) {
-    x$rep <- seq_len(nrow(x))
-    return(x)
-  }, mc.cores = cores)
-  split_file_name_dt <- data.table::rbindlist(split_file_name_dt)
-  if (substr(file_ext_out, 1, 1) != ".") {
-    file_ext_out <- paste0(".", file_ext_out)
-  }
-  # save files in the wait_room
-  saved_files <- parallel::mclapply(seq_along(cfiles), function(i) {
-    cs <- cfiles[[i]]
-    class(cs) <- "ipayipi_raw"
-    saveRDS(cs, file.path(pipe_house$wait_room,
-        paste0(split_file_name_dt$file_name[i], "__",
-          split_file_name_dt$rep[i], file_ext_out)))
-    invisible(cs)
-  }, mc.cores = cores)
-  rm(saved_files)
-  # remove 'raw' files in wait room
-  del_dats <- parallel::mclapply(slist, function(x) {
-    file.remove(file.path(pipe_house$wait_room, x))
-    invisible(x)
-  }, mc.cores = cores)
-  rm(del_dats)
-  # rm raw files from source
-  if (wipe_source) {
-    del_source_f <- parallel::mclapply(slist, function(x) {
-      file.remove(file.path(pipe_house$source_dir, x))
+  if (!anyNA.data.frame(file_name_dt)) {
+    split_file_name_dt <- split(file_name_dt, f = factor(file_name_dt$file_name))
+    split_file_name_dt <- parallel::mclapply(split_file_name_dt, function(x) {
+      x$rep <- seq_len(nrow(x))
+      return(x)
+    }, mc.cores = cores)
+    split_file_name_dt <- data.table::rbindlist(split_file_name_dt)
+    if (substr(file_ext_out, 1, 1) != ".") {
+      file_ext_out <- paste0(".", file_ext_out)
+    }
+    # save files in the wait_room
+    saved_files <- parallel::mclapply(seq_along(cfiles), function(i) {
+      cs <- cfiles[[i]]
+      class(cs) <- "ipayipi_raw"
+      saveRDS(cs, file.path(pipe_house$wait_room,
+          paste0(split_file_name_dt$file_name[i], "__",
+            split_file_name_dt$rep[i], file_ext_out)))
+      invisible(cs)
+    }, mc.cores = cores)
+    rm(saved_files)
+    # remove 'raw' files in wait room
+    del_dats <- parallel::mclapply(slist, function(x) {
+      file.remove(file.path(pipe_house$wait_room, x))
       invisible(x)
     }, mc.cores = cores)
-    rm(del_source_f)
+    rm(del_dats)
+    # rm raw files from source
+    if (wipe_source) {
+      del_source_f <- parallel::mclapply(slist, function(x) {
+        file.remove(file.path(pipe_house$source_dir, x))
+        invisible(x)
+      }, mc.cores = cores)
+      rm(del_source_f)
+    }
   }
   cr_msg <- padr(core_message = paste0(" imbibed  ", collapes = ""),
     wdth = 80, pad_char = "=", pad_extras = c("|", "", "", "|"),
     force_extras = FALSE, justf = c(0, 0))
   ipayipi::msg(cr_msg, verbose)
   if (length(slist_err) > 0) {
-    warning("The following files could not be read by data.table::fread")
+    warning("Files could not be processed")
     print(slist_err)
   }
   invisible(cfiles)

@@ -72,7 +72,7 @@ header_sts <- function(
     # flag na_sub -- those that need further nomtab updates
     na_sub <- anyNA.data.frame(nt[, c("stnd_title", "location", "station",
       "record_interval_type", "record_interval", "table_name"), with = FALSE])
-    if (na_sub | nrow(nt) == 0) {
+    if (na_sub | nrow(nt) == 0 | nt$table_name == "raw_NA") {
       msg <- paste0("Update header nomenclature for: ", slist[i], collapse = "")
       message(msg)
       z <- list(update = TRUE)
