@@ -170,15 +170,17 @@ phenomena_sts <- function(
           message(paste0("Examine the phenomena table row numbers 1 to ",
             nrow(phen_new)))
           ri <- readline(prompt =
-            paste0("Enter row number of duplicate, to be removed, phenomena: ")
+            paste0("Enter duplicate row number(s) e.g., c(1,5):")
           )
-          ri <- as.integer(ri)[1]
-          if (!is.integer(ri) && ri > nrow(phen_new) && ri < 1) {
+          ri <- eval(parse(text = ri))
+          if (all(all(!is.integer(ri)),
+              all(ri > nrow(phen_new)),
+              all(ri < 1))) {
             chosen_p()
           } else {
-            m$raw_data <- m$raw_data[
-            , -c(phen_new$uz_phen_name[ri]), with = FALSE]
-            p <- phen_new[uz_phen_name != phen_new$uz_phen_name[ri]]
+            m$raw_data <- m$raw_data[, names(m$raw_data)[
+              !names(m$raw_data) %in% phen_new$uz_phen_name[ri]], with = FALSE]
+            p <- phen_new[!uz_phen_name %in% phen_new$uz_phen_name[ri]]
           }
         }
         if (n == "n") {
