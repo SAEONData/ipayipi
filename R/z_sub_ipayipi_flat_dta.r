@@ -44,6 +44,7 @@ ipayipi_flat_dta <- function(
   out_csv_preffix = "",
   recurr = FALSE,
   ...) {
+    "dt1" <- "dt2" <- "dt3" <- "dt4" <- "..cols_inc" <- "%ilike%" <- NULL
   # merge data sets into a station for given time periods
   slist <- ipayipi::dta_list(input_dir = input_dir, file_ext = file_ext,
     prompt = prompt, recurr = recurr, unwanted = unwanted, wanted = wanted)

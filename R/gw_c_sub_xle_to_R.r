@@ -126,11 +126,12 @@ gw_xle_to_R <- function(
       XML::xmlToDataFrame(testxml["//Body_xle/Instrument_info"],
         stringsAsFactors = FALSE
     ))
+  data.table::setnames(xle_fi, old = "Battery_charge", new = "Battery_level",
+    skip_absent = TRUE)
   xle_fi[xle_fi == ""] <- NA
   fds <- c(
     "Instrument_type", "Model_number", "Instrument_state",
-    "Instrument_state", "Serial_number", "Battery_level",
-    "Channel", "Firmware"
+    "Serial_number", "Battery_level", "Channel", "Firmware"
   )
   dtb <- sapply(fds, function(x) {
     if (x %in% c(colnames(xle_fi))) {
@@ -147,7 +148,7 @@ gw_xle_to_R <- function(
     Model_number = gsub("[[:blank:]]", "", as.character(dtb$Model_number)),
     Instrument_state = as.character(dtb$Instrument_state),
     Serial_number = as.character(dtb$Serial_number),
-    Battery_level = as.numeric(as.character(dtb$Battery_level)),
+    Battery_level = readr::parse_number(as.character(dtb$Battery_level)),
     Channel = as.numeric(as.character(dtb$Channel)),
     Firmware = as.character(dtb$Firmware)
   )
