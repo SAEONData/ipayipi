@@ -65,7 +65,8 @@ dt_process <- function(
   # open output_dt and associate table summary
   sf_names <- names(sfc)
   f_summary <- ipayipi::sf_read(pipe_house = pipe_house, sfc = sfc, tmp = TRUE,
-    tv = sf_names[sf_names %ilike% "summary|phens|pipe_seq"])
+    tv = sf_names[sf_names %ilike% "summary|phens|pipe_seq"],
+    station_file = station_file)
   f_summary$sf_names <- sf_names
   dt_names <- sf_names[sf_names %ilike% output_dt_preffix]
 
@@ -85,16 +86,14 @@ dt_process <- function(
   if (pp$update_pipe_data) {
     # prep pps for partial evaluation
     pps <- pp$pipe_seq
-    sf <- sf[!names(sf) %ilike% "pipe_seq|f_params|phens_dt"]
-    sf$pipe_seq <- pps
     pps <- split(pps, f = factor(pps$dt_n))
   } else {# no eval if NULL --- sf already has pps
     pps <- NULL
   }
 
   # save station file in a temporary location
-  sf_tmp_fn <- tempfile(pattern = "ipip_", tmpdir = tempdir())
-  saveRDS(sf, file = sf_tmp_fn)
+  #sf_tmp_fn <- tempfile(pattern = "ipip_", tmpdir = tempdir())
+  #saveRDS(sf, file = sf_tmp_fn)
 
   # pps full evaluation ----
   # set up paired functions
@@ -115,17 +114,17 @@ dt_process <- function(
   #  tables
 
   # temp dir name for working files
-  o_temp <- tempfile(pattern = "oipip_", tmpdir = tempdir())
-  saveRDS(list(dummy = NULL), o_temp)
+  #o_temp <- tempfile(pattern = "oipip_", tmpdir = tempdir())
+  #saveRDS(list(dummy = NULL), o_temp)
   # work through stages of pipe evaluation
   ii <- lapply(seq_along(pps), function(i) {
     ppsi <- pps[[i]]
-    sf <- readRDS(sf_tmp_fn)
-    f_summary <- sf[sf_names %ilike% "summary|phens"]
+    #sf <- readRDS(sf_tmp_fn)
+    f_summary <- f_summary[sf_names %ilike% "summary|phens"]
     f_summary$sf_names <- sf_names
     jj <- lapply(seq_along(unique(ppsi$dtp_n)), function(j) {
       # read in previous temp data
-      otmp <- readRDS(o_temp)
+      #otmp <- readRDS(o_temp)
       # get function and prepare arguments
       ppsij <- ppsi[dt_n == i & dtp_n == j, ]
       f <- ppsij$f[1]
@@ -139,26 +138,34 @@ dt_process <- function(
       args <- list(
         station_file = station_file,
         f_params = f_params,
-        f_summary = f_summary,
-        sf_tmp_fn = sf_tmp_fn,
         ppsij = ppsij,
         full_eval = TRUE,
-        eval_seq = otmp,
-        sf = sf
+        sfc = sfc
+        #f_summary = f_summary,
+        #sf_tmp_fn = sf_tmp_fn,
+        #eval_seq = otmp,
+        #sf = sf
       )
       o <- do.call(what = f, args = args)
       o <- o[!sapply(o, is.null)]
       # read in and append 'o' data where possible
       fo <- o$f_params
+      sfc_f_params <- ipayipi::sf_read(sfc = sfc, tv = "f_params",
+        pipe_house = pipe_house, station_file = station_file, tmp = TRUE)
+      if (length(sfc_f_params) == 0) {
+        sfc_f_params <- NULL
+      }
       o <- o[!names(o) %in% "f_params"]
-      fotmp <- otmp$f_params
+      # fotmp <- otmp$f_params
       otmp <- otmp[!names(otmp) %in% "f_params"]
       o <- ipayipi::append_tables(original_tbl = otmp, new_tbl = o)
-      fo <- ipayipi::append_tables(original_tbl = fotmp, new_tbl = fo)
-      o <- o[!names(o) %in% "dummy"]
-      o[["f_params"]] <- fo
+      fo <- ipayipi::append_tables(original_tbl = sfc_f_params, new_tbl = fo)
+      # o <- o[!names(o) %in% "dummy"]
       o$phens_dt <- o$phens_dt[order(ppsid, phen_name)]
-      saveRDS(o, file = o_temp)
+      o <- list(f_params = fo, phens_dt = o$phens_dt)
+      lapply(names(o), function(x) {
+        saveRDS(o[[x]], file.path(dirname(sfc[1]), x))
+      })
       return(o)
     })
     rm(jj)

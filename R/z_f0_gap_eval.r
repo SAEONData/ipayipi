@@ -83,7 +83,7 @@ gap_eval <- function(
     ]
     # get rit and ri
     rit <- dx$record_interval_type
-    if (!all("mixed" %in% rit, "event_based" %in% rit)) {
+    if (!any("mixed" %in% rit, "event_based" %in% rit)) {
       ri <- dx$record_interval[1]
       ri <- sts_interval_name(ri)[["dfft_secs"]]
       gap_problem_thresh_s <- ri

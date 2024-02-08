@@ -77,24 +77,45 @@ plot_raw_availability <- function(
     return(g)
   })
   gs <- unlist(gs, recursive = FALSE)
-  gs <- lapply(seq_along(gs), function(i) {
-    gs[[i]]$gap_yes <- i
-    data.table::setkey(gs[[i]], "gap_start", "gap_end")
-    gs[[i]]
-  })
 
   sedta <- lapply(seq_along(dta), function(i) {
-    ds <- dta[[i]]$data_summary[, c("start_dttm", "end_dttm", "stnd_title")]
+    ds <- dta[[i]]$data_summary[,
+      c("start_dttm", "end_dttm", "stnd_title", "table_name")]
+    ds$station_n <- rev(seq_along(dta))[i]
+    ds <- split.data.frame(
+      ds, f = factor(paste(ds$station_n, ds$table_name, sep = "; ")))
+    return(ds)
+  })
+  sedta <- unlist(sedta, recursive = FALSE)
+  sedta <- lapply(seq_along(sedta), function(i) {
+    ds <- sedta[[i]]
     ds$start_dttm <- min(ds$start_dttm)
     ds$end_dttm <- max(ds$end_dttm)
     ds <- ds[c(1, nrow(ds)), ]
     ds <- unique(ds)
-    ds$data_yes <- i
-    ds$station_n <- rev(seq_along(dta))[i]
+    ds$data_yes <- rev(seq_along(sedta))[i]
     return(ds)
   })
   sedta <- data.table::rbindlist(sedta)
   data.table::setkey(sedta, "start_dttm", "end_dttm")
+
+  no_gaps <- sapply(gs, function(x) x$station[1])
+  no_gaps <- sedta$stnd_title[!sedta$stnd_title %in% no_gaps]
+  #no_gaps <- sedta$stnd_title[!sedta$stnd_title %in% unique((dty$station))]
+  no_gaps <- sedta[stnd_title %in% no_gaps]
+  no_gaps <- data.table::data.table(
+    dtt0 = c(no_gaps$start_dttm, no_gaps$end_dttm)
+  )
+
+  gs <- lapply(gs, function(x) {
+    tn <- x$table_name[1]
+    s <- x$station[1]
+    x$station_n <- sedta[stnd_title == s]$station_n[1]
+    data_yes <- sedta[stnd_title == s & table_name == tn]$data_yes[1]
+    x$data_yes <- data_yes
+    x$gap_yes <- data_yes
+    return(x)
+  })
 
   # get all time recordings
   dts <- lapply(seq_along(gs), function(i) {
@@ -113,27 +134,27 @@ plot_raw_availability <- function(
     dts <- rbind(dts, dts1, dts2, dts3)
     invisible(dts)
   })
+  dts <- c(dts, list(no_gaps))
   dts <- data.table::rbindlist(dts)[order(dtt0), ]
   dts <- unique(dts)
   dts$dtt1 <- dts$dtt0
   data.table::setkey(dts, dtt0, dtt1)
+  gs <- data.table::rbindlist(gs)
+  names(gs) <- paste0("gs_", names(gs))
+  data.table::setkey(gs, "gs_gap_start", "gs_gap_end")
 
-  dty <- lapply(seq_along(gs), function(i) {
-    dtj <- data.table::foverlaps(
-      y = sedta[stnd_title == gs[[i]]$station[1]],
+  dty <- lapply(unique(sedta$data_yes), function(i) {
+    dtj <- data.table::foverlaps(y = sedta[data_yes == i],
         x = dts, mult = "all", nomatch = NA)
     data.table::setkey(dtj, dtt0, dtt1)
     dtj <- data.table::foverlaps(
-      y = gs[[i]], x = dtj, mult = "all", nomatch = NA)
-    dtj$station <- dtj[!is.na(station)]$station[1]
-    dtj$table_name <- dtj[!is.na(table_name)]$table_name[1]
-    dtj <- dtj[, c("gid", "data_yes", "gap_yes", "dtt0",
-      "station", "station_n", "table_name")]
-    data.table::setnames(dtj, "dtt0", "date_time")
-    dtj[!is.na(data_yes)]$data_yes <- i
+      y = gs[gs_data_yes == i], x = dtj, mult = "all", nomatch = NA)
+    dtj$station <- dtj[!is.na(stnd_title)]$stnd_title[1]
     dtj$station_n <- dtj[!is.na(station_n)]$station_n[1]
+    dtj$table_name <- dtj[!is.na(table_name)]$table_name[1]
+    dtj <- dtj[, c("gs_gid", "data_yes", "gs_gap_yes", "dtt0",
+      "station", "station_n", "table_name")]
     dtj$table_wrd <- paste0(dtj$station_n[1], ": ", dtj$table_name[1])
-    dtj$i <- i
     return(dtj)
   })
 
@@ -148,20 +169,28 @@ plot_raw_availability <- function(
 
   # gap_labs <- data.table::rbindlist(gap_labs)
   dts <- data.table::rbindlist(dty)
-  dts$station_wrd <- paste0(dts$station_n, ": ", dts$station)
+  data.table::setnames(dts, old = c("dtt0", "gs_gap_yes"),
+    new = c("date_time", "gap_yes"))
 
+  dts$station_wrd <- paste0(dts$station_n, ": ", dts$station)
+  q <- dts[!is.na(data_yes),
+    c("data_yes", "station", "station_n", "table_name", "station_wrd")][
+      order(data_yes)
+    ]
+  q <- unique(q)
   p <- ggplot2::ggplot(dts, ggplot2::aes(
-      y = data_yes, x = date_time, group = i, colour = station_wrd)) +
-    ggplot2::geom_line(ggplot2::aes(y = gap_yes), linewidth = 8,
+      y = data_yes, x = date_time, group = data_yes, colour = station)) +
+    ggplot2::geom_line(ggplot2::aes(x = date_time, y = gap_yes), linewidth = 8,
       colour = "#801b1b", na.rm = TRUE) +
     ggplot2::geom_line(na.rm = TRUE, linewidth = 2, alpha = 0.8) +
     ggplot2::scale_y_continuous(
-      breaks = unique(dts[!is.na(i), ]$i),
-      labels = unique(dts[i %in% unique(dts[!is.na(i), ]$i), ]$table_wrd)) +
-    ggplot2::labs(x = "Date",
-      colour = "Station") +
+      breaks = q$data_yes, labels = q$station,
+      sec.axis = ggplot2::sec_axis(~.,
+        breaks = q$data_yes, labels = q$table_name)) +
+    ggplot2::labs(x = "Date", colour = "Station") +
     egg::theme_article() +
-    ggplot2::theme(axis.title.y = ggplot2::element_blank())
+    ggplot2::theme(axis.title.y = ggplot2::element_blank(),
+      legend.position = "top")
   data_availability <- list(p, dts)
   names(data_availability) <- c("plot_availability", "plot_data")
   return(data_availability)
