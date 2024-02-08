@@ -53,11 +53,13 @@ meta_to_station <- function(
   }
   # get list of stations
   slist <- ipayipi::dta_list(input_dir = input_dir,
-    file_ext = station_ext, ...)
+    file_ext = station_ext, wanted = wanted, unwanted = unwanted,
+    prompt = FALSE, recurr = FALSE)
   sl <- gsub(pattern = station_ext, replacement = "", x = slist)
   s <- names(edb)[names(edb) %ilike% "station|site"]
   edb <- edb[eval(parse(text = s)) %in% unique(sl)]
-  slist <- slist[slist %ilike% unique(edb[[s]])]
+  es <- paste(collapse = "|", unique(edb[[s]]))
+  slist <- suppressWarnings(slist[slist %ilike% es])
   cr_msg <- padr(core_message =
     paste0(" Adding metadata to ", length(slist),
       " stations", collapes = ""),
