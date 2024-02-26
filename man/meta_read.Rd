@@ -19,6 +19,7 @@ meta_read(
   sheet = NULL,
   output_dir = ".",
   output_name = NULL,
+  event_thresh = 600,
   ...
 )
 }
@@ -74,6 +75,8 @@ Not yet implemented.}
 
 \item{output_name}{Name of the file for saving as an RDS file. The default
 extension is ".rmds".}
+
+\item{event_thresh}{The event threshold provided in seconds. Argument used to prepare event database for gap and pseudo event evaluation by populating NA values in the 'event_thresh_s' field by the argument value provided here. The defult is ten minutes, that is 10 * 60 seconds. \emph{see} \code{ipayipi::gap_eval()}.}
 }
 \value{
 Standardised data table of events.

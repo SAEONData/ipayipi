@@ -15,21 +15,24 @@
 #'
 #' @export
 dt_harvest <- function(
-  station_file = station_file,
+  station_file = NULL,
   f_params = NULL,
   time_interval = NULL,
-  sf = NULL,
-  dt_working = NULL,
+  sfc = NULL,
   ...) {
   "hsf_table" <- NULL
   # harvest data from tables
   if (station_file == unique(f_params$hsf_station)[1]) {
-    hsf <- sf
+    hsfc <- sfc
   } else {
-    hsf <- attempt::try_catch(
-      expr = readRDS(unique(f_params$hsf_station)[1]), .w = ~stop)
+    hsfc <- attempt::try_catch(
+      expr = ipayipi::open_sf_con(
+        station_file = unique(f_params$hsf_station)[1]
+      ), .w = ~stop)
   }
-  hsf <- hsf[names(hsf) %in% unique(f_params$hsf_table)]
+
+  hsf <- ipayipi::sf_read(sfc = hsfc, tv = unique(f_params$hsf_table)[1],
+    tmp = TRUE)
 
   # filter out unwanted phens
   hsf_names <- names(hsf)

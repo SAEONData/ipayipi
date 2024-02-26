@@ -8,7 +8,7 @@ ipayipi2csv(
   data_dir = NULL,
   output_dir = NULL,
   file_ext = ".rds",
-  excluded_tabs = NULL,
+  wanted_tabs = NULL,
   prompt = FALSE,
   wanted = NULL,
   unwanted = NULL,
@@ -26,16 +26,14 @@ are stored.}
 data files. E.g., ".csv" for hobo rainfall file exports. This input
 character string should contain the period as in the previous sentence.}
 
-\item{excluded_tabs}{Data items that should not be exported to csvs.}
+\item{wanted_tabs}{Data items/tables that should be exported to csvs. Evaluated using '\%ilike\%': ergo seperate multiple search phrases by '|'.}
 
 \item{prompt}{Set to TRUE for interactive mode. If FALSE all relevant files
 in the specified directory will be exported.}
 
-\item{wanted}{Vector of strings listing files that should not be
-included in the import.}
+\item{wanted}{Vector of strings listing files that should not be included in the import. Evaluated using '\%ilike\%': ergo seperate multiple search phrases by '|'.}
 
-\item{unwanted}{Vector of strings listing files that should not be included
-in the import.}
+\item{unwanted}{Vector of strings listing files that should not be included in the import. Evaluated using '\%ilike\%': ergo seperate multiple search phrases by '|'.}
 
 \item{baros}{Should the function include barometric files
 in the final list - TRUE/FALSE. This parameter is specifically for working

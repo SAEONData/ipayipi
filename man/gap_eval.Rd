@@ -2,7 +2,7 @@
 % Please edit documentation in R/z_f0_gap_eval.r
 \name{gap_eval}
 \alias{gap_eval}
-\title{Highlight 'gaps' (missing data) in station data}
+\title{Generates 'gap' (missing data) table}
 \usage{
 gap_eval(
   pipe_house = NULL,
@@ -10,75 +10,60 @@ gap_eval(
   gap_problem_thresh_s = 6 * 60 * 60,
   event_thresh_s = 10 * 60,
   keep_open = FALSE,
+  meta_events = "meta_events",
+  verbose = FALSE,
   ...
 )
 }
 \arguments{
 \item{pipe_house}{Required. List of pipeline directories. \strong{See} \code{ipayipi::ipip_init()} \strong{for details}.}
 
-\item{station_file}{Standardised \strong{ipayipi} station file.}
+\item{station_file}{Required. Standardised \strong{ipayipi} station file.}
 
 \item{gap_problem_thresh_s}{A duration threshold (in seconds) beyond which a gap, in event-based time series records, is considered problematic --- a 'true' gap. These gaps require infilling or 'patching'. The default for event-based data is six hours (i.e., 6 * 60 * 60 seconds). If the 'record_interval_type' is not 'mixed' or 'event_based', i.e. it is only continuous, then the 'record_interval' parameter is used as the \code{gap_problem_thresh_s}.}
 
 \item{event_thresh_s}{A gap can also be specified in the event metadata by providing only a single date-time stamp and an 'event_threshold_s' (in seconds). By taking this date-time stamp the function approximates the start and end-time of the data gap by adding and subtracting the given \code{event_thresh_s} to the date-time stamp, respectively. If the \code{event_thresh_s} is supplied in the 'meta_events' data (\emph{see} \code{meta_to_station()}) then the value supplied therein is used in preference to the \code{event_thresh_s} argument in this function. The default event threshold here is ten minutes, i.e., 10 * 60 seconds.}
 
 \item{keep_open}{Logical. Keep \emph{hidden} 'station_file' open for ease of access. Defaults to \code{FALSE}.}
+
+\item{meta_events}{Optional. The name of the data.table in the station file with event metadata. Defaults to "meta_events".}
+
+\item{verbose}{Logical. Whether or not to report messages and progress.}
 }
 \value{
 A table describing data 'gaps'
 }
 \description{
-The period between the time a logger is stopped, removed, or discommissioned, and when a logger beings recording data again, counts as missing data. However, for event-based data, where the frequency of recordings is temporarily erratic, identifying gaps is more tricky. This function sets some rules when identifying gaps in event-based time-series data.
+The period between the time a logger/sensor is stopped, removed, or discommissioned, and when a logger/sensor beings recording data again, counts as missing data. However, for event-based data, where the frequency of recordings is temporarily erratic, identifying gaps is more tricky. This function sets some rules when identifying gaps in event-based time-series data. Furthermore, gaps can be manually declared in event metadata and integrated into the gap table.
 }
 \details{
-There are a number of different data problems that arise in time-series data. One of the simplest issues are data gaps, that is, periods where no data were recorded by a logger, or an individual sensor attached to a logger. Moreover, data can be declared 'missing' if it is erraneous. This function helps users identify gaps in continuous and discontinuous data types.
-
-different types problems with the data taking the following steps to
-identify and classify data 'gaps' (i.e., missing data).
+There are a number of different data problems that arise in time-series data. One of the simplest issues are data gaps, that is, periods where no data were recorded by a logger, or an individual sensor attached to a logger. Moreover, data can be declared 'missing' if it is erraneous. This function helps users identify gaps in continuous and discontinuous data types. Below is an overview of this function.
 \enumerate{
-\item Trim any manually declared data gaps by the start and end dates of the
-extant rainfall data (start and end dates taken from the data summary).
-\item Generate a table of data 'gaps' between each download and deploy event.
-This type of data gap, i.e., the 'gap_type' is categorized as 'auto' in
-the final output. The rest of the gap types dealt with are manually
-declared data gaps.
-\item If there has been event data appended to the station data the function
-will search therein for any manually declared gaps, that is, the
-'event_type' 'logger_declare_error_segment'. If these segments extend
-'over' any 'auto' gaps they are trimmed to preserve the record of the
-'auto' gap. If any 'auto' gaps fall within an manually declared error
-segment then, they too, are considered a problem gap, even if the duration
-of the 'auto' gap is short enough to not be considered a problem gap.
-\item Within the pipeline notes can be appended to a gap using the
-'logger_gap_notes' 'event_type'. To do this a date-time stamp must be
-provided which falls within the gap of interest. When appending the notes
-\emph{\strong{the function will check whether the 'problem_gap' field was marked}}.
-\emph{If this field was FALSE then the gap is not considered a problematic gap}
-, i.e., the user is condident that no rainfall occurred during the 'gap'
-period. If the \emph{\strong{raining}} field was TRUE in the 'event_data' then the
-gap is considered problematic.
-\item A final 'gap' table is provided in the R data object. This table will
-be used to highlight no data when aggregating the data. Furthermore, in
-infilling exercises, the gaps provide a means for highlighting where
-'patching' is required. Below is a description of the gap table fields:
-}\tabular{ll}{
-   Column \tab Description \cr
-   gid \tab Unique identifier for each gap. \cr
-   euid \tab Event ID number imported from manually declared error segments. \cr
-   gap_start \tab The start date-time of a gap. \cr
-   gap_end \tab The end date-time of the gap. \cr
-   dt_diff_s \tab The time duration in seconds of the gap. \cr
-   gap_problem_thresh_s \tab The threshold duration beyond which a gap is \cr
+\item Derive gap table from raw data data summary information.
+If the gap period is longer than the record interval in continuous data the gap is declared problematic, i.e., \code{problem_gap == TRUE}. For discontinuous data, where the gap period extends beyond the \code{gap_problem_thresh_s} the gap is \emph{'automatically'} declared to be problematic.
+\item Integrate event metadata into the gap table (\code{meta_events} table).
+If a 'problem gap' has been declared in event metadata then this information is transferrred into the gap table. Also we can add notes to gaps declared automatically in the step above. Note that any gap declared in the metadata requires appropriate metadata describing the gap. These include:
+}
+\itemize{
+\item 'eid': a unique event identification number (integer),
+\item 'qa': Quality assessment. Logical. Only evaluates \code{qa == TRUE},
+\item 'station/location station': character string identifying the staiton name,
+\item 'date_time': The date and time of the event (POSIX date time with format to match the raw data date_time),
+\item 'event_type': Stanardised character string. For declaring a gap period use 'manual_gap'. For adding notes to a gap period use 'gap_notes' --- \emph{see notes on this below},
+\item 'phen': If not provided this will default to 'logger', or else a specific phenomena name can be provided (standardised from the phens table). If this value is 'logger' we will assume the logger (with all sensors attached) was not functioning over the declared period,
+\item 'table_name': A specific table the gap period is applied to. If no value is provided this will default to all raw data,
+\item 'gap_problem_thresh_s': Can be provided to overwrite the \code{gap_problem_thresh_s} provided in the function arguments,
+\item 'event_thresh_s': The event threshhold in seconds (_see start_dttm and end_dttm fields below),
+\item 'problem_gap': Logical. If \code{TRUE} then the gap period declared is considered to be problematic. If \code{FALSE} a gap period will not be considered problematic. This is useful for discontinuous data. For example, if it was not raining during the period our logger had been stopped --- the 'automatically' identified gap, between the stop and start of the logger recording rainfall events (discontinuous record interval) --- the gap is not problematic. Therefore, we can declare \code{problem_gap} to be \code{FALSE} in the event metadata. Appropriate notes will be appended from the event metadata to the gap table in all cases.
+\item 'notes': Character field for general note taking,
+\item 'start_dttm': *Start date time of the manual gap period, and
+\item 'end_dttm': *End date time of the manual gap period.
+}
+\itemize{
+\item note that if start and end date times are not provided the 'date_time' field must be provided. Using adding and substracting the \code{event_thresh_s} to \code{date_time} will be used to generate \code{start_dttm} and \code{end_dttm} fields in this case.
 }
 
-
-\if{html}{\out{<div class="sourceCode">}}\preformatted{considered problematic.|
-}\if{html}{\out{</div>}}
-
-|problem_gap    |Logical field indicating whether a gap is considered to be
-problematic.|
-|Notes    | Notes describing the gap. The function will append any notes
-imported from the event data, if existent. |
+The final gap table summarises gap data merged with the above event metadata.
 }
 \author{
 Paul J. Gordijn

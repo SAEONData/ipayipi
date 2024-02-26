@@ -5,25 +5,21 @@
 \title{Perform data processing calculations}
 \usage{
 dt_calc(
+  sfc = NULL,
   station_file = NULL,
-  dta_in = NULL,
-  input_dt = NULL,
-  output_dt = NULL,
-  output_dt_preffix = "dt_",
-  output_dt_suffix = NULL,
   f_params = NULL,
-  dt_working = NULL,
+  station_file_ext = ".ipip",
   ...
 )
 }
 \arguments{
 \item{station_file}{Name of the station being processed.}
 
+\item{f_params}{Function parameters evaluated by \code{ipayipi::calc_param_eval()}. These are parsed to \code{dt_calc()} from \code{dt_process()}.}
+
 \item{dta_in}{A list of data to be processed.
 param input_dt
 param output_dt}
-
-\item{f_params}{Function parameters evaluated by \code{ipayipi::calc_param_eval()}. These are parsed to \code{dt_calc()} from \code{dt_process()}.}
 
 \item{f_summary}{A summary table of function parameters. This
 summary table is stored in the station file object. If there

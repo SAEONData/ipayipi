@@ -4,14 +4,7 @@
 \alias{calc_param_eval}
 \title{Organise sequencial processing of phenomena aggregations.}
 \usage{
-calc_param_eval(
-  f_params = NULL,
-  full_eval = FALSE,
-  f_summary = NULL,
-  ppsij = NULL,
-  sf = sf,
-  ...
-)
+calc_param_eval(f_params = NULL, full_eval = FALSE, ppsij = NULL, ...)
 }
 \description{
 An alias for list in ipayipi::dt_calc. Used for sequence of

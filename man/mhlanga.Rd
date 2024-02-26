@@ -14,7 +14,7 @@ mhlanga(
   inq = NULL,
   y_phen_names = NULL,
   nomatch = NA,
-  mult = "all",
+  mult = "first",
   roll = FALSE,
   rollends = FALSE,
   allow.cartesian = FALSE,
@@ -22,6 +22,7 @@ mhlanga(
   ri = NULL,
   phen_dt = NULL,
   over_right = FALSE,
+  station = NULL,
   ...
 )
 }

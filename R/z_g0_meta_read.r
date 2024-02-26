@@ -38,6 +38,7 @@
 #' @param output_dir Directory where meta file should be saved.
 #' @param output_name Name of the file for saving as an RDS file. The default
 #'  extension is ".rmds".
+#' @param event_thresh The event threshold provided in seconds. Argument used to prepare event database for gap and pseudo event evaluation by populating NA values in the 'event_thresh_s' field by the argument value provided here. The defult is ten minutes, that is 10 * 60 seconds. _see_ `ipayipi::gap_eval()`.
 #' @keywords logger data processing; field metadata; data pipeline;
 #'  supplementary data; field notes
 #' @author Paul J. Gordijn
@@ -73,10 +74,12 @@ meta_read <- function(
   sheet = NULL,
   output_dir = ".",
   output_name = NULL,
+  event_thresh = 600,
   ...
 ) {
   # avoid no visible bind for data.table variables
-  "%like%" <- ":=" <- ".SD" <- NULL
+  "%like%" <- ":=" <- ".SD" <- "event_thresh_s" <- "date_time" <-
+    "start_dttm" <- NULL
   # if we need to read in object
   if (is.character(meta_file)) {
     meta_file <- file.path(input_dir, meta_file)
@@ -144,10 +147,21 @@ meta_read <- function(
     vars <- names(z)[z %like% "T"]
     if (length(vars)) {
       edb[, (vars) := lapply(.SD, function(x) {
-          lubridate::parse_date_time(x = x, orders = dt_format, tz = dt_tz)
+          lubridate::parse_date_time2(x = x, orders = dt_format, tz = dt_tz)
         }), .SDcols = vars]
     }
   }
+
+  # standard event threshold information
+  if (all(c("date_time", "start_dttm", "end_dttm", "event_thresh_s")
+    %in% names(edb))) {
+    edb[is.na(event_thresh_s), "event_thresh_s"] <- event_thresh
+    edb[!is.na(date_time) & is.na(start_dttm), "start_dttm"] <-
+      edb[!is.na(date_time) & is.na(start_dttm), ]$date_time - event_thresh
+    edb[!is.na(date_time) & is.na(end_dttm), "end_dttm"] <-
+      edb[!is.na(date_time) & is.na(end_dttm), ]$date_time + event_thresh
+  }
+
   if (!is.null(output_name)) {
     saveRDS(edb, paste0(file.path(output_dir, output_name), ".rmds"))
   }

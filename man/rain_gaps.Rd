@@ -7,7 +7,7 @@
 rain_gaps(
   input_file = NULL,
   gap_problem_thresh_s = 6 * 60 * 60,
-  event_thresh_s = 10 * 60,
+  event_thresh_s = 10 * 60 * 60,
   ...
 )
 }

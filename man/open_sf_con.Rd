@@ -7,9 +7,9 @@
 open_sf_con(pipe_house = NULL, station_file = NULL, ...)
 }
 \arguments{
-\item{pipe_house}{List of pipeline directories. \strong{See} \code{ipayipi::ipip_init()} \strong{for details}.}
+\item{pipe_house}{Optional. Used to generate filepath to station file name. List of pipeline directories. \strong{See} \code{ipayipi::ipip_init()} \strong{for details}.}
 
-\item{station_file}{Path to 'ipip' station file.}
+\item{station_file}{Path (with file name and extension) to 'ipip' station file.}
 }
 \value{
 Station file connection file paths. To be used in the pipeline.

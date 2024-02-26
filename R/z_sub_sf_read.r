@@ -1,10 +1,11 @@
 #' @title Opens a connection to an ipayipi station file.
 #' @description Package subroutine for opening a station file for work.
 #' @param pipe_house List of pipeline directories. __See__ `ipayipi::ipip_init()` __for details__.
-#' @param sfc Station file connection gerenated using `ipayipi::open_sf_con()`.
+#' @param sfc Station file connection gerenated using `ipayipi::open_sf_con()`. If `sfc` is provided both `pipe_house` and `station_file` arguments are optional.
 #' @param station_file The file name of the station file (extension included).
 #' @param tv String vector of the names of values or tables to read from the station file. The strings provided here are used to filter items in the `sfc` object. The filtered item is then read into memory.
 #' @param tmp Logical. If TRUE then `sf_read()` reads from the sessions temporary file location for stations.
+#' @param verbose Logical. Whether or not to report messages and progress.
 #' @keywords write station; edit station; add to station;
 #' @export
 #' @author Paul J Gordijn
@@ -17,15 +18,23 @@ sf_read <- function(
   station_file = NULL,
   tmp = FALSE,
   pipe_house = NULL,
+  verbose = TRUE,
   ...) {
   sf <- NULL
+  if (is.null(station_file) && !is.null(sfc)) {
+    ns <- basename(names(sfc)[1])
+    n <- sub(paste0("\\/", ns), "", sfc[[1]])
+    station_file <- gsub(pattern = paste0(dirname(n), "\\/"), replacement = "",
+      x = n)
+  }
   station_file <- basename(station_file)
   if (!tmp) {
     sfn <- file.path(pipe_house$ipip_room, station_file)
     if (file.exists(sfn)) {
       sf <- readRDS(file.path(pipe_house$ipip_room, station_file))
     } else {
-      message("Station file not found!")
+      cr_msg <- "Station file not found!"
+      msg(cr_msg, verbose)
       sf <- NULL
       return(sf)
     }
@@ -45,11 +54,13 @@ sf_read <- function(
     })
     names(sf) <- basename(sfns)
   } else {
-    message("Temporary station file not found!")
+    cr_msg <- "Temporary station file not found!"
+    msg(cr_msg, verbose)
     return(sf)
   }
   if (length(sf) == 0) {
-    message("No matching table or value names in station connention ('sfc')")
+    cr_msg <- "No matching table or value names in station connention ('sfc')"
+    msg(cr_msg, verbose)
   }
 
   return(sf)

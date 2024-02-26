@@ -10,11 +10,12 @@ sf_read(
   station_file = NULL,
   tmp = FALSE,
   pipe_house = NULL,
+  verbose = TRUE,
   ...
 )
 }
 \arguments{
-\item{sfc}{Station file connection gerenated using \code{ipayipi::open_sf_con()}.}
+\item{sfc}{Station file connection gerenated using \code{ipayipi::open_sf_con()}. If \code{sfc} is provided both \code{pipe_house} and \code{station_file} arguments are optional.}
 
 \item{tv}{String vector of the names of values or tables to read from the station file. The strings provided here are used to filter items in the \code{sfc} object. The filtered item is then read into memory.}
 
@@ -23,6 +24,8 @@ sf_read(
 \item{tmp}{Logical. If TRUE then \code{sf_read()} reads from the sessions temporary file location for stations.}
 
 \item{pipe_house}{List of pipeline directories. \strong{See} \code{ipayipi::ipip_init()} \strong{for details}.}
+
+\item{verbose}{Logical. Whether or not to report messages and progress.}
 }
 \value{
 Station file connection file paths. To be used in the pipeline.

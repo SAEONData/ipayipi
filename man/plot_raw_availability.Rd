@@ -6,9 +6,11 @@
 \usage{
 plot_raw_availability(
   pipe_house = NULL,
+  station_ext = ".ipip",
   gap_problem_thresh_s = 6 * 60 * 60,
   event_thresh_s = 10 * 60,
-  station_ext = ".ipip",
+  meta_events = "meta_events",
+  verbose = FALSE,
   wanted = NULL,
   unwanted = NULL,
   recurr = FALSE,
@@ -19,50 +21,44 @@ plot_raw_availability(
 )
 }
 \arguments{
-\item{wanted}{Character string of the station keyword. Use this to
-filter out stations that should not be plotted alongside eachother. If more
-than one search key is included, these should be separated by the bar
-character, e.g., \code{"mcp|manz"}, for use with data.table's \verb{\%ilike\%} operator.}
+\item{pipe_house}{List of pipeline directories. \strong{See} \code{ipayipi::ipip_init()} \strong{for details}.}
 
-\item{unwanted}{Vector of strings listing files that should not be included
-in the import.}
+\item{station_ext}{Required argument. File extension of the station files in the pipe_house directory 'ipip_room'.}
 
-\item{recurr}{Should the function search recursively? I.e., thorugh
-sub-folders as well --- \code{TRUE}/\code{FALSE}.}
+\item{gap_problem_thresh_s}{\emph{Parsed to} \code{ipayipi::gap_eval()}.}
 
-\item{prompt}{Logical. If \code{TRUE} the function will prompt the user to
-identify stations for plotting. The wanted and unwanted filters
-still apply when in interactive mode (\code{TRUE}).}
+\item{event_thresh_s}{\emph{Parsed to} \code{ipayipi::gap_eval()}.}
 
-\item{input_dir}{Folder in which to search for standardised SAEON hobo
-rainfall files.}
+\item{meta_events}{\emph{Parsed to} \code{ipayipi::gap_eval()}.}
+
+\item{verbose}{Logical. Whether or not to report messages and progress.}
+
+\item{wanted}{A string of keywords to use to filter which stations are selected for processing. Multiple search kewords should be seperated with a bar ('|'), and spaces avoided unless part of the keyword.}
+
+\item{unwanted}{Similar to wanted, but keywords for filtering out unwanted stations.}
+
+\item{recurr}{Should the function search recursively into sub directories for hobo rainfall csv export files? TRUE or FALSE.}
+
+\item{prompt}{Should the function use an interactive file selection function otherwise all files are returned. TRUE or FALSE.}
+
+\item{cores}{Number of CPU's to use for processing in parallel. Only applies when working on Linux.}
+
+\item{keep_open}{Logical. Keep \emph{hidden} 'station_file' open for ease of access. Defaults to \code{FALSE}.}
 }
 \value{
-A list containing a plot, which shows the availability of data, the
-plot data and a seperate data table showing the mid-point, in time, of each
-problem gap, plus associated gap details. This data could be used to
-annotated the plot. The plot is produced using \code{ggplot2::ggplot()}.
+A list containing a plot, which shows the availability of data, the gap data as formatted for plotting. The plot is produced using \code{ggplot2::ggplot()}.
 }
 \description{
-Uses dygraphs to plot the availability of data at a group
-of hobo rainfall stations.
+Uses ggplot2 to show the availability of data for a select group of station's and their raw data tables.
 }
 \details{
-This function will plot the continuity of data from a number of
-stations (rain gauges). The potential continuity of data, from start to end,
-is plotted then overlaid with 'problem' data gaps. Data gaps are extracted
-from the 'gaps' table in a standardised \code{ipayipi} data object. See the
-\code{ipayipi::rain_gaps()} and \code{ipayipi::rain_gaps_batch()} functions.
+Gap data for each station and respective tables are extracted from the station, using \code{ipayipi::gap_eval()}. Gap tables are combined with the full record of data in a data summary table and plotted using ggplot2. Note that 'gaps' can be edited by imbibing metadata into a stations record, \emph{see} \code{ipayipi::gap_eval()} for details.
 }
 \author{
 Paul J. Gordijn
 }
 \keyword{data}
 \keyword{data;}
-\keyword{files;}
-\keyword{graphs;}
-\keyword{hobo}
-\keyword{management;}
 \keyword{missing}
 \keyword{over}
 \keyword{plotting;}

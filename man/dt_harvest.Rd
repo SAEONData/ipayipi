@@ -5,11 +5,10 @@
 \title{'dt' processing pipeline: harvest data from another station or table.}
 \usage{
 dt_harvest(
-  station_file = station_file,
+  station_file = NULL,
   f_params = NULL,
   time_interval = NULL,
-  sf = NULL,
-  dt_working = NULL,
+  sfc = NULL,
   ...
 )
 }

@@ -6,9 +6,7 @@
 calc_param_eval <- function(
   f_params = NULL,
   full_eval = FALSE,
-  f_summary = NULL,
   ppsij = NULL,
-  sf = sf,
   ...
   ) {
   "phen_name" <- NULL

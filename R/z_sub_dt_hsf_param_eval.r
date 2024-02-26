@@ -1,59 +1,29 @@
-#' @title 'dt' processing pipeline: genearte data harvest criteria
+#' @title 'dt' processing pipeline: generate data harvest criteria
 #' @description Sets up a data harvest from a desired station file.
 #' @param full_eval Defaults to `FALSE`.
-#' @param station_file *The path and name of the main station to
-#'  which data is being harvested.
-#' @param hsf_station *The path and name of the station, or a keyword, to search
-#'  for the station from which data will be harvested. _If `NA` the
-#'  `hsf_station` is set to `station_file`, i.e., data will be harvested from
-#'  the `station_file`._ If a string is provided the function will search
-#'  for a matching station during full evaluation (`eval_full` set to TRUE`).
+#' @param station_file *The path and name of the main station to which data is being harvested.
+#' @param hsf_station *The path and name of the station, or a keyword, to search for the station from which data will be harvested. _If `NA` the `hsf_station` is set to `station_file`, i.e., data will be harvested from the `station_file`._ If a string is provided the function will search for a matching station during full evaluation (`eval_full` set to TRUE`).
 #' @param harvest_dir *The directory in which to search for the `hsf_station`.
-#' @param hsf_table *The name of the table from which to harvest data. If the
-#'  keyword "raw" is used data will extracted from stations standardised 'raw'
-#'  data. The linked "phen" table will be used for describing the extracted
-#'  "raw" data. If there are no phenomena descriptions the function will use
-#'  the default format of the fields/columns of the harvested table. This will
-#'  be added to the processing phenomena information ('phens_dt').
-#' @param time_interval *The desired time interval of the `output_dt`. The
-#'  full evaluation will extract phenomena from 'raw' data tables accordingly.
-#' @param phen_names *Names of phenomena to extract from tables. If `NULL`
-#'  all phenomena possible will be harvested. If the desired `time_interval`
-#'  is shorter than the time interval or frequency of recordings of the data
-#'  to be harvested, phenomena will not be harvested.
-#' @param recurr Logical. Whether to search recursively in directories
-#'  for the `hsf_station`. Parsed to `ipayipi::dta_list()`.
-#' @param harvest_station_ext Parsed to `ipayipi::dta_list()`. Defaults
-#'  to ".ipip". Must include the period (".").
-#' @param prompt Parsed to `ipayipi::dta_list()`. Set to `TRUE` to use
-#'  interactive harvest station selection.
-#' @param single_out Forces through an interactive process the singling
-#'  out of a harvest station. Useful for example where `ipayipi::dta_list()`
-#'  returns from than one option.
-#' @param f_params For the partial evaluation multiple phenomena can
-#'  be described using `ipayipi::agg_params()`. If left blank defaults will
-#'  be used on all phenomena harvested.
-#' @param f_summary Summary information used in full evaluation. Includes
-#'  any tables in the station file with keywords, "phens" or "summary".
-#' @param ppsij Summary pipe process table for the function. If provided this
-#'  data will be used to overwrite similar arguments provided in the function.
-#'  This must be provided for the full function evaluation.
-#' @param sf Station file object.
+#' @param hsf_table *The name of the table from which to harvest data. If the keyword "raw" is used data will extracted from stations standardised 'raw' data. The linked "phen" table will be used for describing the extracted "raw" data. If there are no phenomena descriptions the function will use the default format of the fields/columns of the harvested table. This will be added to the processing phenomena information ('phens_dt').
+#' @param time_interval *The desired time interval of the `output_dt`. The full evaluation will extract phenomena from 'raw' data tables accordingly.
+#' @param phen_names *Names of phenomena to extract from tables. If `NULL` all phenomena possible will be harvested. If the desired `time_interval` is shorter than the time interval or frequency of recordings of the data to be harvested, phenomena will not be harvested.
+#' @param recurr Logical. Whether to search recursively in directories for the `hsf_station`. Parsed to `ipayipi::dta_list()`.
+#' @param harvest_station_ext Parsed to `ipayipi::dta_list()`. Defaults to ".ipip". Must include the period (".").
+#' @param prompt Parsed to `ipayipi::dta_list()`. Set to `TRUE` to use interactive harvest station selection.
+#' @param single_out Forces through an interactive process the singling out of a harvest station. Useful for example where `ipayipi::dta_list()` returns from than one option.
+#' @param f_params For the partial evaluation multiple phenomena can be described using `ipayipi::agg_params()`. If left blank defaults will be used on all phenomena harvested.
+#' @param ppsij Summary pipe process table for the function. If provided this data will be used to overwrite similar arguments provided in the function. This must be provided for the full function evaluation.
 #' @details _Parameters indicated by '*' are used in the partial evaluation.
 #'  The results of partial evaluations are fed to the full evaluation.
 #'
-#' _Time_interval_: In order to minimise the memory requried to
-#'  aggregate harvested data, if there are more than one 'raw' tables with
-#'  different record intervals, phenomena will be exrtacted from the 'raw'
-#'  table whose record interval most closely matches the specified
-#'  `time_interval`.
+#' _Time_interval_: In order to minimise the memory requried to aggregate harvested data, if there are more than one 'raw' tables with different record intervals, phenomena will be exrtacted from the 'raw' table whose record interval most closely matches the specified `time_interval`.
 #' @export
 hsf_param_eval <- function(
   station_file = NULL,
   hsf_station = NULL,
   harvest_dir = ".",
   hsf_table = "raw",
-  time_interval = NULL,
+  time_interval = "discnt",
   phen_names = NULL,
   recurr = TRUE,
   harvest_station_ext = ".ipip",
@@ -61,9 +31,8 @@ hsf_param_eval <- function(
   single_out = TRUE,
   full_eval = FALSE,
   f_params = NULL,
-  f_summary = NULL,
   ppsij = NULL,
-  sf = NULL,
+  sfc = NULL,
   ...
 ) {
   "%ilike%" <- "phen_name" <- "table_name" <- "input_dt" <- "phen_syn" <-
@@ -115,14 +84,14 @@ hsf_param_eval <- function(
     }
     # open hsf file if different from sf
     if (basename(hsfn) != basename(station_file)) {
-      hsf <- attempt::try_catch(expr = readRDS(hsfn), .w = ~stop)
-      hsf_names <- names(hsf)
-      hsf_summary <- hsf[hsf_names %ilike% "summary|phens"]
+      hsfc <- attempt::try_catch(
+        ipayipi::open_sf_con(station_file = station_file)
+      )
     } else {
-      hsf_summary <- f_summary
-      hsf_names <- f_summary$sf_names
+      hsfc <- sfc
     }
-
+    hsf_summary <- ipayipi::sf_read(sfc = hsfc, tmp = TRUE,
+      tv = c("data_summary", "phens", "phens_dt"), station_file = hsfn)
     ## prepare hsf phen metadata ----
     # - depends on time series data type (discnt or continuous)
     # - if extracting from standardised pipe data we can extract phenomena
@@ -137,6 +106,8 @@ hsf_param_eval <- function(
     if (!is.null(phen_names)) {
       phen_tabs <- lapply(phen_tabs, function(x) x[phen_name %in% phen_names])
     }
+
+    p <- NULL
     # extract from raw data phen table
     if (hsf_table %ilike% "raw") {
       p <- phen_tabs$phens[table_name %ilike% "raw",
@@ -145,18 +116,12 @@ hsf_param_eval <- function(
       # join on data summary info
       s <- unique(hsf_summary$data_summary, by = "table_name")
     }
-    # extract from processed data phen table ('_dt')
-    if (hsf_table %ilike% "_dt") {
-      p <- phen_tabs$phens_dt[table_name %ilike% "_dt",
-        c("phid", "phen_name", "units", "measure", "var_type", "table_name")]
-      if (hsf_table != "_dt") p <- p[table_name == hsf_table]
-      # join on data summary info
-      s <- unique(hsf_summary$data_summary_dt, by = "table_name")
-    }
+
     # extract from other source
     if (!any(sapply(phen_tabs, function(x) any(x$table_name == hsf_table))) &&
       hsf_table != "raw") {
       # open table
+      ht <- ipayipi::sf_read(sfc = sfc, tv = hsf_table, tmp = TRUE)[[hsf_table]]
       ht <- attempt::try_catch(expr = readRDS(hsfn), .w = ~stop)[[hsf_table]]
       # get date time info
       dttm <- names(ht)[names(ht) %ilike% "date_time|date-time"][1]
@@ -177,21 +142,32 @@ hsf_param_eval <- function(
         ipayipi::sts_phen_var_type[phen_syn %ilike% x][["phen_prop"]][1]
       }))
     }
-    if (is.null(phen_names[1]) || is.na(phen_names[1])) {
-      phen_names <- unique(p$phen_name)
+    if (!is.null(p)) {
+      ## phen aggregation interval options ----
+      # add record interval to p to organise aggregation intervals and phenomena
+      # selection
+      s <- s[, names(s)[names(s) %in% c("record_interval_type",
+        "record_interval", "table_name", "start_dttm", "end_dttm")],
+          with = FALSE]
+      sx <- lapply(s$record_interval, ipayipi::sts_interval_name)
+      sx <- data.table::rbindlist(sx)
+      s <- cbind(s, sx)
+      p <- merge(x = p, y = s, all.y = TRUE, by = "table_name")
     }
-    phen_names <- unique(p$phen_name)
-    phen_names <- phen_names[order(phen_names)]
+    # extract from processed data phen table ('dt_')
+    if (hsf_table %ilike% "dt_" && "phens_dt" %in% names(sfc) &&
+      is.null(p)) {
+      p <- phen_tabs$phens_dt[table_name %ilike% "dt_"]
+      p <- p[table_name == hsf_table]
+      # check aggregation interval
+      s <- p[, c("record_interval_type", "dt_record_interval", "table_name"),
+        with = FALSE]
+      s <- s[, ":="(record_interval = dt_record_interval)]
+    }
 
     ## phen aggregation interval options ----
     # add record interval to p to organise aggregation intervals and phenomena
     # selection
-    s <- s[, c("record_interval_type", "record_interval", "table_name",
-      "start_dttm", "end_dttm")]
-    sx <- lapply(s$record_interval, ipayipi::sts_interval_name)
-    sx <- data.table::rbindlist(sx)
-    s <- cbind(s, sx)
-    p <- merge(x = p, y = s, all.y = TRUE, by = "table_name")
     agg_time_interval <- ipayipi::sts_interval_name(time_interval)
 
     ### discontinuous data option ----
@@ -199,6 +175,7 @@ hsf_param_eval <- function(
     if (is.na(agg_time_interval$dfft_secs)) agg_time_interval$dfft_secs <- 0
     p$agg_intv <- agg_time_interval$dfft_secs
     p$dfft_diff <- p$agg_intv - p$dfft_secs
+
     # can only aggregate if time intervals are more lengthy than raw data
     if (all(p$dfft_diff < 0)) {
       warning(paste0(time_interval, " has a shorter duration than ",
@@ -212,9 +189,6 @@ hsf_param_eval <- function(
       invisible(x)
     })
     p <- data.table::rbindlist(p)
-    # summarise p info for actual harvesting
-    # - dt_phen summary
-    # - dt_harvest parameters
     phens_dt <- data.table::data.table(
       ppsid = paste(dt_n, dtp_n, sep = "_"),
       phid = p$phid,
@@ -229,10 +203,17 @@ hsf_param_eval <- function(
       orig_table_name = p$table_name,
       table_name = output_dt
     )
+
     hsf_params <- phens_dt[, c("ppsid", "orig_table_name", "phen_name"),
       with = FALSE][, ":="(station_file = station_file, hsf_station = hsfn)][,
         hsf_table := orig_table_name][, c("ppsid", "station_file",
         "hsf_station", "hsf_table", "phen_name"), with = FALSE]
+
+    if (is.null(phen_names[1]) || is.na(phen_names[1])) {
+      phen_names <- unique(p$phen_name)
+    }
+    phen_names <- unique(p$phen_name)
+    if (!is.null(phen_names)) phen_names <- phen_names[order(phen_names)]
 
     f_params <- list(f_params = list(hsf_params = hsf_params),
       phens_dt = phens_dt)

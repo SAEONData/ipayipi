@@ -1,38 +1,30 @@
 #' @title Plot the coverage of standardised hobo rainfall files
-#' @description Uses dygraphs to plot the availability of data at a group
-#'  of hobo rainfall stations.
+#' @description Uses ggplot2 to show the availability of data for a select group of station's and their raw data tables.
+#' @param pipe_house List of pipeline directories. __See__ `ipayipi::ipip_init()` __for details__.
+#' @param station_ext Required argument. File extension of the station files in the pipe_house directory 'ipip_room'.
+#' @param gap_problem_thresh_s _Parsed to_ `ipayipi::gap_eval()`.
+#' @param event_thresh_s _Parsed to_ `ipayipi::gap_eval()`.
+#' @param meta_events _Parsed to_ `ipayipi::gap_eval()`.
+#' @param verbose Logical. Whether or not to report messages and progress.
+#' @param wanted A string of keywords to use to filter which stations are selected for processing. Multiple search kewords should be seperated with a bar ('|'), and spaces avoided unless part of the keyword.
+#' @param unwanted Similar to wanted, but keywords for filtering out unwanted stations.
+#' @param prompt Should the function use an interactive file selection function otherwise all files are returned. TRUE or FALSE.
+#' @param recurr Should the function search recursively into sub directories for hobo rainfall csv export files? TRUE or FALSE.
+#' @param cores  Number of CPU's to use for processing in parallel. Only applies when working on Linux.
+#' @param keep_open Logical. Keep _hidden_ 'station_file' open for ease of access. Defaults to `FALSE`.
 #' @author Paul J. Gordijn
-#' @keywords graphs; data management; missing data; hobo files;
-#' @param input_dir Folder in which to search for standardised SAEON hobo
-#'  rainfall files.
-#' @param recurr Should the function search recursively? I.e., thorugh
-#'  sub-folders as well --- `TRUE`/`FALSE`.
-#' @param wanted Character string of the station keyword. Use this to
-#'  filter out stations that should not be plotted alongside eachother. If more
-#'  than one search key is included, these should be separated by the bar
-#'  character, e.g., `"mcp|manz"`, for use with data.table's `%ilike%` operator.
-#' @param unwanted Vector of strings listing files that should not be included
-#'  in the import.
-#' @param prompt Logical. If `TRUE` the function will prompt the user to
-#'  identify stations for plotting. The wanted and unwanted filters
-#'  still apply when in interactive mode (`TRUE`).
-#' @details This function will plot the continuity of data from a number of
-#'  stations (rain gauges). The potential continuity of data, from start to end,
-#'  is plotted then overlaid with 'problem' data gaps. Data gaps are extracted
-#'  from the 'gaps' table in a standardised `ipayipi` data object. See the
-#'  `ipayipi::rain_gaps()` and `ipayipi::rain_gaps_batch()` functions.
-#' @return A list containing a plot, which shows the availability of data, the
-#'  plot data and a seperate data table showing the mid-point, in time, of each
-#'  problem gap, plus associated gap details. This data could be used to
-#'  annotated the plot. The plot is produced using `ggplot2::ggplot()`.
+#' @details Gap data for each station and respective tables are extracted from the station, using `ipayipi::gap_eval()`. Gap tables are combined with the full record of data in a data summary table and plotted using ggplot2. Note that 'gaps' can be edited by imbibing metadata into a stations record, _see_ `ipayipi::gap_eval()` for details.
+#' @return A list containing a plot, which shows the availability of data, the gap data as formatted for plotting. The plot is produced using `ggplot2::ggplot()`.
 #' @keywords plotting; missing data; data over view; data reporting;
 #' @author Paul J. Gordijn
 #' @export
 plot_raw_availability <- function(
   pipe_house = NULL,
+  station_ext = ".ipip",
   gap_problem_thresh_s = 6 * 60 * 60,
   event_thresh_s = 10 * 60,
-  station_ext = ".ipip",
+  meta_events = "meta_events",
+  verbose = FALSE,
   wanted = NULL,
   unwanted = NULL,
   recurr = FALSE,
@@ -43,7 +35,7 @@ plot_raw_availability <- function(
 ) {
   "station_n" <- "stnd_title" <- "dtt0" <- "dtt1" <- "station" <-
     "table_name" <- "data_yes" <- "date_time" <- "gap_yes" <-
-    "station_wrd" <- "i" <- NULL
+    "station_wrd" <- "i" <- "gs_data_yes" <- "problem_gap" <- NULL
   slist <- ipayipi::dta_list(input_dir = pipe_house$ipip_room,
     file_ext = ".ipip", prompt = prompt, recurr = recurr,
     unwanted = unwanted, wanted = wanted)
@@ -63,9 +55,11 @@ plot_raw_availability <- function(
   run_gap_gaps <- lapply(run_gaps, function(x) {
     g <- ipayipi::gap_eval(pipe_house = pipe_house, station_file = x,
       gap_problem_thresh_s = gap_problem_thresh_s, event_thresh_s =
-      event_thresh_s, keep_open = keep_open)
+      event_thresh_s, keep_open = keep_open, meta_events = meta_events,
+      verbose = verbose)
     ipayipi::write_station(pipe_house = pipe_house, sf = g, station_file = x,
       overwrite = TRUE, append = TRUE, keep_open = keep_open)
+    g$gaps <- g$gaps[problem_gap == TRUE]
     invisible(g$gaps)
   })
   names(run_gap_gaps) <- run_gaps
@@ -73,7 +67,8 @@ plot_raw_availability <- function(
   gaps <- c(gaps[!sapply(gaps, is.null)], run_gap_gaps)
   gs <- lapply(seq_along(gaps), function(i) {
     gaps[[i]]$station <- sub("\\.ipip", "", names(gaps[i]))
-    g <- split.data.frame(gaps[[i]], f = as.factor(gaps[[i]]$table_name))
+    g <- split.data.frame(gaps[[i]][problem_gap == TRUE],
+      f = as.factor(gaps[[i]][problem_gap == TRUE]$table_name))
     return(g)
   })
   gs <- unlist(gs, recursive = FALSE)
@@ -139,7 +134,7 @@ plot_raw_availability <- function(
   dts <- unique(dts)
   dts$dtt1 <- dts$dtt0
   data.table::setkey(dts, dtt0, dtt1)
-  gs <- data.table::rbindlist(gs)
+  gs <- data.table::rbindlist(gs, use.names = TRUE)
   names(gs) <- paste0("gs_", names(gs))
   data.table::setkey(gs, "gs_gap_start", "gs_gap_end")
 
