@@ -33,7 +33,7 @@
 #' This function, 'mhlanga' (literally: 'reeds', 'reed bed'; figuratively: come together, in isiZulu) pulls various 'data.table' join syntax commands together, plus added 'ipayipi' time-sensitive joins, into a single function. Time-senstive joins compare 'x' or 'y' data, column by column, to avoid replacing records with `NA` values when overwriting overlapping time-series data sets.
 #'
 #' 'ipayipi' expects time-series data to have a 'time' column named 'date_time'. This is the default key for joins in 'ipayipi'. Other join columns can be set using the `x_key` and `y_key` arguments.
-#'
+#' @export
 mhlanga <- function(
   x_tbl = NULL,
   y_tbl = NULL,
@@ -44,7 +44,7 @@ mhlanga <- function(
   inq = NULL,
   y_phen_names = NULL,
   nomatch = NA,
-  mult = "all",
+  mult = "first",
   roll = FALSE,
   rollends = FALSE,
   allow.cartesian = FALSE,
@@ -52,7 +52,12 @@ mhlanga <- function(
   ri = NULL,
   phen_dt = NULL,
   over_right = FALSE,
+  station = NULL,
   ...) {
+
+  # for (i in seq_along(args)) {
+  #   assign(names(args)[i], args[[i]])
+  # }
   x_tbl <- data.table::setDT(x_tbl)
   y_tbl <- data.table::setDT(y_tbl)
 
@@ -62,31 +67,36 @@ mhlanga <- function(
   # fuzzy and key prep ----
   if (!is.null(fuzzy)) { # fuzzy key prep ----
     if (length(fuzzy) == 1) fuzzy <- c(fuzzy, fuzzy)
-    if (length(x_key) == 1) x_key[2] <- x_key[1]
-    # check keys
-    if (x_key[1] %in% "date_time") {
-      x_tbl$xd1 <- x_tbl[[x_key[1]]] - fuzzy[1]
-      x_key[1] <- "xd1"
-    }
-    if (x_key[2] %in% "date_time") {
-      x_tbl$xd2 <- x_tbl[[x_key[2]]] + fuzzy[1]
-      x_key[2] <- "xd2"
-    } else {
-      x_key[2] <- x_key[1]
-    }
-    if (length(y_key) == 1) y_key[2] <- y_key[1]
-    if (y_key[1] %in% "date_time") {
-      y_tbl$yd1 <- y_tbl[[y_key[1]]] - fuzzy[1]
-      y_key[1] <- "yd1"
-    }
-    if (y_key[2] %in% "date_time") {
-      y_tbl$yd2 <- y_tbl[[y_key[2]]] + fuzzy[1]
-      y_key[2] <- "yd2"
-    } else {
-      y_key[2] <- y_key[1]
-    }
+    if (is.na(x_key[2])) x_key[2] <- x_key[1]
+    if (is.na(y_key[2])) y_key[2] <- y_key[1]
+  }
+
+  # check keys
+  if (!is.null(fuzzy)) {
+    x_tbl$xd1 <- x_tbl[[x_key[1]]] - fuzzy[1]
+    x_key[1] <- "xd1"
+    x_tbl$xd2 <- x_tbl[[x_key[2]]] + fuzzy[1]
+    x_key[2] <- "xd2"
+    y_tbl$yd1 <- y_tbl[[y_key[1]]] - fuzzy[2]
+    y_key[1] <- "yd1"
+    y_tbl$yd2 <- y_tbl[[y_key[2]]] + fuzzy[2]
+    y_key[2] <- "yd2"
+  }
+  # if (x_key[2] %in% "date_time" && !is.null(fuzzy)) {
+  #   x_tbl$xd2 <- x_tbl[[x_key[2]]] + fuzzy[1]
+  #   x_key[2] <- "xd2"
+  # }
+  # if (y_key[1] %in% "date_time" && !is.null(fuzzy)) {
+  #   y_tbl$yd1 <- y_tbl[[y_key[1]]] - fuzzy[2]
+  #   y_key[1] <- "yd1"
+  # }
+  # if (y_key[2] %in% "date_time" && !is.null(fuzzy)) {
+  #   y_tbl$yd2 <- y_tbl[[y_key[2]]] + fuzzy[2]
+  #   y_key[2] <- "yd2"
+  # }
+  if (all(sapply(list(x_key, y_key), function(x) length(x) == 2))) {
     # add in equality signs for non-equi/fuzzy joins
-    if (is.null(inq)) inq <- c(">", "<=")
+    if (is.null(inq)) inq <- c("<=", ">=")
     if (join %in% "left_join") {
       on <- paste0(", on = .(", y_key[1], inq[1], x_key[1],
         ",", y_key[2], inq[length(inq)], x_key[2], ")", collapse = "")
@@ -95,56 +105,57 @@ mhlanga <- function(
       on <- paste0(", on = .(", x_key[1], inq[1], y_key[1],
         ",", x_key[2], inq[length(inq)], y_key[2], ")", collapse = "")
     }
-
   } else { ## non-fuzzy key prep ----
     on <- paste0(", , on = .(", x_key[1], ",", y_key[1], ")", collapse = "")
   }
 
   # prep data.table syntax ----
-  if (mult != "all") dsyn <- paste0(dsyn, " , mult=", mult, collapse = "")
+  if (mult != "all") on <- paste0(on, ", mult=\'", mult, "\'", collapse = "")
   if (join != "inner" && !is.na(nomatch)) {
-    dsyn <- paste0(dsyn, " , nomatch=", nomatch, collapse = "")
+    on <- paste0(on, " , nomatch=", nomatch, collapse = "")
   }
-  if (roll) dsyn <- paste0(dsyn, " , roll=", roll, collapse = "")
+  if (roll) on <- paste0(on, " , roll=", roll, collapse = "")
   if (rollends != FALSE) {
-    dsyn <- paste0(dsyn, " , rollends=c\\(", as.character(rollends[1]), ", ",
+    on <- paste0(on, " , rollends=c\\(", as.character(rollends[1]), ", ",
       as.character(rollends[length(rollends)]), "\\)", collapse = "")
   }
+  # add preffix to duplicate column names in y_tbl
+  names(y_tbl)[names(y_tbl) %in% names(x_tbl)] <-
+    paste0("ydt_", names(y_tbl)[names(y_tbl) %in% names(x_tbl)])
 
   # left_join ----
   if (join == "left_join") {
-    dsyn <- paste0("y_tbl[x_tbl", dsyn, "]", collapse = "")
+    dsyn <- paste0("y_tbl[x_tbl", on, "]", collapse = "")
     xy <- eval(parse(text = dsyn))
-    return(xy)
   }
 
   # right join ----
   if (join == "right_join") {
-    dsyn <- paste0("x_tbl[y_tbl", dsyn, "]", collapse = "")
+    dsyn <- paste0("x_tbl[y_tbl", on, "]", collapse = "")
     xy <- eval(parse(text = dsyn))
-    return(xy)
   }
 
   # inner_join ----
   if (join == "inner_join") {
     dsyn <- paste0(dsyn, " , nomatch=", "NULL", collapse = "")
     xy <- eval(parse(text = dsyn))
-    return(xy)
   }
 
   # full_join ----
   if (join == "full_join" && !any(time_seq[1], !time_seq[2])) {
     dsyn <- "merge(x = x_tbl, y = y_tbl, all = TRUE)"
     xy <- eval(parse(text = dsyn))
-    return(xy)
   }
 
   # full_join --- time sensitive
   if (join == "full_join" && all(time_seq[1], !time_seq[2])) {
     xy <- ipayipi::append_phen_data2(station_file = x_tbl, ndt = y_tbl, phen_id
       = FALSE, phen_dt = phen_dt, overwrite_sf = over_right, ri = ri, ...)
-    return(xy)
   }
-
-  return(list(dt = dt))
+  # remove fuzzy columns
+  xy <- xy[, names(xy)[!names(xy) %in% c("xd1", "xd2", "yd1", "yd2")],
+    with = FALSE]
+  xy <- xy[, names(xy)[!names(xy) %ilike% "ydt_"], with = FALSE]
+  return(xy)
 }
+

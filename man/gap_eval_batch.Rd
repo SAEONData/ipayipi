@@ -8,6 +8,7 @@ gap_eval_batch(
   pipe_house = NULL,
   gap_problem_thresh_s = 6 * 60 * 60,
   event_thresh_s = 10 * 60,
+  meta_events = "meta_events",
   station_ext = ".ipip",
   prompt = FALSE,
   wanted = NULL,
@@ -24,65 +25,28 @@ gap_eval_batch(
 
 \item{event_thresh_s}{A gap can also be specified in the event metadata by providing only a single date-time stamp and an 'event_threshold_s' (in seconds). By taking this date-time stamp the function approximates the start and end-time of the data gap by adding and subtracting the given \code{event_thresh_s} to the date-time stamp, respectively. If the \code{event_thresh_s} is supplied in the 'meta_events' data (\emph{see} \code{meta_to_station()}) then the value supplied therein is used in preference to the \code{event_thresh_s} argument in this function. The default event threshold here is ten minutes, i.e., 10 * 60 seconds.}
 
+\item{meta_events}{Optional. The name of the data.table in the station file with event metadata. Defaults to NA.}
+
+\item{prompt}{Should the function use an interactive station file selection function otherwise all files are returned. \code{TRUE} or \code{FALSE}.}
+
+\item{wanted}{Vector of strings listing files that should not be included in station file search.}
+
+\item{unwanted}{Vector of strings listing station files that should not be included in the import.}
+
 \item{keep_open}{Logical. Keep \emph{hidden} 'station_file' open for ease of access. Defaults to \code{FALSE}.}
 
 \item{station_file}{Standardised \strong{ipayipi} station file.}
+
+\item{recurr}{Should the function search recursively into sub directories for station files? \code{TRUE} or \code{FALSE}.}
 }
 \value{
-A table describing data 'gaps'
+Names of stations with Updated gap period tables.
 }
 \description{
 The period between the time a logger is stopped, removed, or discommissioned, and when a logger beings recording data again, counts as missing data. However, for event-based data, where the frequency of recordings is temporarily erratic, identifying gaps is more tricky. This function sets some rules when identifying gaps in event-based time-series data.
 }
 \details{
-There are a number of different data problems that arise in time-series data. One of the simplest issues are data gaps, that is, periods where no data were recorded by a logger, or an individual sensor attached to a logger. Moreover, data can be declared 'missing' if it is erraneous. This function helps users identify gaps in continuous and discontinuous data types.
-
-different types problems with the data taking the following steps to
-identify and classify data 'gaps' (i.e., missing data).
-\enumerate{
-\item Trim any manually declared data gaps by the start and end dates of the
-extant rainfall data (start and end dates taken from the data summary).
-\item Generate a table of data 'gaps' between each download and deploy event.
-This type of data gap, i.e., the 'gap_type' is categorized as 'auto' in
-the final output. The rest of the gap types dealt with are manually
-declared data gaps.
-\item If there has been event data appended to the station data the function
-will search therein for any manually declared gaps, that is, the
-'event_type' 'logger_declare_error_segment'. If these segments extend
-'over' any 'auto' gaps they are trimmed to preserve the record of the
-'auto' gap. If any 'auto' gaps fall within an manually declared error
-segment then, they too, are considered a problem gap, even if the duration
-of the 'auto' gap is short enough to not be considered a problem gap.
-\item Within the pipeline notes can be appended to a gap using the
-'logger_gap_notes' 'event_type'. To do this a date-time stamp must be
-provided which falls within the gap of interest. When appending the notes
-\emph{\strong{the function will check whether the 'problem_gap' field was marked}}.
-\emph{If this field was FALSE then the gap is not considered a problematic gap}
-, i.e., the user is condident that no rainfall occurred during the 'gap'
-period. If the \emph{\strong{raining}} field was TRUE in the 'event_data' then the
-gap is considered problematic.
-\item A final 'gap' table is provided in the R data object. This table will
-be used to highlight no data when aggregating the data. Furthermore, in
-infilling exercises, the gaps provide a means for highlighting where
-'patching' is required. Below is a description of the gap table fields:
-}\tabular{ll}{
-   Column \tab Description \cr
-   gid \tab Unique identifier for each gap. \cr
-   euid \tab Event ID number imported from manually declared error segments. \cr
-   gap_start \tab The start date-time of a gap. \cr
-   gap_end \tab The end date-time of the gap. \cr
-   dt_diff_s \tab The time duration in seconds of the gap. \cr
-   gap_problem_thresh_s \tab The threshold duration beyond which a gap is \cr
-}
-
-
-\if{html}{\out{<div class="sourceCode">}}\preformatted{considered problematic.|
-}\if{html}{\out{</div>}}
-
-|problem_gap    |Logical field indicating whether a gap is considered to be
-problematic.|
-|Notes    | Notes describing the gap. The function will append any notes
-imported from the event data, if existent. |
+Batch application of \code{ipayipi::gap_eval()}.
 }
 \author{
 Paul J. Gordijn

@@ -18,6 +18,7 @@ dt_join(
   allow.cartesian = FALSE,
   time_seq = NULL,
   fuzzy = NULL,
+  inq = NULL,
   station_file = NULL,
   dta_in = NULL,
   input_dt = NULL,
@@ -25,8 +26,8 @@ dt_join(
   output_dt_preffix = "dt_",
   output_dt_suffix = NULL,
   f_params = NULL,
-  dt_working = NULL,
-  ppsij = ppsij,
+  sfc = NULL,
+  ppsij = NULL,
   ...
 )
 }

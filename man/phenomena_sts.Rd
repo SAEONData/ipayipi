@@ -19,24 +19,17 @@ phenomena_sts(
 )
 }
 \arguments{
-\item{pipe_house}{List of pipeline directories. \strong{See}
-\code{ipayipi::ipip_init()} \strong{for details}.}
+\item{pipe_house}{List of pipeline directories. \strong{See} \code{ipayipi::ipip_init()} \strong{for details}.}
 
-\item{prompt}{Should the function use an interactive file selection function
-otherwise all files are returned. TRUE or FALSE.}
+\item{prompt}{Should the function use an interactive file selection function otherwise all files are returned. TRUE or FALSE.}
 
-\item{recurr}{Should the function search recursively into sub directories
-for hobo rainfall csv export files? TRUE or FALSE.}
+\item{recurr}{Should the function search recursively into sub directories for hobo rainfall csv export files? TRUE or FALSE.}
 
-\item{wanted}{A string of keywords to use to filter which stations
-are selected for processing. Multiple search kewords should be seperated
-with a bar ('|'), and spaces avoided unless part of the keyword.}
+\item{wanted}{A string of keywords to use to filter which stations are selected for processing. Multiple search kewords should be seperated with a bar ('|'), and spaces avoided unless part of the keyword.}
 
-\item{unwanted}{Similar to wanted, but keywords for filtering out unwanted
-stations.}
+\item{unwanted}{Similar to wanted, but keywords for filtering out unwanted stations.}
 
-\item{file_ext_in}{The file extension defaults to ".iph". Other file types
-could be incorporatted if required.}
+\item{file_ext_in}{The file extension defaults to ".iph". Other file types could be incorporatted if required.}
 
 \item{verbose}{Print some details on the files being processed? Logical.}
 

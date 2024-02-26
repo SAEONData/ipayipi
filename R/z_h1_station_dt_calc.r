@@ -14,28 +14,32 @@
 #' @return A list containing the processed data sets 'dts_dt'.
 #' @author Paul J. Gordijn
 #' details
-#' 
+#'
 #' @export
 dt_calc <- function(
+  sfc = NULL,
   station_file = NULL,
-  dta_in = NULL,
-  input_dt = NULL,
-  output_dt = NULL,
-  output_dt_preffix = "dt_",
-  output_dt_suffix = NULL,
   f_params = NULL,
-  dt_working = NULL,
+  station_file_ext = ".ipip",
   ...) {
-  "dt" <- NULL
+  "dt" <- "station" <- NULL
   # read in the available data
-  if (!is.null(dt_working)) {
-    dta_in <- dt_working
+  sfcn <- names(sfc)
+  dta_in <- NULL
+  if ("dt_working" %in% sfcn) {
+    dta_in <- ipayipi::sf_read(sfc = sfc, tv = "dt_working", tmp = TRUE)[[
+      "dt_working"
+    ]]
   }
-  if ("hsf_dts" %in% names(dta_in)) {
-    dta_in <- dta_in[["hsf_dts"]][[1]]
-  } else {
-    dta_in <- dta_in[["dt"]]
+
+  if (is.null(dta_in) && "hsf_dts" %in% sfcn) {
+    dta_in <- ipayipi::sf_read(sfc = sfc, tv = "hsf_dts", tmp = TRUE)[[
+      "hsf_dts"
+    ]][[1]]
   }
+  # create station object for calc parsing
+  station <- gsub(paste(dirname(station_file), station_file_ext,
+    "/", sep = "|"), "", station_file)
   dt <- data.table::as.data.table(dta_in)
 
   # organise f_params
@@ -68,7 +72,7 @@ dt_calc <- function(
   names(fk_params) <- f_ipips
   fk_params <- fk_params[sapply(fk_params, function(x) !is.null(x))]
   dt_fk_params <- lapply(fk_params, function(x) eval(parse(text = x)))
-  dt_f_params <- list(dt = eval(parse(text = paste0(f_params, collapse = ""))))
+  dt_f_params <- list(
+    dt_working = eval(parse(text = paste0(f_params, collapse = ""))))
   return(c(dt_f_params, dt_fk_params))
-
 }

@@ -7,16 +7,14 @@
 #' @param file_ext Character string of the file extension of the input
 #'  data files. E.g., ".csv" for hobo rainfall file exports. This input
 #'  character string should contain the period as in the previous sentence.
-#' @param excluded_tabs Data items that should not be exported to csvs.
+#' @param wanted_tabs Data items/tables that should be exported to csvs. Evaluated using '%ilike%': ergo seperate multiple search phrases by '|'.
 #' @param baros Should the function include barometric files
 #'  in the final list - TRUE/FALSE. This parameter is specifically for working
 #'  with groundwater data.
 #' @param prompt Set to TRUE for interactive mode. If FALSE all relevant files
 #'  in the specified directory will be exported.
-#' @param wanted Vector of strings listing files that should not be
-#'  included in the import.
-#' @param unwanted Vector of strings listing files that should not be included
-#'  in the import.
+#' @param wanted Vector of strings listing files that should not be included in the import. Evaluated using '%ilike%': ergo seperate multiple search phrases by '|'.
+#' @param unwanted Vector of strings listing files that should not be included in the import. Evaluated using '%ilike%': ergo seperate multiple search phrases by '|'.
 #' @param dt_export_format Passed to `data.table::fwrite()`. Default is
 #'  "write.csv".
 #' @keywords export R data; save data; csv format; batch export.
@@ -30,7 +28,7 @@ ipayipi2csv <- function(
   data_dir = NULL,
   output_dir = NULL,
   file_ext = ".rds",
-  excluded_tabs = NULL,
+  wanted_tabs = NULL,
   prompt = FALSE,
   wanted = NULL,
   unwanted = NULL,
@@ -51,8 +49,8 @@ ipayipi2csv <- function(
     file_name <- gsub(pattern = file_ext, replacement = "", x = file_name,
       ignore.case = TRUE)
     tab_names <- names(file)
-    if (!is.null(excluded_tabs)) {
-      tab_names <- tab_names[!tab_names %ilike% excluded_tabs]
+    if (!is.null(wanted_tabs)) {
+      tab_names <- tab_names[tab_names %ilike% wanted_tabs]
     }
     xfiles <- lapply(seq_along(tab_names), function(x) {
       if (any(!class(file[[tab_names[x]]]) %in% "list")) {

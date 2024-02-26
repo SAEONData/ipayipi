@@ -1,7 +1,7 @@
 #' @title Opens a connection to an ipayipi station file.
 #' @description Package subroutine for opening a station file for work.
-#' @param pipe_house List of pipeline directories. __See__ `ipayipi::ipip_init()` __for details__.
-#' @param station_file Path to 'ipip' station file.
+#' @param pipe_house Optional. Used to generate filepath to station file name. List of pipeline directories. __See__ `ipayipi::ipip_init()` __for details__.
+#' @param station_file Path (with file name and extension) to 'ipip' station file.
 #' @keywords write station; edit station; add to station;
 #' @export
 #' @author Paul J Gordijn
@@ -12,8 +12,11 @@ open_sf_con <- function(
   station_file = NULL,
   ...) {
 
-  station_file <- basename(station_file)
-  station_file <- file.path(pipe_house$ipip_room, station_file)
+  if (!is.null(pipe_house)) {
+    station_file <- basename(station_file)
+    station_file <- file.path(pipe_house$ipip_room, station_file)
+  }
+
   if (!file.exists(station_file)) {
     message("Error: no station file detected!")
     return(NULL)

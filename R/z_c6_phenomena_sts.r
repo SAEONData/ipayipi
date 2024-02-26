@@ -1,21 +1,13 @@
 #' @title Standardises data phenomena in 'ipayipi' format.
 #' @description Standardise raw data inputs formats and more for the
 #'  'ipayipi' pipeline though an interactive process.
-#' @param pipe_house List of pipeline directories. __See__
-#'  `ipayipi::ipip_init()` __for details__.
-#' @param wanted A string of keywords to use to filter which stations
-#'  are selected for processing. Multiple search kewords should be seperated
-#'  with a bar ('|'), and spaces avoided unless part of the keyword.
-#' @param unwanted Similar to wanted, but keywords for filtering out unwanted
-#'  stations.
-#' @param file_ext_in The file extension defaults to ".iph". Other file types
-#'  could be incorporatted if required.
-#' @param file_ext_in The file extension defaults to ".iph". Other file types
-#'  could be incorporatted if required.
-#' @param prompt Should the function use an interactive file selection function
-#'  otherwise all files are returned. TRUE or FALSE.
-#' @param recurr Should the function search recursively into sub directories
-#'  for hobo rainfall csv export files? TRUE or FALSE.
+#' @param pipe_house List of pipeline directories. __See__ `ipayipi::ipip_init()` __for details__.
+#' @param wanted A string of keywords to use to filter which stations are selected for processing. Multiple search kewords should be seperated with a bar ('|'), and spaces avoided unless part of the keyword.
+#' @param unwanted Similar to wanted, but keywords for filtering out unwanted stations.
+#' @param file_ext_in The file extension defaults to ".iph". Other file types could be incorporatted if required.
+#' @param file_ext_in The file extension defaults to ".iph". Other file types could be incorporatted if required.
+#' @param prompt Should the function use an interactive file selection function otherwise all files are returned. TRUE or FALSE.
+#' @param recurr Should the function search recursively into sub directories for hobo rainfall csv export files? TRUE or FALSE.
 #' @param verbose Print some details on the files being processed? Logical.
 #' @param cores  Number of CPU's to use for processing in parallel. Only applies when working on Linux.
 #' @keywords time series data; automatic weather station; batch process;
