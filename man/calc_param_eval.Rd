@@ -4,11 +4,23 @@
 \alias{calc_param_eval}
 \title{Organise sequencial processing of phenomena aggregations.}
 \usage{
-calc_param_eval(f_params = NULL, full_eval = FALSE, ppsij = NULL, ...)
+calc_param_eval(
+  f_params = NULL,
+  full_eval = FALSE,
+  ppsij = NULL,
+  sfc = NULL,
+  ...
+)
+}
+\arguments{
+\item{f_params}{If \code{full_eval} is FALSE: a list of \code{ipayipi::chainer()} operations.}
 }
 \description{
 An alias for list in ipayipi::dt_calc. Used for sequence of
 \code{ipayipi::chainer()} calculations.
+\itemize{
+\item := indicates new phenomena for which units, measure and var_types are nice
+}
 }
 \author{
 Paul J. Gordijn

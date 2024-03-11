@@ -14,69 +14,32 @@
 #'  file standardisation; standardise variables; transform variables
 #' @author Paul J. Gordijn
 #' @export
-#' @details The raw data formats, units, and offsets, in an 'ipayipi' station
-#'  file are standardised using this function. The function keeps a record
-#'  of phenomena (variable) metadata and uses this to implement transformations
-#'  to standardise the data. If 'new' phenomena are detected in the data then
-#'  a csv file is generated and the user must fill in the 'blank' (NA)
-#'  values. Once the csv is complete this file can be read back into the
-#'  pipeline using `ipayipi::phenomena_read_csv()`.
+#' @details The raw data formats, units, and offsets, in an 'ipayipi' station file are standardised using this function. The function keeps a record of phenomena (variable) metadata and uses this to implement transformations to standardise the data. If 'new' phenomena are detected in the data then a csv file is generated and the user must fill in the 'blank' (NA) values. Once the csv is complete this file can be read back into the pipeline using `ipayipi::phenomena_read_csv()`.
 #'
-#'   The following phenomena (variable) metadata fields are allowed. Required
-#'   fields are denoted with an asterix.
-#'   1. *phen_name_full -- The full name of a phenomenon. This should be
-#'       described as the phenomenon being recorded : then the measure
-#'       (_see measure_) used to estimate the phenomenon. For example,
-#'       "Atmospheric pressure: sample".
-#'   1. *phen_type -- The specific phenomenon being measured, e.g.,
-#'       "Atmospheric pressure".
-#'   1. *phen_name -- The shortened name of the phenomenon provided in lower
-#'      case letters. These values will be used as the column header in the
-#'      data, e.g., "atm_pressure_smp". __Note no spaces. Only underscores__.
-#'   1. *units -- the units used to measure the phenomena. Within a pipeline
-#'       the way the units are written must be exactly standarised.
-#'   1. *measure -- the type of measurement used to represent a single time
-#'       series event of a phenomenon, e.g., a sample or 'smp' for short. Other
-#'       measure types include; min, max, sd (standard deviation), tot (total),
-#'       and avg (mean or average). A sample is an instantaneous measurement.
+#'   The following phenomena (variable) metadata fields are allowed. Required fields are denoted with an asterix.
+#'   1. *phen_name_full -- The full name of a phenomenon. This should be described as the phenomenon being recorded : then the measure (_see measure_) used to estimate the phenomenon.
+#'       For example, "Atmospheric pressure: sample".
+#'   1. *phen_type -- The specific phenomenon being measured, e.g., "Atmospheric pressure".
+#'   1. *phen_name -- The shortened name of the phenomenon provided in lower case letters. These values will be used as the column header in the data, e.g., "atm_pressure_smp". __Note no spaces. Only underscores__.
+#'   1. *units -- the units used to measure the phenomena. Within a pipeline the way the units are written must be exactly standarised.
+#'   1. *measure -- the type of measurement used to represent a single time series event of a phenomenon, e.g., a sample or 'smp' for short. Other measure types include; min, max, sd (standard deviation), tot (total), and avg (mean or average). A sample is an instantaneous measurement.
 #'   1. offset -- __not yet implemented__.
-#'   1. f_convert -- a numeric multiplier for the phenomenon to be used for
-#'       unit conversion or similar. If this is left as `NA` no factor
-#'       conversion is performed on the 'raw_data'.
-#'   1. sensor_id -- the serial number of the sensor used to measure the
-#'       phenomenon.
+#'   1. f_convert -- a numeric multiplier for the phenomenon to be used for unit conversion or similar. If this is left as `NA` no factor conversion is performed on the 'raw_data'.
+#'   1. sensor_id -- the serial number of the sensor used to measure the phenomenon.
 #'   1. notes -- any pertinent notes on a specific phenomenon.
 #'
 #'
 #'  __Editing the phenomena table__:
-#'  When unrecognised synonyms are introduced (e.g., after a change in logger
-#'  program setup, or 'new' variable from an additional station sensor) this
-#'  function creates a csv table in the `wait_room` that should be edited to
-#'  maintain a phenomena synonym database. Unstandardised phenomena metadata
-#'  (columns) are preffixed by 'uz_'._ These unstandardised columns must not be
-#'  edited by the user: standardised phenomena information can be added by
-#'  replacing corresponding `NA` values with information. The required fields,
-#'  marked with an asterix (above), must be described.
+#'  When unrecognised synonyms are introduced (e.g., after a change in logger program setup, or 'new' variable from an additional station sensor) this function creates a csv table in the `wait_room` that should be edited to maintain a phenomena synonym database. Unstandardised phenomena metadata (columns) are preffixed by 'uz_'._ These unstandardised columns must not be edited by the user: standardised phenomena information can be added by replacing corresponding `NA` values with information. The required fields, marked with an asterix (above), must be described.
 #' 
 #'  __Duplicate phenomena names__:
 #'  Duplicate phenomena in a single data series table cannot be tolerated. If a duplicate phenomena name is detected a prompt will work with the user to delete the duplicate. Most logger programmes avoid generating duplicates, but the situation can arise where perhaps a table is recording the same phenomenon multiple times.
 #'
-#'  __Other__: A number of other phenomena standardisation proceedure are
-#'  included here:
-#'  - '_Interference events_': Some logger files, e.g., hobo data logger files
-#'   include useful columns that describe what within the ipayipi pipeline are
-#'   termed 'logger interference events'. Logger interference events include
-#'   events such as manual logger data downloads where the logger, or related
-#'   data recording mechanism is 'interfered' with, and consequently, data near
-#'   the time of interference may be altered undesirably. In hobo files
-#'   interference column data are generally called 'logged' events, but spelling
-#'   and capitalisation of this may change depending on the data. As part of
-#'   the phenomena standardisation process, all interference events are marked
-#'   in the data as 'logged'. Any column/phenomena in the data with the key
-#'   'interfere' will be marked as an 'interference' column. Therefore, when
-#'   selecting phenomena names, take care to include the key 'interfere' so
-#'   that the column is treated as recording 'interference' events.
-#'
+#'  __Other__: A number of other phenomena standardisation proceedure are included here:
+#'  - '_Interference events_': Some logger files, e.g., hobo data logger files include useful columns that describe what within the ipayipi pipeline are termed 'logger interference events'. Logger interference events include events such as manual logger data downloads where the logger, or related data recording mechanism is 'interfered' with, and consequently, data near the time of interference may be altered undesirably. In hobo files interference column data are generally called 'logged' events, but spelling and capitalisation of this may change depending on the data. As part of the phenomena standardisation process, all interference events are marked in the data as 'logged'. Any column/phenomena in the data with the key 'interfere' will be marked as an 'interference' column. Therefore, when selecting phenomena names, take care to include the key 'interfere' so that the column is treated as recording 'interference' events.
+#' 
+#' __Special characters/phrases__:
+#'  - '_sn' appended to the 'phen_name' denotes a 'sensor' number. Columns with this suffix are not aggregated during processing.
 #' @md
 phenomena_sts <- function(
   pipe_house = NULL,

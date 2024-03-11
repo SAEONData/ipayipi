@@ -17,22 +17,15 @@ record_interval_eval(
 \arguments{
 \item{dt}{vector of POSIXct values with defined time zone.}
 
-\item{dt_format}{The input date-time format of the time series, e.g.,
-"\%y-\%m-\%d \%H:\%M:\%S". See ?base::strptime() for details.}
+\item{dt_format}{The input date-time format of the time series, e.g., "\%y-\%m-\%d \%H:\%M:\%S". See ?base::strptime() for details.}
 
 \item{dt_tz}{recognized time-zone of the data locale.}
 
-\item{dta_in}{Input data must have the same number of rows as dt. If
-inconsistent time intervals are detected then the input data will be
-filtered out and returned.}
+\item{dta_in}{Input data must have the same number of rows as dt. If inconsistent time intervals are detected then the input data will be filtered out and returned.}
 
-\item{remove_prompt}{Logical. Activate a readline prompt to choose
-whether or not filter our records from \code{dta_in} with inconsistent
-record intervals.}
+\item{remove_prompt}{Logical. Activate a readline prompt to choose whether or not filter our records from \code{dta_in} with inconsistent record intervals.}
 
-\item{record_interval_type}{If there is only one data record the
-this parameter will be used as the default. This must be either
-"event_based" or "continuous".}
+\item{record_interval_type}{If there is only one data record the this parameter will be used as the default. This must be either "event_based" or "continuous".}
 }
 \value{
 List containing a logical list of 1) the adjusted date-time values
@@ -45,28 +38,11 @@ inconsistent record interval data removed, 6) the filtered date time
 values, and 6) the interval type, e.g., "continuous" or "event_based".
 }
 \description{
-This function tests record intervals from a data.table
-with a time stamp. The test then describes the data as "continuous" for
-regular time intervals, "event_based" for irregular or discontinuous
-recordings. A combination of "continuous" and "event_based" is described
-as "mixed". Note monthly data are considered to be 'continuous'.
+This function tests record intervals from a data.table with a time stamp. The test then describes the data as "continuous" for regular time intervals, "event_based" for irregular or discontinuous recordings. A combination of "continuous" and "event_based" is described as "mixed". Note monthly data are considered to be 'continuous'.
 }
 \details{
-If the record iterval is set to "continuous" then the function
-checks a series of date-time values for inconsistencies in record
-intervals. Data records can be removed if the data is provided and
-the user selects to do so in the \code{remove_prompt}. For data to be considered
-'continuous' 98\% of intervals in the data table must be continuous, \emph{and}
-more than 98\% of date-time stamp second values must equals zero.
-If between 20 and 98\% (and time values include second values other than
-zero) of intervals are regular then the 'series' is classified as "mixed".
-If < 20\% of intervals are regular, then the series is considered to be
-"event_based".
-There is a special case for monthly time difference intervals. These are
-handled by the \code{mondate} package. If seconds and minutes are equal to zero
-and the difference between sequential date-time values are 28, 29, 30, and
-31 days, then the series is described as a 'continuous' monthly date-time
-series.
+If the record iterval is set to "continuous" then the function checks a series of date-time values for inconsistencies in record intervals. Data records can be removed if the data is provided and the user selects to do so in the \code{remove_prompt}. For data to be considered 'continuous' 98\% of intervals in the data table must be continuous, \emph{and} more than 98\% of date-time stamp second values must equals zero. If between 20 and 98\% (and time values include second values other than zero) of intervals are regular then the 'series' is classified as "mixed". If < 20\% of intervals are regular, then the series is considered to be "event_based".
+There is a special case for monthly time difference intervals. These are handled by the \code{mondate} package. If seconds and minutes are equal to zero and the difference between sequential date-time values are 28, 29, 30, and 31 days, then the series is described as a 'continuous' monthly date-time series.
 }
 \author{
 Paul J. Gordijn

@@ -2,7 +2,7 @@
 % Please edit documentation in R/z_sub_dt_calc_chainer.r
 \name{chainer}
 \alias{chainer}
-\title{Develop a chain link for data.table processing}
+\title{Develop a 'data.table' chain link for processing data}
 \usage{
 chainer(
   dt_syn_bc = NULL,
@@ -18,11 +18,11 @@ chainer(
 )
 }
 \arguments{
-\item{dt_syn_bc}{\code{data.table} before first-comma syntax. Logical statement that operates on a table's rows.}
+\item{dt_syn_bc}{\code{data.table} before first-comma syntax. Before the first comma syntax operates on a data.tables rows.}
 
-\item{dt_syn_ac}{\code{data.table} after first-comma syntax. \emph{See examples}.}
+\item{dt_syn_ac}{\code{data.table} after first-comma syntax. After the first comma syntax operates on columns. \emph{See examples}.}
 
-\item{measure}{If a new vatiable is described it's measure should be provided. Measure's are standardised using the \code{ipayipi::sts_phen_measure} standard table.}
+\item{measure}{If a new vatiable is described it's measure should be provided. Measure's are standardised using the \code{ipayipi::sts_phen_measure} standard table. New variables can be assigned using the ":=" operator.}
 
 \item{units}{The unit of measure of a new variable, e.g., "mm" for rainfall, or "deg_c" for degrees Celcius. \emph{Notice conformity to \strong{snake case} descriptions --- this must be applied}.}
 
@@ -37,7 +37,7 @@ chainer(
 \item{link}{Integer denoting the numeric order of a chain link in a sequence put together in a list.}
 }
 \description{
-Function to build \code{data.table} syntax of an individual chain link.
+Link together multiple data.table operations into a single chain.
 }
 \examples{
 # Set up chain link to filter out zero mm rainfall events
@@ -49,7 +49,7 @@ x
 x <- list(
  remove0 = chainer(dt_syn_bc = "rain_cumm != 0"),
  t_lag = chainer(
-   dt_syn_ac = "c(0, date_time[2:.N] - date_time[1:(.N - 1)])")
+   dt_syn_ac = "t_lag := c(0, date_time[2:.N] - date_time[1:(.N - 1)])")
 )
 print(x)
 

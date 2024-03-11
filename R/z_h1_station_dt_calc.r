@@ -21,21 +21,23 @@ dt_calc <- function(
   station_file = NULL,
   f_params = NULL,
   station_file_ext = ".ipip",
+  ppsij = NULL,
   ...) {
   "dt" <- "station" <- NULL
   # read in the available data
   sfcn <- names(sfc)
   dta_in <- NULL
+  hsf_dta <- NULL
   if ("dt_working" %in% sfcn) {
     dta_in <- ipayipi::sf_read(sfc = sfc, tv = "dt_working", tmp = TRUE)[[
       "dt_working"
     ]]
   }
 
-  if (is.null(dta_in) && "hsf_dts" %in% sfcn) {
-    dta_in <- ipayipi::sf_read(sfc = sfc, tv = "hsf_dts", tmp = TRUE)[[
-      "hsf_dts"
-    ]][[1]]
+  if (is.null(dta_in) && any(sfcn %ilike% "_hsf_table_")) {
+    hsf_dta <- sfcn[sfcn %ilike% "_hsf_table_"]
+    hsf_dta <- hsf_dta[length(hsf_dta)]
+    dta_in <- ipayipi::sf_read(sfc = sfc, tv = hsf_dta, tmp = TRUE)[[1]]
   }
   # create station object for calc parsing
   station <- gsub(paste(dirname(station_file), station_file_ext,
@@ -72,7 +74,17 @@ dt_calc <- function(
   names(fk_params) <- f_ipips
   fk_params <- fk_params[sapply(fk_params, function(x) !is.null(x))]
   dt_fk_params <- lapply(fk_params, function(x) eval(parse(text = x)))
-  dt_f_params <- list(
-    dt_working = eval(parse(text = paste0(f_params, collapse = ""))))
-  return(c(dt_f_params, dt_fk_params))
+  dt_working <- eval(parse(text = paste0(f_params, collapse = "")))
+  # save working data
+  saveRDS(dt_working, file.path(dirname(sfc[1]), "dt_working"))
+  # remove harvest data from this step
+  if (!is.null(hsf_dta)) {
+    ppsid_hsf <- unique(gsub("_hsf_table_?.+", "", hsf_dta))
+    hsf_rm <- sfc[
+      names(sfc)[names(sfc) %ilike% paste0(ppsid_hsf, "_hsf_table_*.")]]
+    lapply(hsf_rm, function(x) {
+      unlink(file.path(dirname(sfc[1]), x), recursive = TRUE)
+    })
+  }
+  return(dt_fk_params)
 }

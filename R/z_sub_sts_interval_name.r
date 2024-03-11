@@ -34,8 +34,10 @@ sts_interval_name <- function(
   time_units <- data.table::data.table(
     unit_difftime = c("secs", "mins", "hours", "days", "weeks", "months",
       "years"),
-    unit_df_like = c("sec|secs", "min|mins", "hour|hours|hr", "day|days",
-    "wk|week", "month|mon|months|monthly", "yr|year")
+    unit_df_like = c("sec|secs|seconds", "min|mins|minutes",
+      "hour|hours|hrs|hourly", "day|days|daily|daily",
+      "wks|weeks|weekly", "months|mons|months|monthly",
+      "yrs|years|yearly|annually")
   )
   if ("difftime" %in% class(intv)) {
     intv <- paste0(intv, "_", attr(intv, "units"))
@@ -60,18 +62,18 @@ sts_interval_name <- function(
     }
   } else {
     seq_int <- NA
-    dfft_secs <- NA
-    if (intv %in% "discnt") intv <- intv
+    dfft_secs <- as.numeric(NA, units = "secs")
+    if (intv %in% "discnt" || intv %in% "dicnt") intv <- intv
   }
   int_dt <- data.table::data.table(
     intv = intv,
     orig_units = u,
-    sts_intv = NA,
+    sts_intv = NA_character_,
     dfft = as.numeric(seq_int),
     dfft_units = attr(seq_int, "units"),
     dfft_secs = dfft_secs
   )
-  if (is.na(intv)) {
+  if (any(is.na(intv), all(is.na(u), !intv %in% "discnt"))) {
     intv <- "NA or NULL"
     stop(paste0("The time interval (", intv, ") for data aggregation is not ",
       "recognised by ipayipi::sts_interval_name"))

@@ -4,12 +4,14 @@
 \alias{circular_mean}
 \title{A wrapper for the circular.mean function}
 \usage{
-circular_mean(x, u = "degrees", ignore_nas = FALSE)
+circular_mean(x, u = "degrees", ignore_nas = FALSE, verbose = FALSE, ...)
 }
 \arguments{
 \item{x}{Vector of angles.}
 
 \item{u}{Angle units. Either degrees or radians.}
+
+\item{verbose}{Logical indicating whether to print error messages etc.}
 }
 \value{
 The mean angle.

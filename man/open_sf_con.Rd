@@ -4,12 +4,14 @@
 \alias{open_sf_con}
 \title{Opens a connection to an ipayipi station file.}
 \usage{
-open_sf_con(pipe_house = NULL, station_file = NULL, ...)
+open_sf_con(pipe_house = NULL, station_file = NULL, tmp = FALSE, ...)
 }
 \arguments{
 \item{pipe_house}{Optional. Used to generate filepath to station file name. List of pipeline directories. \strong{See} \code{ipayipi::ipip_init()} \strong{for details}.}
 
 \item{station_file}{Path (with file name and extension) to 'ipip' station file.}
+
+\item{tmp}{Logical that defaults to FALSE. If TRUE then the station file is ignored. If TRUE then the temporary station is updated with information from the station file.}
 }
 \value{
 Station file connection file paths. To be used in the pipeline.

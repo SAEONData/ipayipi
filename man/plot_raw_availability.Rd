@@ -9,6 +9,8 @@ plot_raw_availability(
   station_ext = ".ipip",
   gap_problem_thresh_s = 6 * 60 * 60,
   event_thresh_s = 10 * 60,
+  start_dttm = NULL,
+  end_dttm = NULL,
   meta_events = "meta_events",
   verbose = FALSE,
   wanted = NULL,
@@ -28,6 +30,10 @@ plot_raw_availability(
 \item{gap_problem_thresh_s}{\emph{Parsed to} \code{ipayipi::gap_eval()}.}
 
 \item{event_thresh_s}{\emph{Parsed to} \code{ipayipi::gap_eval()}.}
+
+\item{start_dttm}{For plotting data.}
+
+\item{end_dttm}{For plotting data.}
 
 \item{meta_events}{\emph{Parsed to} \code{ipayipi::gap_eval()}.}
 

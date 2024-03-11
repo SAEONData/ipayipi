@@ -73,7 +73,7 @@ p_step <- function(
     sapply(f_params_harvest, function(x) length(x) != 0)]
   if ("hsf_table" %in% names(unlist(f_params_harvest, recursive = TRUE))) {
     input_dt <- unlist(f_params_harvest, recursive = TRUE)[
-      "hsf_table" %in% names(unlist(f_params_harvest, recursive = TRUE))
+      names(unlist(f_params_harvest, recursive = TRUE)) %in% "hsf_table"
     ]
   } else {
     input_dt <- "raw"

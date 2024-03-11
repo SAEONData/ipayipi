@@ -7,7 +7,7 @@
 meta_to_station(
   pipe_house = NULL,
   input_dir = NULL,
-  meta_file = NULL,
+  meta_file = "event_db",
   file_ext = ".rmds",
   station_ext = ".ipip",
   in_station_meta_name = "meta_events",

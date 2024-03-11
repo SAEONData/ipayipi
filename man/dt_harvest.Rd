@@ -2,12 +2,13 @@
 % Please edit documentation in R/z_h1_station_dt_harvest.r
 \name{dt_harvest}
 \alias{dt_harvest}
-\title{'dt' processing pipeline: harvest data from another station or table.}
+\title{'dt' processing pipeline: harvest data}
 \usage{
 dt_harvest(
   station_file = NULL,
   f_params = NULL,
   time_interval = NULL,
+  ppsij = NULL,
   sfc = NULL,
   ...
 )
@@ -15,22 +16,15 @@ dt_harvest(
 \arguments{
 \item{station_file}{File path of the station being processed.}
 
-\item{f_params}{A vector of phenomena name to be extracted from the
-harvested data table. If NULL all column names are extracted.}
+\item{f_params}{A vector of phenomena name to be extracted from the harvested data table. If NULL all column names are extracted.}
 
 \item{time_interval}{The desirsed time_tinterval associated with the
 extracted data. If this is \code{NULL} then the table is extracted as is.}
 
-\item{hsf_table}{The path of the directory in which to search for the
-external data and/or data table.}
-
-\item{ext_station}{The name (or keyword) of the station from which to extract
-data.}
-
-\item{output_dt}{The output table name where harvested data is extracted too.}
+\item{hsf_table}{The path of the directory in which to search for the external data and/or data table.}
 }
 \description{
-Used to extract data from another table, station, or source.
+Used to extract data from other table/s, stations, or source/s.
 }
 \author{
 Paul J. Gordijn

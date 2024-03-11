@@ -5,16 +5,14 @@
 \title{Aggregate time series data by a time interval}
 \usage{
 dt_agg(
-  station_file = station_file,
+  station_file = NULL,
   dta_in = NULL,
   f_params = NULL,
-  phens_dt = NULL,
-  sf_tmp_fn = NULL,
-  ppsij = ppsij,
-  f_summary = NULL,
-  sf = NULL,
-  dt_working = NULL,
+  ppsij = NULL,
+  gaps = FALSE,
   agg_offset = c("0 sec", "0 sec"),
+  sfc = NULL,
+  verbose = FALSE,
   ...
 )
 }
@@ -27,26 +25,19 @@ must come from the same station, but may have different record intervals.}
 \item{f_params}{Function parameters evaluated by
 \code{ipayipi::agg_param_eval()}.}
 
-\item{phens_dt}{The phenomena table describing each of the phenomena in the
-\code{dta_in} parameter. This information is used in the aggregation process.}
-
-\item{sf_tmp_fn}{A temporary file name used for the station file being
-processed.}
-
 \item{ppsij}{Table derived from \code{ipayipi::pipe_seq()} showing the summarised
 function parameters.}
-
-\item{f_summary}{List of tables with data summaries.}
-
-\item{sf}{Station file object.}
-
-\item{dt_working}{List of data tables in the processing pipeline.}
 
 \item{agg_offset}{Character vector of length two. Strings describe period
 of offset from the rounded time interval used to aggregate data. For
 example, if aggregating rainfall data from five minute to daily records,
 but staggered so that daily rainfall is totalled from 8 am to 8 pm the
 next day the \code{agg_offset} must be set to \code{c("8 hours", "8 hours")}.}
+
+\item{phens_dt}{The phenomena table describing each of the phenomena in the
+\code{dta_in} parameter. This information is used in the aggregation process.}
+
+\item{f_summary}{List of tables with data summaries.}
 }
 \description{
 This function aggregates 'ipayipi' formatted data by
@@ -65,6 +56,9 @@ is added to the 'date_time' stamp for the data.tables 'date_time' value.
 Aggregation defaults are determined by \code{ipayipi::agg_param_eval()}. Default
 aggregation functions are determined by the phenomena measure parameter ---
 see the function for more details.
+\itemize{
+\item requires date_time col
+}
 }
 \author{
 Paul J. Gordijn

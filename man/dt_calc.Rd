@@ -9,6 +9,7 @@ dt_calc(
   station_file = NULL,
   f_params = NULL,
   station_file_ext = ".ipip",
+  ppsij = NULL,
   ...
 )
 }

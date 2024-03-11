@@ -37,7 +37,16 @@ hsf_param_eval <- function(
 ) {
   "%ilike%" <- "phen_name" <- "table_name" <- "input_dt" <- "phen_syn" <-
     "dfft_diff" <- "dt_n" <- "dtp_n" <- "decis" <- "output_dt" <-
-      "dfft_secs" <- "orig_table_name" <- ":=" <- NULL
+      "dfft_secs" <- "orig_table_name" <- ":=" <- "dt_record_interval" <- NULL
+  # hsf_station = NULL
+  # harvest_dir = "."
+  # hsf_table = "raw"
+  # time_interval = "discnt"
+  # phen_names = NULL
+  # recurr = TRUE
+  # harvest_station_ext = ".ipip"
+  # prompt = TRUE
+  # single_out = TRUE
   ## partial function evaluation ----------------------------------------------
   #  returns shorter hsf_param list
   #  full evaluation returns a list of available phenomena and
@@ -84,9 +93,7 @@ hsf_param_eval <- function(
     }
     # open hsf file if different from sf
     if (basename(hsfn) != basename(station_file)) {
-      hsfc <- attempt::try_catch(
-        ipayipi::open_sf_con(station_file = station_file)
-      )
+      hsfc <- attempt::try_catch(ipayipi::open_sf_con(station_file = hsfn))
     } else {
       hsfc <- sfc
     }
@@ -114,29 +121,45 @@ hsf_param_eval <- function(
         c("phid", "phen_name", "units", "measure", "var_type", "table_name")]
       if (hsf_table != "raw") p <- p[table_name == hsf_table]
       # join on data summary info
-      s <- unique(hsf_summary$data_summary, by = "table_name")
+      s <- unique(
+        hsf_summary$data_summary[
+          table_name %in% unique(p$table_name)
+        ], by = "table_name")
     }
 
     # extract from other source
-    if (!any(sapply(phen_tabs, function(x) any(x$table_name == hsf_table))) &&
+    if (!any(sapply(phen_tabs, function(x) any(x$table_name %in% hsf_table))) &&
       hsf_table != "raw") {
       # open table
-      ht <- ipayipi::sf_read(sfc = sfc, tv = hsf_table, tmp = TRUE)[[hsf_table]]
-      ht <- attempt::try_catch(expr = readRDS(hsfn), .w = ~stop)[[hsf_table]]
+      ht <- ipayipi::sf_read(sfc = hsfc, tv = hsf_table, tmp = TRUE)[[
+        hsf_table]]
       # get date time info
       dttm <- names(ht)[names(ht) %ilike% "date_time|date-time"][1]
+      if (is.na(dttm)) {
+        dttm <- names(ht)[names(ht) %ilike% "start|end"][1]
+      }
       # evaluate other data record interval
-      dtti <- ipayipi::record_interval_eval(dt = ht[[dttm]], dta_in = ht)
+      dtti <- ipayipi::record_interval_eval(dt = ht[[dttm]], dta_in = ht,
+        record_interval_type = "event_based")
       p <- data.table::data.table(
         phid = NA_integer_, phen_name = names(ht), units = NA_character_,
         measure = NA_character_, var_type = sapply(ht, function(x) class(x)[1]),
         table_name = hsf_table
       )
       # standardise var_type nomenclature
+      suppressWarnings(
+        if (max(ht[[dttm]], na.rm = TRUE) == -Inf) {
+          sd <- as.POSIXct(NA, tz = attr(ht[[dttm]], "tz"))
+          se <- as.POSIXct(NA, tz = attr(ht[[dttm]], "tz"))
+        } else {
+          sd <- max(ht[[dttm]], na.rm = TRUE)
+          se <- min(ht[[dttm]], na.rm = TRUE)
+        }
+      )
+
       s <- data.table::data.table(record_interval_type =
         dtti$record_interval_type, record_interval = dtti$record_interval,
-        start_dttm = min(ht[[dttm]], na.rm = TRUE), end_dttm =
-        min(ht[[dttm]], na.rm = TRUE), table_name = hsf_table
+        start_dttm = sd, end_dttm = se, table_name = hsf_table
       )
       p$var_type <- as.vector(sapply(p$var_type, function(x) {
         ipayipi::sts_phen_var_type[phen_syn %ilike% x][["phen_prop"]][1]
@@ -160,35 +183,39 @@ hsf_param_eval <- function(
       p <- phen_tabs$phens_dt[table_name %ilike% "dt_"]
       p <- p[table_name == hsf_table]
       # check aggregation interval
-      s <- p[, c("record_interval_type", "dt_record_interval", "table_name"),
-        with = FALSE]
-      s <- s[, ":="(record_interval = dt_record_interval)]
+      p <- p[, ":="(record_interval = dt_record_interval)]
     }
 
     ## phen aggregation interval options ----
     # add record interval to p to organise aggregation intervals and phenomena
     # selection
-    agg_time_interval <- ipayipi::sts_interval_name(time_interval)
+    # agg_time_interval <- ipayipi::sts_interval_name(time_interval)
+    ri <- lapply(unique(p$record_interval), ipayipi::sts_interval_name)
+    ri <- sapply(ri, function(x) x[["sts_intv"]])
+    if (length(ri) > 1) ri <- NA
 
-    ### discontinuous data option ----
-    if ("event_based" %in% p$record_interval_type) p$dfft_secs <- 0
-    if (is.na(agg_time_interval$dfft_secs)) agg_time_interval$dfft_secs <- 0
-    p$agg_intv <- agg_time_interval$dfft_secs
-    p$dfft_diff <- p$agg_intv - p$dfft_secs
+    # ### discontinuous data option ----
+    # if ("event_based" %in% p$record_interval_type) {
+    #   p$dfft_secs <- 0
+    # } else {
+    #   p$dfft_secs <- wanted_ri
+    # }
+    # if (is.na(agg_time_interval$dfft_secs)) agg_time_interval$dfft_secs <- 0
+    # p$agg_intv <- agg_time_interval$dfft_secs
+    # p$dfft_diff <- p$agg_intv - p$dfft_secs
 
-    # can only aggregate if time intervals are more lengthy than raw data
-    if (all(p$dfft_diff < 0)) {
-      warning(paste0(time_interval, " has a shorter duration than ",
-        "available raw data!", collapse = ""))
-    }
-    p <- p[dfft_diff >= 0]
-    data.table::setorderv(p, cols = c("phen_name", "dfft_diff"))
-    p <- lapply(split.data.frame(p, f = factor(p$phen_name)), function(x) {
-      x$decis <- ifelse(x$dfft_diff == min(x$dfft_diff), TRUE, FALSE)
-      x <- x[decis == TRUE][1, ]
-      invisible(x)
-    })
-    p <- data.table::rbindlist(p)
+    # # can only aggregate if time intervals are more lengthy than raw data
+    # if (all(p$dfft_diff < 0)) {
+    #   warning(paste0(time_interval, " has a shorter duration than ",
+    #     "available raw data!", collapse = ""))
+    # }
+    # p <- p[dfft_diff >= 0]
+    # data.table::setorderv(p, cols = c("phen_name", "dfft_diff"))
+    # p <- lapply(split.data.frame(p, f = factor(p$phen_name)), function(x) {
+    #   x$decis <- ifelse(x$dfft_diff == min(x$dfft_diff), TRUE, FALSE)
+    #   x <- x[decis == TRUE][1, ]
+    #   invisible(x)
+    # })
     phens_dt <- data.table::data.table(
       ppsid = paste(dt_n, dtp_n, sep = "_"),
       phid = p$phid,
@@ -198,8 +225,7 @@ hsf_param_eval <- function(
       var_type = p$var_type,
       record_interval_type = p$record_interval_type,
       orig_record_interval = p$record_interval,
-      dt_record_interval = gsub(pattern = " ", replacement = "_",
-        x = agg_time_interval$sts_intv),
+      dt_record_interval = gsub(" ", "_", ri),
       orig_table_name = p$table_name,
       table_name = output_dt
     )

@@ -1,37 +1,13 @@
 #' @title Evaluates the consistency of record interval date-time values
 #' @param dt vector of POSIXct values with defined time zone.
-#' @param dt_format The input date-time format of the time series, e.g.,
-#'  "%y-%m-%d %H:%M:%S". See ?base::strptime() for details.
+#' @param dt_format The input date-time format of the time series, e.g., "%y-%m-%d %H:%M:%S". See ?base::strptime() for details.
 #' @param dt_tz recognized time-zone of the data locale.
-#' @param dta_in Input data must have the same number of rows as dt. If
-#'  inconsistent time intervals are detected then the input data will be
-#'  filtered out and returned.
-#' @param remove_prompt Logical. Activate a readline prompt to choose
-#'  whether or not filter our records from `dta_in` with inconsistent
-#'  record intervals.
-#' @param record_interval_type If there is only one data record the
-#'  this parameter will be used as the default. This must be either
-#'  "event_based" or "continuous".
-#' @description This function tests record intervals from a data.table
-#'  with a time stamp. The test then describes the data as "continuous" for
-#'  regular time intervals, "event_based" for irregular or discontinuous
-#'  recordings. A combination of "continuous" and "event_based" is described
-#'  as "mixed". Note monthly data are considered to be 'continuous'.
-#' @details If the record iterval is set to "continuous" then the function
-#'  checks a series of date-time values for inconsistencies in record
-#'  intervals. Data records can be removed if the data is provided and
-#'  the user selects to do so in the `remove_prompt`. For data to be considered
-#'  'continuous' 98% of intervals in the data table must be continuous, _and_
-#'  more than 98% of date-time stamp second values must equals zero.
-#'  If between 20 and 98% (and time values include second values other than
-#'  zero) of intervals are regular then the 'series' is classified as "mixed".
-#'  If < 20% of intervals are regular, then the series is considered to be
-#'  "event_based".
-#'  There is a special case for monthly time difference intervals. These are
-#'  handled by the `mondate` package. If seconds and minutes are equal to zero
-#'  and the difference between sequential date-time values are 28, 29, 30, and
-#'  31 days, then the series is described as a 'continuous' monthly date-time
-#'  series.
+#' @param dta_in Input data must have the same number of rows as dt. If inconsistent time intervals are detected then the input data will be filtered out and returned.
+#' @param remove_prompt Logical. Activate a readline prompt to choose whether or not filter our records from `dta_in` with inconsistent record intervals.
+#' @param record_interval_type If there is only one data record the this parameter will be used as the default. This must be either "event_based" or "continuous".
+#' @description This function tests record intervals from a data.table with a time stamp. The test then describes the data as "continuous" for regular time intervals, "event_based" for irregular or discontinuous recordings. A combination of "continuous" and "event_based" is described as "mixed". Note monthly data are considered to be 'continuous'.
+#' @details If the record iterval is set to "continuous" then the function checks a series of date-time values for inconsistencies in record intervals. Data records can be removed if the data is provided and the user selects to do so in the `remove_prompt`. For data to be considered 'continuous' 98% of intervals in the data table must be continuous, _and_ more than 98% of date-time stamp second values must equals zero. If between 20 and 98% (and time values include second values other than zero) of intervals are regular then the 'series' is classified as "mixed". If < 20% of intervals are regular, then the series is considered to be "event_based".
+#'  There is a special case for monthly time difference intervals. These are handled by the `mondate` package. If seconds and minutes are equal to zero and the difference between sequential date-time values are 28, 29, 30, and 31 days, then the series is described as a 'continuous' monthly date-time series.
 #' @return List containing a logical list of 1) the adjusted date-time values
 #'  that will not include irregular time values if these have been removed
 #'  2) interval checks (whether or not the record interval was continuous, if
