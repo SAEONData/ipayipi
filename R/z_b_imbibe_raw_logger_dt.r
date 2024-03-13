@@ -282,7 +282,7 @@ imbibe_raw_logger_dt <- function(
     phen_info <- c(phen_info_i, phen_null_i)
     phen_info <- lapply(phen_info, function(px) {
       lapply(px, function(pxx) {
-        if (is.na(pxx) | pxx == "") pxx <- NA_character_
+        if (is.na(pxx) | pxx == "") pxx <- "no_spec"
         return(pxx)
       })
     })
