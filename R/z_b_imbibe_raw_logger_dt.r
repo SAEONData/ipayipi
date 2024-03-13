@@ -280,8 +280,14 @@ imbibe_raw_logger_dt <- function(
     phen_null_i <- lapply(phen_null, function(z) NA)
     names(phen_null_i) <- phen_null
     phen_info <- c(phen_info_i, phen_null_i)
-    if (any(is.na(phen_info$phen_unit))) phen_info$phen_unit <- "no_spec"
-    if (any(is.na(phen_info$phen_measure))) phen_info$phen_measure <- "no_spec"
+    phen_info <- lapply(phen_info, function(px) {
+      lapply(px, function(pxx) {
+        if (is.na(pxx) | pxx == "") pxx <- NA_character_
+        return(pxx)
+      })
+    })
+    # if (any(is.na(phen_info$phen_unit))) phen_info$phen_unit <- "no_spec"
+    # if (any(is.na(phen_info$phen_measure))) phen_info$phen_measure <- "no_spec"
     # extract data
     dta <- file[data_setup$data_row:nrow(file),
       phen_info_ij$phen_name$c_rng, with = FALSE]
@@ -308,9 +314,11 @@ imbibe_raw_logger_dt <- function(
     dta$id <- id
 
     # order the columns
-    dta <- subset(dta,
-      select = c("id", "date_time", unlist(phen_info$phen_name)[
-        !unlist(phen_info$phen_name) %in% ""]))
+    # phen names
+    pn <- c("id", "date_time", unlist(phen_info$phen_name)[
+        !unlist(phen_info$phen_name) %in% ""])
+    pn <- pn[!is.na(pn)]
+    dta <- subset(dta, select = pn)
 
     # finalize the phenomena table
     phens <- data.table::data.table(
@@ -322,7 +330,7 @@ imbibe_raw_logger_dt <- function(
       offset = unlist(phen_info$phen_offset),
       sensor_id = unlist(phen_info$sensor_id)
     )
-    phens <- phens[phen_name != ""]
+    phens <- phens[phen_name %in% pn]
 
     # determine record interval - function run twice to account for
     # FALSE intervals at position one and two of the data

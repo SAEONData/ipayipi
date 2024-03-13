@@ -60,7 +60,8 @@ imbibe_raw_batch <- function(
     sep = "|")
   unwanted <- gsub(pattern = "\\|$", replacement = "", x = unwanted)
   slist <- ipayipi::dta_list(input_dir = pipe_house$wait_room, file_ext =
-    file_ext_in, prompt = prompt, recurr = recurr, unwanted = unwanted)
+    file_ext_in, prompt = prompt, recurr = recurr, unwanted = unwanted,
+    wanted = wanted)
   if (length(slist) == 0) {
     msg <- "No files to imbibe. Check 'wait_room'."
     return(message(msg))
@@ -153,7 +154,8 @@ imbibe_raw_batch <- function(
 
   # check for duplicates and make unique integers
   if (!anyNA.data.frame(file_name_dt)) {
-    split_file_name_dt <- split(file_name_dt, f = factor(file_name_dt$file_name))
+    split_file_name_dt <- split(
+      file_name_dt, f = factor(file_name_dt$file_name))
     split_file_name_dt <- parallel::mclapply(split_file_name_dt, function(x) {
       x$rep <- seq_len(nrow(x))
       return(x)
