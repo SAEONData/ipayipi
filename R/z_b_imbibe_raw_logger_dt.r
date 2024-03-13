@@ -331,6 +331,7 @@ imbibe_raw_logger_dt <- function(
       sensor_id = unlist(phen_info$sensor_id)
     )
     phens <- phens[phen_name %in% pn]
+    phens[offset %in% "no_spec"]$offset <- NA
 
     # determine record interval - function run twice to account for
     # FALSE intervals at position one and two of the data
