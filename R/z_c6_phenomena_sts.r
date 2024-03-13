@@ -72,7 +72,7 @@ phenomena_sts <- function(
 
   phentab <- ipayipi::phenomena_chk(pipe_house = pipe_house,
     check_phenomena = TRUE, csv_out = TRUE, wanted = wanted,
-    unwanted = unwanted)
+    unwanted = unwanted, cores = cores)
 
   if (!is.na(phentab$output_csv_name)) message("Update phenomena")
 
