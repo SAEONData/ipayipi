@@ -16,5 +16,8 @@ Currently, advanced groundwater and rainfall processing does not use the generic
 Install the R package 'ipayipi' from Github using `devtools` in your R terminal.
 
 ```
-devtools::install_github("SAEONData/ipayipi")
+#' for latest releases
+devtools::install_github("pauljeco/ipayipi")
+#' for normal releases
+devtools::install_github("SAEONdata/ipayipi")
 ```

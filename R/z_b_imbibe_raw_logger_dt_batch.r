@@ -13,17 +13,16 @@
 #' @param dt_tz recognized time-zone of the data locale.
 #' @param record_interval If there are is no discrete, record interval set in the logger program, i.e., the sampling is event based, then this parameter must be set to "event_based". Defaults to "continuous".
 #' @param data_setup List of options used to extract data and metadata from instrument data outputs. For a description of the `data_setup` _see_ `ipayipi::read_logger_dt()`.
+#' @param logg_interfere_type Two options here: "remote" or "on_site". Each time a logger is visited is counted as a logger interference event. Type _'remote'_ occurs when data is downloaded remotely. Type _'on_site'_is when data was downloaded on site. _See_ `ipayipi::imbibe_raw_logger_dt()`.
 #' @param prompt Should the function use an interactive file selection function
 #'  otherwise all files are returned. TRUE or FALSE.
 #' @param wanted A string containing keywords to use to filter which stations
 #'  are selected for processing. Multiple search kewords should be seperated
 #'  with a bar ('|'), and spaces avoided unless part of the keyword.
-#' @param unwanted Similar to wanted, but keywords for filtering out unwanted
-#'  stations.
-#' @param recurr Should the function search recursively into sub directories
-#'  for hobo rainfall csv export files? TRUE or FALSE.
-#' @param silent Logical passed to `attempt::attempt()` which reads the logger
-#'  text file in with either `data.table::fread()` or base R.
+#' @param unwanted Similar to wanted, but keywords for filtering out unwanted stations.
+#' @param recurr Should the function search recursively into sub directories for hobo rainfall csv export files? TRUE or FALSE.
+#' @param verbose Logical passed to `attempt::attempt()` which reads the logger text file in with either `data.table::fread()` or base R.
+#' @param max_rows The number of rows to use when evaluating the record interval. Argument is parsed to `ipayipi::record_interval_eval()`.
 #' @param cores  Number of CPU's to use for processing in parallel. Only applies when working on Linux.
 #' @details
 #'  In the pipeline structure this function should be used post `ipayipi::logger_data_import_batch()`. `ipayipi::imbibe_raw_batch()` is a wrapper for `ipayipi::imbibe_raw_logger_dt()` --- see this functions documentation for more details.
@@ -40,11 +39,19 @@ imbibe_raw_batch <- function(
   file_ext_out = ".ipr",
   col_dlm = NULL,
   dt_format = c(
-    "Ymd HMS", "Ymd IMSp", "ymd HMS", "ymd IMSp", "mdY HMS", "mdy IMSp",
-    "dmY HMS", "dmy IMSp", "Ymd HMOS", "Ymd IMOSp", "ymd HMOS", "ymd IMOSp",
-    "mdY HMOS", "mdy IMOSp", "dmY HMOS", "dmy IMOSp"),
+    "Ymd HMOS", "Ymd HMS",
+    "Ymd IMOSp", "Ymd IMSp",
+    "ymd HMOS", "ymd HMS",
+    "ymd IMOSp", "ymd IMSp",
+    "mdY HMOS", "mdY HMS",
+    "mdy IMOSp",  "mdy IMSp",
+    "dmY HMOS", "dmY HMS",
+    "dmy IMOSp", "dmy IMSp"),
   dt_tz = "Africa/Johannesburg",
   record_interval_type = "continuous",
+  remove_prompt = FALSE,
+  max_rows = 1000,
+  logg_interfere_type = "on_site",
   data_setup = NULL,
   prompt = FALSE,
   wanted = NULL,
@@ -54,7 +61,7 @@ imbibe_raw_batch <- function(
   cores = getOption("mc.cores", 2L),
   ...
 ) {
-
+  "err" <- NULL
   # get list of data to be imported
   unwanted <- paste(".ipr|.ipi|.iph|.xls|.rps|.rns|.ods|.doc|.md", unwanted,
     sep = "|")
@@ -73,129 +80,128 @@ imbibe_raw_batch <- function(
     force_extras = FALSE, justf = c(0, 0))
   ipayipi::msg(cr_msg, verbose = verbose)
 
-  cfiles <- parallel::mclapply(seq_along(slist), function(i) {
+  file_name_dt <- parallel::mclapply(seq_along(slist), function(i) {
     cr_msg <- padr(core_message = paste0(" +> ", slist[i], collapes = ""),
       wdth = 80, pad_char = " ", pad_extras = c("|", "", "", "|"),
       force_extras = FALSE, justf = c(1, 1))
     ipayipi::msg(cr_msg, verbose)
-      if (is.null(file_ext_in)) {
-        file_ext_in <- tools::file_ext(slist[i])
-        file_ext_in <- paste0(".",
-          sub(pattern = "\\.", replacement = "", file_ext_in))
-      }
-      fl <- ipayipi::imbibe_raw_logger_dt(
-        pipe_house = pipe_house,
-        file_path = file.path(pipe_house$wait_room, slist[i]),
-        file_ext = file_ext_in,
-        col_dlm = col_dlm,
-        dt_format = dt_format,
-        dt_tz = dt_tz,
-        record_interval_type = record_interval_type,
-        data_setup = data_setup,
-        verbose = verbose,
-        cores = cores
+    if (is.null(file_ext_in)) {
+      file_ext_in <- tools::file_ext(slist[i])
+      file_ext_in <- paste0(".",
+        sub(pattern = "\\.", replacement = "", file_ext_in))
+    }
+    fp <- file.path(pipe_house$wait_room, slist[i])
+    fl <- ipayipi::imbibe_raw_logger_dt(
+      pipe_house = pipe_house,
+      file_path = fp,
+      file_ext = file_ext_in,
+      col_dlm = col_dlm,
+      dt_format = dt_format,
+      dt_tz = dt_tz,
+      record_interval_type = record_interval_type,
+      data_setup = data_setup,
+      verbose = verbose,
+      remove_prompt = remove_prompt,
+      max_rows = max_rows,
+      logg_interfere_type = logg_interfere_type,
+      cores = cores
+    )
+    # save as tmp rds if no error
+    if (!fl$err) {
+      fn_htmp <- tempfile(pattern = ".tmp_raw_",
+        tmpdir = pipe_house$wait_room)
+      st_dt <- min(fl$ipayipi_data_raw$raw_data$date_time)
+      ed_dt <- max(fl$ipayipi_data_raw$raw_data$date_time)
+      dttm_rng <- paste0(
+        as.character(format(st_dt, "%Y")),
+        as.character(format(st_dt, "%m")),
+        as.character(format(st_dt, "%d")), "_",
+        as.character(format(ed_dt, "%Y")),
+        as.character(format(ed_dt, "%m")),
+        as.character(format(ed_dt, "%d"))
       )
-    invisible(fl)
-  }, mc.cores = cores)
-  ers <- sapply(cfiles, function(x) x$err)
-  cfiles <- lapply(cfiles, function(x) x$ipayipi_data_raw)
-  cfiles <- cfiles[!ers]
-  slist_err <- slist[ers]
-  slist <- slist[!ers]
-  # generate file names for all files
-  file_names <- parallel::mclapply(seq_along(cfiles), function(x) {
-    st_dt <- min(cfiles[[x]]$raw_data$date_time)
-    ed_dt <- max(cfiles[[x]]$raw_data$date_time)
-    dttm_rng <- paste0(
-      as.character(format(st_dt, "%Y")),
-      as.character(format(st_dt, "%m")),
-      as.character(format(st_dt, "%d")), "_",
-      as.character(format(ed_dt, "%Y")),
-      as.character(format(ed_dt, "%m")),
-      as.character(format(ed_dt, "%d"))
-    )
-    file_name <- paste0(
-      cfiles[[x]]$data_summary$uz_station[1], "_",
-      cfiles[[x]]$data_summary$uz_table_name[1], "_",
-      gsub(pattern = "_", replacement = "-", x = dttm_rng)
-    )
-    file_name_dt <- data.table::data.table(
-      file_name = file_name,
+      fn <- paste0(
+        fl$ipayipi_data_raw$data_summary$uz_station[1], "_",
+        fl$ipayipi_data_raw$data_summary$uz_table_name[1], "_",
+        gsub(pattern = "_", replacement = "-", x = dttm_rng)
+      )
+      class(fl$ipayipi_data_raw) <- "ipayipi_raw"
+      saveRDS(fl$ipayipi_data_raw, fn_htmp)
+    } else {
+      fn_htmp <- NA_character_
+      fn <- NA_character_
+    }
+    fn_resolve <- data.table::data.table(
+      err = fl$err,
+      fn_htmp = fn_htmp,
+      fp = fp,
+      fn = fn,
       st_dt = st_dt,
       ed_dt = ed_dt,
-      dttm_rng,
-      rep = 1
+      file_ext_in = file_ext_in
     )
-    invisible(file_name_dt)
+    return(fn_resolve)
   }, mc.cores = cores)
-  file_name_dt <- data.table::rbindlist(file_names)
+  file_name_dt <- data.table::rbindlist(file_name_dt)
 
   # archive input raw files ----
   # generate monthly folders if not already there
   file_name_dt$yr_mon_end <- as.character(format(file_name_dt$ed_dt, "%Y%m"))
-  file_name_dt$old_filename <- slist
+  file_name_dt$ofn <- basename(file_name_dt$fp)
+  fn_dt_arc <- file_name_dt[err != TRUE]
+
   if (!is.null(pipe_house$raw_room)) {
-    arcs <- parallel::mclapply(seq_along(file_name_dt$yr_mon_end), function(i) {
-      arc_dir <- file.path(pipe_house$raw_room, file_name_dt$yr_mon_end[i])
+    parallel::mclapply(seq_along(fn_dt_arc$yr_mon_end), function(i) {
+      arc_dir <- file.path(pipe_house$raw_room, fn_dt_arc$yr_mon_end[i])
       if (!dir.exists(arc_dir)) dir.create(arc_dir)
-      if (is.null(file_ext_in)) {
-        file_ext_in <- tools::file_ext(slist[i])
-        file_ext_in <- paste0(".",
-          sub(pattern = "\\.", replacement = "", file_ext_in))
-      }
-      file.copy(from = file.path(pipe_house$wait_room,  slist[i]),
+      file.copy(from = file.path(fn_dt_arc$fp[i]),
         to = file.path(arc_dir, paste0(
-          gsub(pattern = file_ext_in, replacement = "", x = slist[i]),
+          gsub(pattern = fn_dt_arc$file_ext_in[i], replacement = "",
+            x = fn_dt_arc$ofn[i]),
           "_arcdttm_", as.character(format(Sys.time(), "%Y%m%d_%Hh%Mm%Ss")),
-          file_ext_in, collapse = "")))
+          fn_dt_arc$file_ext_in[i], collapse = "")))
     }, mc.cores = cores)
-    rm(arcs)
   }
 
   # check for duplicates and make unique integers
-  if (!anyNA.data.frame(file_name_dt)) {
-    split_file_name_dt <- split(
-      file_name_dt, f = factor(file_name_dt$file_name))
-    split_file_name_dt <- parallel::mclapply(split_file_name_dt, function(x) {
+  if (!anyNA.data.frame(fn_dt_arc)) {
+    split_fn_dt_arc <- split(
+      fn_dt_arc, f = factor(fn_dt_arc$fn))
+    split_fn_dt_arc <- parallel::mclapply(split_fn_dt_arc, function(x) {
       x$rep <- seq_len(nrow(x))
       return(x)
     }, mc.cores = cores)
-    split_file_name_dt <- data.table::rbindlist(split_file_name_dt)
+    fn_dt_arc <- data.table::rbindlist(split_fn_dt_arc)
     if (substr(file_ext_out, 1, 1) != ".") {
       file_ext_out <- paste0(".", file_ext_out)
     }
-    # save files in the wait_room
-    saved_files <- parallel::mclapply(seq_along(cfiles), function(i) {
-      cs <- cfiles[[i]]
-      class(cs) <- "ipayipi_raw"
-      saveRDS(cs, file.path(pipe_house$wait_room,
-          paste0(split_file_name_dt$file_name[i], "__",
-            split_file_name_dt$rep[i], file_ext_out)))
-      invisible(cs)
+    # rename the temp rds files and delete the raw dat files
+    parallel::mclapply(seq_along(fn_dt_arc$fn), function(i) {
+      # rename temp file
+      if (file.exists(fn_dt_arc$fn_htmp[i])) {
+        file.rename(from = fn_dt_arc$fn_htmp[i],
+          to = file.path(dirname(fn_dt_arc$fn_htmp[i]),
+            paste0(fn_dt_arc$fn[i], "__", fn_dt_arc$rep[i], file_ext_out)))
+      }
+
+      # remove dat file in wait room
+      if (file.exists(fn_dt_arc$fp[i])) file.remove(fn_dt_arc$fp[i])
+
+      # remove dat file in source
+      if (wipe_source) {
+        fr <- gsub(paste0("__*.", fn_dt_arc$file_ext_in[i], "$"),
+          fn_dt_arc$file_ext_in[i], fn_dt_arc$ofn[i])
+        if (file.exists(fr))  file.remove(fr)
+      }
     }, mc.cores = cores)
-    rm(saved_files)
-    # remove 'raw' files in wait room
-    del_dats <- parallel::mclapply(slist, function(x) {
-      file.remove(file.path(pipe_house$wait_room, x))
-      invisible(x)
-    }, mc.cores = cores)
-    rm(del_dats)
-    # rm raw files from source
-    if (wipe_source) {
-      del_source_f <- parallel::mclapply(slist, function(x) {
-        file.remove(file.path(pipe_house$source_dir, x))
-        invisible(x)
-      }, mc.cores = cores)
-      rm(del_source_f)
-    }
   }
   cr_msg <- padr(core_message = paste0(" imbibed  ", collapes = ""),
     wdth = 80, pad_char = "=", pad_extras = c("|", "", "", "|"),
     force_extras = FALSE, justf = c(0, 0))
   ipayipi::msg(cr_msg, verbose)
-  if (length(slist_err) > 0) {
-    warning("Files could not be processed")
-    print(slist_err)
+  if (nrow(file_name_dt[err == TRUE]) > 0) {
+    message("Files could not be processed")
+    print(file_name_dt[err == TRUE])
   }
-  invisible(cfiles)
+  invisible(fn_dt_arc$fn)
 }

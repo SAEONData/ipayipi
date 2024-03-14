@@ -38,4 +38,8 @@ e.g., a leap year.
 }
 \author{
 Paul J. Gordijn
+seconds to minutes
+minutes to hours
+hours to days
+days to weeks
 }

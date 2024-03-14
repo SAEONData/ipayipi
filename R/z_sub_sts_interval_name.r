@@ -82,6 +82,39 @@ sts_interval_name <- function(
     int_dt$sts_intv <- intv
   } else {
     int_dt$sts_intv <- paste(int_dt$dfft, int_dt$dfft_units)
+    # round up standard to next time unit if possible
+    #' seconds to minutes
+    if (all(int_dt$dfft_secs / 60 == round(int_dt$dfft_secs / 60, digits = 0),
+          int_dt$dfft_units %in% "secs", int_dt$dfft_secs / 60 < 60)) {
+      int_dt$dfft_units <- "mins"
+      int_dt$dfft <- as.numeric(
+        int_dt$dfft_secs / 60, units = int_dt$dfft_units)
+    }
+    #' minutes to hours
+    if (all(int_dt$dfft_secs / 60 == round(int_dt$dfft_secs / 60, digits = 0),
+      int_dt$dfft_units %in% "mins", int_dt$dfft_secs / 60 > 60)) {
+      int_dt$dfft_units <- "hours"
+      int_dt$dfft <- as.numeric(
+        int_dt$dfft_secs / 60 / 60, units = int_dt$dfft_units)
+    }
+    #' hours to days
+    if (all(int_dt$dfft_secs / 60 / 60 / 24 ==
+          round(int_dt$dfft_secs / 60 / 60 / 24, digits = 0),
+        int_dt$dfft_units %in% "hours", int_dt$dfft_secs / 60 / 60 / 24 > 1)) {
+      int_dt$dfft_units <- "days"
+      int_dt$dfft <- as.numeric(
+        int_dt$dfft_secs / 60 / 60 / 24, units = int_dt$dfft_units)
+    }
+    #' days to weeks
+    if (all(int_dt$dfft_secs / 60 / 60 / 24 / 7 ==
+          round(int_dt$dfft_secs / 60 / 60 / 24 / 7, digits = 0),
+        int_dt$dfft_units %in% "days",
+        int_dt$dfft_secs / 60 / 60 / 24 / 7 > 1)) {
+      int_dt$dfft_units <- "weeks"
+      int_dt$dfft <- as.numeric(
+        int_dt$dfft_secs / 60 / 60 / 24 / 7, units = int_dt$dfft_units)
+    }
+    int_dt$sts_intv <- paste0(int_dt$dfft, " ", int_dt$dfft_units)
   }
   return(int_dt)
 }

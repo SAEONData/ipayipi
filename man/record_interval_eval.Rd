@@ -11,6 +11,7 @@ record_interval_eval(
   dta_in = NULL,
   remove_prompt = FALSE,
   record_interval_type = NULL,
+  max_rows = 1000,
   ...
 )
 }
@@ -23,9 +24,11 @@ record_interval_eval(
 
 \item{dta_in}{Input data must have the same number of rows as dt. If inconsistent time intervals are detected then the input data will be filtered out and returned.}
 
-\item{remove_prompt}{Logical. Activate a readline prompt to choose whether or not filter our records from \code{dta_in} with inconsistent record intervals.}
+\item{remove_prompt}{Logical. Activate a readline prompt to choose whether or not filter our records from \code{dta_in} with inconsistent record intervals. If TRUE then the \code{max_rows} argument is ignored.}
 
 \item{record_interval_type}{If there is only one data record the this parameter will be used as the default. This must be either "event_based" or "continuous".}
+
+\item{max_rows}{Maximum length of \code{dt} vector to use for evaluating the record interval. Defaults to 1000. If \code{remove_prompt} is TRUE, this argument is ignored.}
 }
 \value{
 List containing a logical list of 1) the adjusted date-time values
@@ -46,4 +49,5 @@ There is a special case for monthly time difference intervals. These are handled
 }
 \author{
 Paul J. Gordijn
+only work with the full data set if remove_prompt is T
 }

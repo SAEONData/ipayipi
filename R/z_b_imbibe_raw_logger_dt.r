@@ -118,11 +118,17 @@ imbibe_raw_logger_dt <- function(
   file_ext = NULL,
   col_dlm = NULL,
   dt_format = c(
-    "Ymd HMS", "Ymd IMSp", "ymd HMS", "ymd IMSp", "mdY HMS", "mdy IMSp",
-    "dmY HMS", "dmy IMSp", "Ymd HMOS", "Ymd IMOSp", "ymd HMOS", "ymd IMOSp",
-    "mdY HMOS", "mdy IMOSp", "dmY HMOS", "dmy IMOSp"),
+    "Ymd HMOS", "Ymd HMS",
+    "Ymd IMOSp", "Ymd IMSp",
+    "ymd HMOS", "ymd HMS",
+    "ymd IMOSp", "ymd IMSp",
+    "mdY HMOS", "mdY HMS",
+    "mdy IMOSp",  "mdy IMSp",
+    "dmY HMOS", "dmY HMS",
+    "dmy IMOSp", "dmy IMSp"),
   dt_tz = "Africa/Johannesburg",
   record_interval_type = "continuous",
+  max_rows = 1000,
   data_setup = NULL,
   remove_prompt = FALSE,
   logg_interfere_type = "on_site",
@@ -149,7 +155,6 @@ imbibe_raw_logger_dt <- function(
       file <- data.table::fread(file_path, header = FALSE, ...)
       l <- R.utils::countLines(file_path)[1]
       file_head <- readLines(file_path)[1:(l - nrow(file))]
-      #if (all(col_dlm %in% "\t", file_ext %ilike% ".txt")) col_dlm <- ""
       file_head <- lapply(file_head, function(x) {
         x <- strsplit(x, split = col_dlm)
         x <- unlist(c(x, rep(NA, ncol(file) - length(x))))
@@ -286,8 +291,7 @@ imbibe_raw_logger_dt <- function(
         return(pxx)
       })
     })
-    # if (any(is.na(phen_info$phen_unit))) phen_info$phen_unit <- "no_spec"
-    # if (any(is.na(phen_info$phen_measure))) phen_info$phen_measure <- "no_spec"
+
     # extract data
     dta <- file[data_setup$data_row:nrow(file),
       phen_info_ij$phen_name$c_rng, with = FALSE]
@@ -318,7 +322,7 @@ imbibe_raw_logger_dt <- function(
     pn <- c("id", "date_time", unlist(phen_info$phen_name)[
         !unlist(phen_info$phen_name) %in% ""])
     pn <- pn[!is.na(pn)]
-    dta <- subset(dta, select = pn)
+    dta <- dta[, pn, with = FALSE]
 
     # finalize the phenomena table
     phens <- data.table::data.table(
@@ -338,16 +342,20 @@ imbibe_raw_logger_dt <- function(
     dri <- ipayipi::record_interval_eval(
       dt = dta$date_time, dt_format = dt_format, dt_tz = dt_tz,
       dta_in = dta, remove_prompt = remove_prompt,
-      record_interval_type = record_interval_type
+      record_interval_type = record_interval_type,
+      max_rows = max_rows
     )
     dta <- dri$new_data
-    dri <- ipayipi::record_interval_eval(
-      dt = dta$date_time, dt_format = dt_format, dt_tz = dt_tz,
-      dta_in = dta, remove_prompt = remove_prompt,
-      record_interval_type = record_interval_type
-    )
+    if (remove_prompt) {
+      dri <- ipayipi::record_interval_eval(
+        dt = dta$date_time, dt_format = dt_format, dt_tz = dt_tz,
+        dta_in = dta, remove_prompt = remove_prompt,
+        record_interval_type = record_interval_type,
+        max_rows = max_rows
+      )
+      dta <- dri$new_data
+    }
 
-    dta <- dri$new_data
     # finalize the data_summary
     data_summary <- data.table::data.table(
       dsid = as.integer(1),
