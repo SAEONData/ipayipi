@@ -232,8 +232,8 @@ append_phen_overlap_data2 <- function(
     if ("id" %in% names(z)) {
       z[["id"]] <- data.table::fifelse(
         is.na(z[[paste0("id", f[2])]]),
-        as.integer(z[[paste0("id", f[1])]]),
-        as.integer(z[[paste0("id", f[2])]])
+        as.numeric(z[[paste0("id", f[1])]]),
+        as.numeric(z[[paste0("id", f[2])]])
       )
     } else {
       z[["id"]] <- seq_len(nrow(z))

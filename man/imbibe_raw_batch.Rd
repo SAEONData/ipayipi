@@ -10,11 +10,14 @@ imbibe_raw_batch(
   file_ext_in = NULL,
   file_ext_out = ".ipr",
   col_dlm = NULL,
-  dt_format = c("Ymd HMS", "Ymd IMSp", "ymd HMS", "ymd IMSp", "mdY HMS", "mdy IMSp",
-    "dmY HMS", "dmy IMSp", "Ymd HMOS", "Ymd IMOSp", "ymd HMOS", "ymd IMOSp", "mdY HMOS",
-    "mdy IMOSp", "dmY HMOS", "dmy IMOSp"),
+  dt_format = c("Ymd HMOS", "Ymd HMS", "Ymd IMOSp", "Ymd IMSp", "ymd HMOS", "ymd HMS",
+    "ymd IMOSp", "ymd IMSp", "mdY HMOS", "mdY HMS", "mdy IMOSp", "mdy IMSp", "dmY HMOS",
+    "dmY HMS", "dmy IMOSp", "dmy IMSp"),
   dt_tz = "Africa/Johannesburg",
   record_interval_type = "continuous",
+  remove_prompt = FALSE,
+  max_rows = 1000,
+  logg_interfere_type = "on_site",
   data_setup = NULL,
   prompt = FALSE,
   wanted = NULL,
@@ -42,6 +45,10 @@ been imbibed into the \code{ipayipi} data pipeline. Advisable to leave this as t
 
 \item{dt_tz}{recognized time-zone of the data locale.}
 
+\item{max_rows}{The number of rows to use when evaluating the record interval. Argument is parsed to \code{ipayipi::record_interval_eval()}.}
+
+\item{logg_interfere_type}{Two options here: "remote" or "on_site". Each time a logger is visited is counted as a logger interference event. Type \emph{'remote'} occurs when data is downloaded remotely. Type _'on_site'_is when data was downloaded on site. \emph{See} \code{ipayipi::imbibe_raw_logger_dt()}.}
+
 \item{data_setup}{List of options used to extract data and metadata from instrument data outputs. For a description of the \code{data_setup} \emph{see} \code{ipayipi::read_logger_dt()}.}
 
 \item{prompt}{Should the function use an interactive file selection function
@@ -51,18 +58,15 @@ otherwise all files are returned. TRUE or FALSE.}
 are selected for processing. Multiple search kewords should be seperated
 with a bar ('|'), and spaces avoided unless part of the keyword.}
 
-\item{unwanted}{Similar to wanted, but keywords for filtering out unwanted
-stations.}
+\item{unwanted}{Similar to wanted, but keywords for filtering out unwanted stations.}
 
-\item{recurr}{Should the function search recursively into sub directories
-for hobo rainfall csv export files? TRUE or FALSE.}
+\item{recurr}{Should the function search recursively into sub directories for hobo rainfall csv export files? TRUE or FALSE.}
+
+\item{verbose}{Logical passed to \code{attempt::attempt()} which reads the logger text file in with either \code{data.table::fread()} or base R.}
 
 \item{cores}{Number of CPU's to use for processing in parallel. Only applies when working on Linux.}
 
 \item{record_interval}{If there are is no discrete, record interval set in the logger program, i.e., the sampling is event based, then this parameter must be set to "event_based". Defaults to "continuous".}
-
-\item{silent}{Logical passed to \code{attempt::attempt()} which reads the logger
-text file in with either \code{data.table::fread()} or base R.}
 }
 \description{
 Uses \code{ipayipi::imbibe_logger_dt()} to read and transfer

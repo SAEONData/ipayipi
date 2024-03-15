@@ -1,12 +1,15 @@
 #' @title Organise sequencial processing of phenomena aggregations.
 #' @description An alias for list in ipayipi::dt_calc. Used for sequence of
 #'  `ipayipi::chainer()` calculations.
+#'  - := indicates new phenomena for which units, measure and var_types are nice
+#' @param f_params If `full_eval` is FALSE: a list of `ipayipi::chainer()` operations.
 #' @author Paul J. Gordijn
 #' @export
 calc_param_eval <- function(
   f_params = NULL,
   full_eval = FALSE,
   ppsij = NULL,
+  sfc = NULL,
   ...
   ) {
   "phen_name" <- NULL
@@ -21,11 +24,11 @@ calc_param_eval <- function(
         # before 1st comma
         x[[v_names[ii]]]$dt_syn_bc, ", ",
         # after 1st comma
-        if (!is.null(x[[v_names[ii]]]$dt_syn_ac)) {
-          paste0(v_names[ii], " := ", collapse = "")
-        } else {
-          ""
-        },
+        # if (!is.null(x[[v_names[ii]]]$dt_syn_ac)) {
+        #   paste0(v_names[ii], " := ", collapse = "")
+        # } else {
+        #   ""
+        # },
         # after 2nd comma
         x[[v_names[ii]]]$dt_syn_ac,
         if (!is.null(x[[v_names[ii]]]$dt_syn_exc)) ", " else "",
@@ -50,11 +53,11 @@ calc_param_eval <- function(
         if (length(xsyn) > 0) {
           z <- paste0(names(xsyn), " = \"", xsyn, "\"", collapse = ", ")
           z <- paste("ipip(", z, ")", collapse = "", sep = "")
-          if (length(unlist(grep(pattern = ", ]", x = xii))) > 0) {
-            xii <- gsub(pattern = ", ]", replacement = paste0(", ", z, "]"),
+          if (length(unlist(grep(pattern = ", ]$", x = xii))) > 0) {
+            xii <- gsub(pattern = ", ]$", replacement = paste0(", ", z, "]"),
               x = xii)
           } else {
-            xii <- gsub(pattern = "]", replacement = paste0(", ", z, "]"),
+            xii <- gsub(pattern = "]$", replacement = paste0(", ", z, "]"),
               x = xii)
           }
         }
@@ -102,26 +105,72 @@ calc_param_eval <- function(
       }
       return(si)
     })
+    xtras <- lapply(seq_along(xtras), function(i) {
+      x <- data.table::as.data.table(xtras[[i]])
+      x$phen_name <- new_phens[[i]]
+      return(x)
+    })
+
+    xtras <- data.table::rbindlist(xtras, fill = TRUE)
+    xtras <- xtras[!is.na(phen_name)]
+    xtras$nas <- rowSums(is.na(xtras))
+    xtras <- split.data.frame(xtras, f = factor(xtras$phen_name))
+    xtras <- lapply(xtras, function(x) {
+      x[nas == min(nas)][.N]
+    })
+    xtras <- data.table::rbindlist(xtras)
+    xtras[, names(xtras)[!names(xtras) %in% "nas"], with = FALSE]
+
     # generate a phen table
     record_interval_type <- ipayipi::sts_interval_name(ppsij$time_interval[1])
-    fna <- function(x, y) if (any(is.null(x[[y]]))) NA else x[[y]][1]
+
+    old_phens_dt <- ipayipi::sf_read(sfc = sfc, tmp = TRUE, tv = "phens_dt")[[
+      "phens_dt"
+    ]][phen_name %in% xtras$phen_name]
+    old_phens_dt$nas <- rowSums(
+      is.na(old_phens_dt[, c("units", "measure", "var_type"), with = FALSE]))
+    old_phens_dt <- split.data.frame(old_phens_dt,
+      f = factor(old_phens_dt$phen_name))
+    old_phens_dt_l <- lapply(old_phens_dt, function(x) {
+      x <- x[!nas == max(nas)][.N]
+      return(x)
+    })
+    old_phens_dt <- data.table::rbindlist(old_phens_dt_l)
+    if (nrow(old_phens_dt) > 0) {
+      old_phens_dt <- old_phens_dt[,
+        c("phen_name", "units", "measure", "var_type"), with = FALSE]
+      names(old_phens_dt) <- c("phen_name", "c_units", "c_measure",
+        "c_var_type")
+    }
     phens_dt <- data.table::data.table(
-      ppsid = paste(ppsij$dt_n, ppsij$dtp_n, sep = "_"),
+      ppsid = paste(ppsij$dt_n[1], ppsij$dtp_n[1], sep = "_"),
       phid = NA,
-      phen_name = unlist(new_phens),
-      units = sapply(xtras, fna, y = "units"),
-      measure = sapply(xtras, fna, y = "measure"),
-      var_type = sapply(xtras, fna, y = "var_type"),
+      phen_name = xtras$phen_name,
+      units = xtras$units,
+      measure = xtras$measure,
+      var_type = xtras$var_type,
       record_interval_type = data.table::fifelse(
         record_interval_type$sts_intv %in% "discnt",
         "event_based", "continuous"),
       orig_record_interval = record_interval_type$sts_intv,
       dt_record_interval = gsub(pattern = " ", replacement = "_",
         record_interval_type$sts_intv),
-      orig_table_name = ppsij$output_dt,
-      table_name = ppsij$output_dt
+      orig_table_name = ppsij[.N]$input_dt,
+      table_name = ppsij[.N]$output_dt
     )
-    phens_dt <- phens_dt[!is.na(phen_name)]
+    # overwirte na var details with old phen details
+    phens_dt_n <- names(phens_dt)
+    if (nrow(old_phens_dt) > 0) {
+      phens_dt <- old_phens_dt[phens_dt, on = list(phen_name)]
+      phens_dt$units <- data.table::fifelse(is.na(phens_dt$units),
+        phens_dt$c_units, phens_dt$units)
+      phens_dt$measure <- data.table::fifelse(is.na(phens_dt$measure),
+        phens_dt$c_measure, phens_dt$measure)
+      phens_dt$var_type <- data.table::fifelse(is.na(phens_dt$var_type),
+        phens_dt$c_var_type, phens_dt$var_type)
+      phens_dt <- phens_dt[, phens_dt_n, with = FALSE]
+    }
+
     dt_parse <- list(f_params = list(calc_params = f_params),
       phens_dt = phens_dt)
   }

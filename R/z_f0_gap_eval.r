@@ -53,7 +53,7 @@ gap_eval <- function(
 
   # open station connection
   sfc <- ipayipi::open_sf_con(pipe_house = pipe_house,
-    station_file = station_file)
+    station_file = station_file, tmp = TRUE)
 
   # generate gap table for each raw data table
   ds <- ipayipi::sf_read(sfc = sfc, tv = "data_summary", tmp = TRUE)[[

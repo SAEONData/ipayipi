@@ -26,29 +26,30 @@
 #' @author Paul J. Gordijn
 #' @export
 agg_params <- function(
-  n = NULL,
   phen_out_name = NULL,
   agg_f = NULL,
   units = NULL,
   measure = NULL,
   var_type = NULL,
   ignore_nas = TRUE,
+  n = NULL,
   ...
 ) {
-  # x <- list(rain_tot = ipayipi::agg_params(phen_out_name = "rain",
-  #   agg_f = "mean(x)", units = "mm", table_name = "raw_5_mins"))
-  aggs <- list(...)
-  aggs <- list(n = n, phen_out_name = phen_out_name,
-    agg_f = agg_f, units = units, measure = measure, var_type =
-    var_type, ignore_nas = ignore_nas)
   # standard agg parameters
   # agg parameters provided here will be used to overwrite feaults
-  stnd_agg_cols <- c("n", "phen_out_name", "agg_f", "units", "measure",
-    "var_type", "ignore_nas")
-  if (!any(names(aggs) %in% stnd_agg_cols)) {
-    abn <- names(aggs)[!names(aggs) %in% stnd_agg_cols]
-    stop(paste0(abn, " agg parameters are not recognised"))
-  }
-  aggs <- aggs[!sapply(aggs, is.null)]
-  return(list(aggs = aggs))
+  d_args <- list(phen_out_name = NULL, agg_f == NULL,
+    units = NULL, measure = NULL, var_type = NULL, ignore_nas = TRUE)
+  a_args <- list(phen_out_name = phen_out_name, agg_f = agg_f, units = units,
+    measure = measure, var_type = var_type, ignore_nas = ignore_nas)
+  x <- lapply(seq_along(a_args), function(i) {
+    if (all(sapply(a_args[[i]], function(x) x %in% d_args[[i]]))) {
+      return(NULL)
+    } else {
+      return(a_args[[i]])
+    }
+  })
+  names(x) <- names(a_args)
+  x <- x[!sapply(x, is.null)]
+  class(x) <- c("agg_params", "list")
+  return(x)
 }

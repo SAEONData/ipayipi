@@ -7,10 +7,10 @@
 #'  to extract weather data.
 #' @param file_ext The extension of the stations from where data will be
 #'  extracted.
-#' @param tab_name The name of the table in a station file (list object) from
-#'  which to extract data.
+#' @param tab_name Vector of table names in a station files (list object) from which to extract data. Add items to the vector such that only one table per station is selected. Table names are selected via the `%in%` argument.
 #' @param phen_name The field/column/name of the phenomena which to join into
 #'  a single data table.
+#' @param ri Record interval string. This function will guess the record interval used to generate a flat table. However, the guess may not be possible if there is insufficient data.
 #' @param output_dir The output directory where an output csv file is saved.
 #' @param prompt Logical. If `TRUE` a prompt will be called so that the user
 #'  can interactively select station files.
@@ -32,29 +32,33 @@
 #' @author Paul J. Gordijn
 #' @export
 ipayipi_flat_dta <- function(
-  input_dir = NULL,
+  pipe_house = NULL,
   file_ext = ".ipi",
-  tab_name = NULL,
+  tab_names = NULL,
   phen_name = NULL,
+  ri = NULL,
   output_dir = NULL,
   prompt = FALSE,
   wanted = NULL,
   unwanted = NULL,
   out_csv = FALSE,
+  out_tab_name = NULL,
   out_csv_preffix = "",
   recurr = FALSE,
   ...) {
     "dt1" <- "dt2" <- "dt3" <- "dt4" <- "..cols_inc" <- "%ilike%" <- NULL
   # merge data sets into a station for given time periods
-  slist <- ipayipi::dta_list(input_dir = input_dir, file_ext = file_ext,
-    prompt = prompt, recurr = recurr, unwanted = unwanted, wanted = wanted)
+  slist <- ipayipi::dta_list(input_dir = pipe_house$ipip_room,
+    file_ext = file_ext, prompt = prompt, recurr = recurr,
+    unwanted = unwanted, wanted = wanted)
   # extract all relevant tables from the data
   t <- lapply(slist, function(x) {
-    m <- readRDS(file.path(input_dir, x))
+    m <- readRDS(file.path(pipe_house$ipip_room, x))
+    tab_name <- names(m)[names(m) %in% tab_names][1]
     t <- m[[tab_name]]
     cols_inc <- names(t)[names(t) %like% "date_time|Date_time"]
     cols_inc <- c(cols_inc, names(t)[names(t) %in% phen_name])
-    t <- t[, ..cols_inc]
+    t <- t[, c(cols_inc), with = FALSE]
     invisible(t)
   })
   names(t) <- gsub(pattern = file_ext, replacement = "", x = slist)
@@ -63,12 +67,14 @@ ipayipi_flat_dta <- function(
     dt_name <- names(x)[names(x) %like% "date_time|Date_time"]
     ti <- ipayipi::record_interval_eval(dt = x[][[dt_name]],
       dta_in = x, remove_prompt = FALSE)
+    if (!is.null(ri)) ti$record_interval <- ri
     dt_x <- data.table::data.table(
       ti = ti$record_interval_difftime,
       ti_chr = ti$record_interval,
       dt_min = min(x[][[dt_name]], na.rm = TRUE),
       dt_max = max(x[][[dt_name]], na.rm = TRUE)
     )
+    if (dt_x$ti %in% "discnt") dt_x$ti <- lubridate::as.difftime(ri)
     invisible(dt_x)
   })
   ti <- data.table::rbindlist(ti)
@@ -102,11 +108,12 @@ ipayipi_flat_dta <- function(
   tii <- ipayipi::record_interval_eval(dt = dta$date_time,
     dta_in = dta)
   tii <- tii$record_interval
-  dta <- list(dta = dta, time_interval = tii, stations = slist,
-    tab_name = tab_name, phen_name = phen_name)
+  if (is.null(out_tab_name)) out_tab_name <- ti_chr
+  dta <- list(dta = dta, time_interval = ti_chr, stations = slist,
+    tab_names = tab_names, phen_name = phen_name)
   if (out_csv) {# save the csv file
     data.table::fwrite(dta$dta, file = file.path(output_dir, paste0(
-        out_csv_preffix, "_", tab_name, "_", phen_name, "_", tii, ".csv")),
+        out_csv_preffix, "_", out_tab_name, "_", phen_name, ".csv")),
       na = NA, dateTimeAs = "write.csv")
   }
   return(dta)

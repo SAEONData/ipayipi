@@ -31,7 +31,7 @@
 meta_to_station <- function(
   pipe_house = NULL,
   input_dir = NULL,
-  meta_file = NULL,
+  meta_file = "event_db",
   file_ext = ".rmds",
   station_ext = ".ipip",
   in_station_meta_name = "meta_events",
@@ -55,11 +55,11 @@ meta_to_station <- function(
   slist <- ipayipi::dta_list(input_dir = input_dir,
     file_ext = station_ext, wanted = wanted, unwanted = unwanted,
     prompt = FALSE, recurr = FALSE)
-  sl <- gsub(pattern = station_ext, replacement = "", x = slist)
-  s <- names(edb)[names(edb) %ilike% "station|site"]
-  edb <- edb[eval(parse(text = s)) %in% unique(sl)]
-  es <- paste(collapse = "|", unique(edb[[s]]))
-  slist <- suppressWarnings(slist[slist %ilike% es])
+  # sl <- gsub(pattern = station_ext, replacement = "", x = slist)
+  # s <- names(edb)[names(edb) %ilike% "station|site"]
+  # #edb <- edb[eval(parse(text = s)) %in% unique(sl)]
+  # es <- paste(collapse = "|", unique(edb[[s]]))
+  # slist <- suppressWarnings(slist[slist %ilike% es])
   cr_msg <- padr(core_message =
     paste0(" Adding metadata to ", length(slist),
       " stations", collapes = ""),

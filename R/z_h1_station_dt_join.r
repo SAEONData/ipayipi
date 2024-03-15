@@ -41,20 +41,20 @@ dt_join <- function(
   sfc = NULL,
   ppsij = NULL,
   ...) {
-  join = "full_join"
-  x_tbl = NULL
-  y_tbl = NULL
-  y_phen_names = NULL
-  x_key = "date_time"
-  y_key = "date_time"
-  nomatch = NA
-  mult = "all"
-  roll = FALSE
-  rollends = FALSE
-  allow.cartesian = FALSE
-  time_seq = NULL
-  fuzzy = NULL
-  inq = NULL
+  # join = "full_join"
+  # x_tbl = NULL
+  # y_tbl = NULL
+  # y_phen_names = NULL
+  # x_key = "date_time"
+  # y_key = "date_time"
+  # nomatch = NA
+  # mult = "all"
+  # roll = FALSE
+  # rollends = FALSE
+  # allow.cartesian = FALSE
+  # time_seq = NULL
+  # fuzzy = NULL
+  # inq = NULL
   # evaluate the f_params
   f_params <- eval(parse(text = f_params))
   if (!is.null(ppsij)) {
@@ -91,22 +91,35 @@ dt_join <- function(
   if (j_args$join == "fj") j_args$join <- "full_join"
   j_args <- j_args[!sapply(j_args, function(x) is.null(x))]
   # read in the available data
-  if (!is.null(sfc) && is.null(x_tbl)) {
+  sfcn <- names(sfc)
+  wrk_dta <- sfcn[sfcn %in% "dt_working"]
+  hsf_dta <- sfcn[sfcn %ilike% "_hsf_table_"]
+  hsf_dta <- hsf_dta[order(hsf_dta)]
+
+  if (length(wrk_dta) > 0) {
     x_tbl <- ipayipi::sf_read(sfc = sfc, tmp = TRUE, tv = "dt_working")[[
       "dt_working"
     ]]
+  } else {
+    x_tbl_n <- hsf_dta[length(hsf_dta) - 1]
+    x_tbl <- ipayipi::sf_read(sfc = sfc, tmp = TRUE, tv = x_tbl_n)[[1]]
   }
-  if (!is.null(sfc) && is.null(y_tbl)) {
-    y_tbl <- ipayipi::sf_read(sfc = sfc, tmp = TRUE, tv = "hsf_dts")[[
-      "hsf_dts"
-    ]]
-    y_tbl <- y_tbl[[length(y_tbl)]]
+  if (length(hsf_dta) > 0) {
+    y_tbl_n <- hsf_dta[length(hsf_dta)]
+    y_tbl <- ipayipi::sf_read(sfc = sfc, tv = y_tbl_n, tmp = TRUE)[[1]]
   }
 
   args <- c(j_args, list(x_tbl = x_tbl, y_tbl = y_tbl, fuzzy = fuzzy,
     time_seq = time_seq))
 
-  dt <- do.call(what = "mhlanga", args = args)
+  dt_working <- do.call(what = "mhlanga", args = args)
 
-  return(list(dt_working = dt))
+  # remove harvested data sets
+  if (length(hsf_dta) > 0) {
+    lapply(sfc[names(sfc) %in% hsf_dta], function(x) {
+      unlink(x, recursive = TRUE)
+    })
+  }
+  saveRDS(dt_working, file.path(dirname(sfc[1]), "dt_working"))
+  return("dt_working")
 }

@@ -5,21 +5,17 @@
 \title{Aggregate organisation for phenomena}
 \usage{
 agg_params(
-  n = NULL,
   phen_out_name = NULL,
   agg_f = NULL,
   units = NULL,
   measure = NULL,
   var_type = NULL,
   ignore_nas = TRUE,
+  n = NULL,
   ...
 )
 }
 \arguments{
-\item{n}{Optional parameter for assigning an integer to the phenomena
-being aggregated. Duplicated 'n's will be filtered out in partial
-evaluation.}
-
 \item{phen_out_name}{Final aggregated phenomena name (can be different
 from the phenomena name in the harvested or other data source.}
 
@@ -41,6 +37,10 @@ or string.}
 in aggregation functions. If \code{NA} values are ignored then aggregate
 periods with \code{NA} values will not be calculated? Logical \code{TRUE} or
 \code{FALSE}.}
+
+\item{n}{Optional parameter for assigning an integer to the phenomena
+being aggregated. Duplicated 'n's will be filtered out in partial
+evaluation.}
 }
 \description{
 Function to organise a list of aggregation parameters.

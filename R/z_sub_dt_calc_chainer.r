@@ -1,15 +1,15 @@
-#' @title Develop a chain link for data.table processing
-#' @description Function to build `data.table` syntax of an individual chain link.
-#' @param dt_syn_bc `data.table` before first-comma syntax. Logical statement that operates on a table's rows.
-#' @param dt_syn_ac `data.table` after first-comma syntax. _See examples_.
-#' @param measure If a new vatiable is described it's measure should be provided. Measure's are standardised using the `ipayipi::sts_phen_measure` standard table.
+#' @title Develop a 'data.table' chain link for processing data
+#' @description Link together multiple data.table operations into a single chain.
+#' @param dt_syn_bc `data.table` before first-comma syntax. Before the first comma syntax operates on a data.tables rows.
+#' @param dt_syn_ac `data.table` after first-comma syntax. After the first comma syntax operates on columns. _See examples_.
+#' @param measure If a new vatiable is described it's measure should be provided. Measure's are standardised using the `ipayipi::sts_phen_measure` standard table. New variables can be assigned using the ":=" operator.
 #' @param units The unit of measure of a new variable, e.g., "mm" for rainfall, or "deg_c" for degrees Celcius. _Notice conformity to __snake case__ descriptions --- this must be applied_.
 #' @param var_type The type (or class) of variable, e.g., "num" for numeric. These are standardised using the `ipayipi::sts_phen_var_type` table.
 #' @param notes An additional description of the calculation/operation can be provided.
 #' @param fork_table If not `NULL` (default) a duplicate table of the reverse `dt_syn_bc` (before comma logic) will be produced and kept in the data pipeline.
 #' @param temp_var Indicates whether an introduced variable is temporary. If temporary it will be removed during the processing stage.
 #' @param link Integer denoting the numeric order of a chain link in a sequence put together in a list.
-#' @examples 
+#' @examples
 #' # Set up chain link to filter out zero mm rainfall events
 #' x <- list(remove0 = chainer(dt_syn_bc = "rain_cumm != 0"))
 #' x
@@ -19,7 +19,7 @@
 #' x <- list(
 #'  remove0 = chainer(dt_syn_bc = "rain_cumm != 0"),
 #'  t_lag = chainer(
-#'    dt_syn_ac = "c(0, date_time[2:.N] - date_time[1:(.N - 1)])")
+#'    dt_syn_ac = "t_lag := c(0, date_time[2:.N] - date_time[1:(.N - 1)])")
 #' )
 #' print(x)
 #'

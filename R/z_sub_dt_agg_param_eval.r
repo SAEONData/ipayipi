@@ -1,42 +1,19 @@
 #' @title 'dt' processing pipeline: genearte aggregation criteria.
-#' @description Used in the processing pipeline to generate aggregation
-#'  criteria. Data is aggregated by the time interval specified for the
-#'  harvested data (_in_ `ipayipi::hsf_param_eval()`).
-#' @param full_eval Logical indicating whether to perform a full evaluation
-#'  or not. A partial evaluation only produces a string single string for
-#'  a summary of the function's parameters. Defaults to `FALSE`.
-#' @param f_summary Summary information used in full evaluation. Includes
-#'  any tables in the station file with keywords, "phens" or "summary".
-#' @param f_params For the partial evaluation multiple phenomena can
-#'  be described using `ipayipi::agg_params()`. If left blank defaults will
-#'  be used on all phenomena harvested.
-#' @param agg_offset Character vector of length two. Strings describe period
-#'  of offset from the rounded time interval used to aggregate data. For
-#'  example, if aggregating rainfall data from five minute to daily records,
-#'  but staggered so that daily rainfall is totalled from 8 am to 8 pm the
-#'  next day the `agg_offset` must be set to `c("8 hours", "8 hours")`.
-#'  When `full_eval == TRUE` the function overwrites this parameter in favor
-#'  of `agg_offset` extracted from the partial evaluation.
-#' @param all_phens Defaults to `FALSE`. If `TRUE`, all harvested phenomena will
-#'  be aggregated, despite the lesser number of phenomena listed/described in
-#'  the partial evaluation.
-#' @param ignore_nas Logical that defaults to `FALSE`. When `TRUE` `NA` values
-#'  will be ignored in aggregation functions. _This does not apply for
-#'  non-default functions supplied by the partial evaluation_.
-#' @param phens_summary A summary of the phens table of the particular
-#'  phenomena that will be aggregated by `ipayipi::dt_agg()`.
-#' @param ignore_nas If `NA` values are ignores any periods or time
-#'  interval of the data with any NA values will result in an `NA`
-#'  aggregation value. Important if missing values have not been
-#'  interpolated.
-#' @param eval_seq Dynamic list of tables accessed throughout the evaluation
-#'  process. The final evaluation tables are appended to the station file.
-#' @param sf Station file object.
+#' @description Used in the processing pipeline to generate aggregation criteria.
+#' @param full_eval Logical indicating whether to perform a full evaluation or not. A partial evaluation only produces a string single string for a summary of the function's parameters. Defaults to `FALSE`.
+#' @param f_params For the partial evaluation multiple phenomena can be described using `ipayipi::agg_params()`. If left blank defaults will be used on all phenomena harvested.
+#' @param agg_offset Character vector of length two. Strings describe period of offset from the rounded time interval used to aggregate data. For example, if aggregating rainfall data from five minute to daily records, but staggered so that daily rainfall is totalled from 8 am to 8 pm the next day the `agg_offset` must be set to `c("8 hours", "8 hours")`.  When `full_eval == TRUE` the function overwrites this parameter in favor of `agg_offset` extracted from the partial evaluation.
+#' @param all_phens Defaults to `FALSE`. If `TRUE`, all harvested phenomena will be aggregated, despite the lesser number of phenomena listed/described in the partial evaluation.
+#'  _Note_:
+#'   - phenomena with variable types (`var_type`) character (`chr`) and factor (`fac`) are not processed by this function.
+#'   - phenomena names (`phen_name`) ending with '_sn' (denoting a sensor number/identifier) are not aggregated in this function.
+#' @param ignore_nas Logical that defaults to `FALSE`. When `TRUE` `NA` values will be ignored in aggregation functions. _This does not apply for non-default functions supplied by the partial evaluation_.
+#' @param phens_summary A summary of the phens table of the particular phenomena that will be aggregated by `ipayipi::dt_agg()`.
+#' @param ignore_nas If `NA` values are ignores any periods or time interval of the data with any NA values will result in an `NA` aggregation value. Important if missing values have not been interpolated.
 #' @author Paul J. Gordijn
 #' @details
-#'  Default aggregation functions based on measure, variable types, and
-#'   the unit of measurement. Function info is stored in the package
-#'   data, "sts_agg_functions" --- _see examples_.
+#'  Default aggregation functions based on measure, variable types, and the unit of measurement. Function info is stored in the package data, "sts_agg_functions" --- _see examples_. Note that columns/fields with character of factor variable types are not processed by this function.
+#'
 #'
 #' @md
 #' @examples
@@ -46,84 +23,127 @@
 #'
 #' @export
 agg_param_eval <- function(
+  sfc = NULL,
   full_eval = FALSE,
-  f_summary = NULL,
   f_params = NULL,
-  agg_offset = c("0 secs", "0 secs"),
-  all_phens = FALSE,
-  ignore_nas = FALSE,
-  eval_seq = NULL,
   ppsij = NULL,
-  sf = NULL,
+  agg_offset = c("0 secs", "0 secs"),
+  all_phens = TRUE,
+  ignore_nas = FALSE,
+  agg_input_tbl = NULL, # name of input table
+  agg_intervals = NULL, # list of time intervals used to aggregate data
+  agg_dt_suffix = "_agg", # suffix to use when naming the ourput agg tables
+  agg_parameters = NULL, # argument genereated using `agg_params` nested within `agg()`
+  gaps = FALSE, # Logical or vector of phenomena/string names. If TRUE then the station 'gaps', i.e. the 'gap' table will be joined to the aggregated table. If a vector of string/s is supplied then these are used to filter the gap table before joining this to aggregated data.
   ...) {
-  "%ilike%" <- "agg_f" <- "measure" <- "phen_name" <-
-    "phen_out_name" <- ":=" <- NULL
-  x <- list(...)
+  "%ilike%" <- "agg_f" <- "measure" <- "phen_name" <- "stage" <- "phen_out_name" <-
+    ":=" <- "table_name" <- "ppsid" <- "diff_secs" <- "var_type" <- NULL
+  # agg_offset = c("0 secs", "0 secs")
+  # all_phens = TRUE
+  # ignore_nas = FALSE
+  # agg_input_tbl = NULL # name of input table
+  # agg_intervals = NULL # list of time intervals used to aggregate data
+  # agg_dt_suffix = "_agg" # suffix to use when naming the ourput agg tables
+  # agg_parameters = NULL # argument genereated using `agg_params` nested within `agg()`
+  # gaps = TRUE 
+
+  d_args <- list(agg_input_tbl = NULL, agg_intervals = NULL,
+    agg_dt_suffix = "_agg", ignore_nas = FALSE, all_phens = TRUE,
+    agg_offset = c("0 secs", "0 secs"), agg_parameters = NULL, gaps = TRUE)
+
   # table to be passed as variable for default aggregation functions
   ftbl <- ipayipi::sts_agg_functions
   # full and partial eval
   if (!full_eval) { # partial evaluation
     # basic argument checks
+    a_args <- list(agg_input_tbl = agg_input_tbl, agg_intervals = agg_intervals,
+      agg_dt_suffix = agg_dt_suffix, ignore_nas = ignore_nas,
+      all_phens = all_phens, agg_offset = agg_offset,
+      agg_parameters = agg_parameters, gaps = gaps)
+    x <- lapply(seq_along(a_args), function(i) {
+      if (all(sapply(a_args[[i]], function(x) x %in% d_args[[i]]))) {
+        return(NULL)
+      } else {
+        return(a_args[[i]])
+      }
+    })
+    names(x) <- names(a_args)
+    x <- x[!sapply(x, is.null)]
+
+    # standardise agg period names
+    if ("agg_intervals" %in% names(x)) {
+      x$agg_intervals <- sapply(x$agg_intervals, function(x) {
+        gsub(" ", "_", ipayipi::sts_interval_name(x)[["sts_intv"]])
+      })
+      names(x$agg_intervals) <- NULL
+    }
+
     v_names <- names(x)
-    dt_parse <- sapply(seq_along(v_names), function(xi) {
-      xp <- x[[v_names[xi]]]$aggs
-      xp <- paste0(v_names[xi], " = ", deparse1(xp), collapse = "")
-      xp <- gsub(pattern = "list", replacement = "agg_params", x = xp)
+    dt_parse <- sapply(seq_along(v_names), function(i) {
+      xp <- x[[v_names[i]]]
+      if (v_names[i] %in% "agg_parameters") {
+        xp <- lapply(names(x[[v_names[i]]]), function(d) {
+          dvn <- gsub(" ", "", deparse1(x[[v_names[i]]][[d]]))
+          dvn <- gsub(",class=c(\"agg_params\",\"list\"))", "", dvn,
+            fixed = TRUE)
+          dvn <- gsub("structure(list", "", dvn, fixed = TRUE)
+          dvn <- paste0("aggs(", d, "=.", dvn, ")")
+          return(dvn)
+        })
+      } else {
+        xp <- paste0(v_names[i], "=", deparse1(xp), collapse = "")
+        xp <- gsub(" ", "", xp)
+        xp <- paste("agg_options(", xp, ")", sep = "")
+      }
       return(xp)
     })
-    if (length(x) == 0) all_phens <- TRUE
-    if (all_phens[1]) {
-      o <- "agg_options(all_phens = TRUE)"
-    } else {
-      o <- "agg_options()"
-    }
-    if (any(agg_offset != c("0 secs", "0 secs"))) {
-      oi <- paste0(", agg_offset = c(\"", agg_offset[1],
-        "\", \"", agg_offset[2], "\"))")
-      o <- gsub(pattern = ")", replacement = oi, x = o)
-      o <- gsub(pattern = "s\\(, ", replacement = "s\\(", x = o)
-    }
-    if (ignore_nas) {
-      oi <- paste0(", ignore_nas = TRUE)")
-      o <- gsub(pattern = ")", replacement = oi, x = o)
-      o <- gsub(pattern = "s\\(, ", replacement = "s\\(", x = o)
-    }
-    if (o %in% "agg_options()") o <- NULL
-    dt_parse <- c(dt_parse, o)
+    dt_parse <- unlist(dt_parse, recursive = FALSE)
     class(dt_parse) <- c(class(dt_parse), "dt_agg_params")
-  } else { # full evaluation
-    # open ppsij and generate variables
+  } else { # full evaluation --------------------------------------------------
+    # eval text arguments from partial evaluation
     f_params <- ppsij$f_params
-    f_param_options <- f_params[f_params %ilike% "agg_options"][1]
-    f_params <- f_params[!f_params %ilike% "agg_options"]
-    f_params <- lapply(f_params, function(x) {
-      eval(parse(text = paste0("list(", x, ")")))
+    agg_parameters <- f_params[
+      sapply(f_params, function(x) grepl("^aggs\\(", x, fixed = FALSE))]
+    agg_parameters <- lapply(agg_parameters, function(x) {
+      x <- gsub("^aggs\\(|\\)\\)$", "", x)
+      x <- sub(".\\(", "list\\(", x)
+      x <- paste0(x, ")")
     })
-    f_params <- unlist(f_params, recursive = FALSE)
-    v_names <- names(f_params)
-    xd <- lapply(v_names, function(x) {
-      xd <- data.table::as.data.table(f_params[[x]]$aggs)
-      xd$phen_name <- x
-      return(xd)
-    })
-    # get agg options
-    f_param_options <- gsub(pattern = "agg_options\\(", replacement = "list\\(",
-      x = f_param_options)
-    f_param_options <- eval(parse(text = f_param_options))
-    agg_options <- c("agg_offset", "all_phens", "ignore_nas")
-    agg_options_in <- agg_options[sapply(agg_options, function(x) {
-      x %in% names(f_param_options)
-    })]
-    for (i in seq_along(agg_options_in)) {
-      assign(agg_options_in[i], f_param_options[[agg_options_in[i]]])
+    agg_parameters <- paste(agg_parameters, collapse = ",", sep = "")
+    agg_parameters <- paste0("list(", agg_parameters, ")")
+    agg_parameters <- eval(parse(text = agg_parameters))
+    xd <- data.table::rbindlist(agg_parameters)
+    if (nrow(xd) > 0) {
+      xd$phen_name <- names(agg_parameters)
     }
 
-    phens_dt <- eval_seq$phens_dt
-    xd <- data.table::rbindlist(xd, fill = TRUE)
-    if (!all_phens) phens_dt <- phens_dt[phen_name %in% xd$phen_name]
+    f_params <- f_params[
+      !sapply(f_params, function(x) grepl("^aggs\\(", x, fixed = FALSE))]
+    f_params <- lapply(
+      f_params, function(x) sub("agg_options\\(", "list\\(", x))
+    f_params <- lapply(f_params, function(x) eval(parse(text = x)))
+    f_params <- unlist(f_params, recursive = FALSE)
+
+    # read in arguments from partial evaluation
+    for (i in seq_along(f_params)) {
+      assign(names(f_params[i]), f_params[[i]])
+    }
+
+    # read phens_dt
+    phens_dt <- ipayipi::sf_read(sfc = sfc, tmp = TRUE, tv = "phens_dt")[[
+      "phens_dt"
+    ]]
+
+    # yet to implement --- filter phens
+    if (!all_phens && nrow(xd) > 0) {
+      phens_dt <- phens_dt[phen_name %in% xd$phen_name]
+    }
 
     # generate default agg_info table based on phens_dt
-    phens_dt <- phens_dt[!is.na(measure) | is.null(measure)]
+    phens_dt <- phens_dt[!is.na(measure) | is.null(measure)][
+      ppsid %ilike% paste0(ppsij$dt_n[1], "_")][
+        table_name %ilike% unique(ppsij$input_dt)
+    ][!var_type %in% c("chr", "fac")][!phen_name %ilike% ".*_sn$"]
     phens_dt$stage <- as.integer(substr(phens_dt$ppsid, 1, unlist(
       gregexpr("_", phens_dt$ppsid))[1] - 1))
     phens_dt <- phens_dt[stage == ppsij$dt_n[1]][, -c("stage"), with = FALSE]
@@ -140,10 +160,10 @@ agg_param_eval <- function(
       p$units == "deg", "degrees", p$units)
     p[agg_f %ilike% c("circular")]$agg_f <- sub(pattern = "<>", replacement =
       paste0("x, u = \"", p[agg_f %ilike% c("circular")]$units, "\"",
-        ", ignore_nas = ", ignore_nas),
+        ", ignore_nas = ", ignore_nas)[1],
         x = p[agg_f %ilike% c("circular")]$agg_f)
     p[!agg_f %ilike% c("circular")]$agg_f <- sub(pattern = "<>", replacement =
-      paste0("x, na.rm = ", ignore_nas),
+      paste0("x, na.rm = ", ignore_nas)[1],
         x = p[!agg_f %ilike% c("circular")]$agg_f)
 
     # update p based on agg_info
@@ -179,14 +199,85 @@ agg_param_eval <- function(
     data.table::setcolorder(p, neworder = names(agg_details))
 
     # update phens_dt with new phen_out_name phens
-    phen_dt_new <- p[, c(names(phens_dt), "phen_out_name"), with = FALSE]
+    nn <- c("orig_record_interval_secs", "dt_record_interval_secs",
+      "diff_secs")
+    phen_dt_new <- p[, c(names(phens_dt)[!names(phens_dt) %in% nn],
+      "phen_out_name"), with = FALSE]
     phen_dt_new <- phen_dt_new[, phen_name := phen_out_name][
       , -c("phen_out_name"), with = FALSE]
     phen_dt_new$ppsid <- rep(paste0(ppsij$dt_n[1], "_", ppsij$dtp_n[1]),
       nrow(phen_dt_new))
 
-    dt_parse <- list(phens_dt = rbind(eval_seq$phens_dt, phen_dt_new),
-      f_params = list(agg_params = p))
+    rps <- lapply(agg_intervals, function(x) {
+      nphen_dt <- phen_dt_new
+      nphen_dt$dt_record_interval <- x
+      # p$orig_record_interval <- p$dt_record_interval
+      np <- p
+      np$dt_record_interval <- x
+      ris <- ipayipi::sts_interval_name(x)[["dfft_secs"]]
+      nphen_dt$orig_record_interval_secs <-
+        sapply(nphen_dt$orig_record_interval, function(x) {
+          ipayipi::sts_interval_name(x)[["dfft_secs"]]
+        })
+      nphen_dt$dt_record_interval_secs <-
+        sapply(nphen_dt$dt_record_interval, function(x) {
+          ipayipi::sts_interval_name(x)[["dfft_secs"]]
+        })
+      nphen_dt$orig_record_interval_secs <- data.table::fifelse(
+        is.na(nphen_dt$orig_record_interval_secs) |
+          nphen_dt$orig_record_interval %in% "discnt",
+        0, nphen_dt$orig_record_interval_secs
+      )
+      nphen_dt$diff_secs <- nphen_dt$dt_record_interval_secs -
+        nphen_dt$orig_record_interval_secs
+      nphen_dt_split <- split.data.frame(
+        nphen_dt, f = factor(nphen_dt$phen_name))
+      nphen_dt_split <- lapply(nphen_dt_split, function(x) {
+        x <- x[diff_secs >= 0]
+        if (nrow(x) > 0) x <- x[diff_secs == min(diff_secs, na.rm = TRUE)]
+        return(x)
+      })
+      nphen_dt <- data.table::rbindlist(nphen_dt_split)
+      if (is.na(ris)) rit <- "event_based"
+      if (!ris %in% c("event_based", "discnt")) rit <- "continuous"
+
+      # ris_orig <- ipayipi::sts_interval_name(
+      #   unique(nphen_dt$orig_record_interval))
+      # targ <- ris >= ris_orig[["dfft_secs"]]
+      # row for gid phen
+      gaprow <- nphen_dt[1, ]
+      gaprow <- transform(gaprow, phen_name = "gap", units = "logi", measure =
+        "smp", var_type = "logi", orig_table_name = "gaps",
+        record_interval_type = rit)
+      # if (any(c(ris, ris_orig$sts_intv) %in% "discnt")) targ <- TRUE
+      if (nrow(nphen_dt) > 0) {
+        if (gaps) {
+          nphen_dt <- data.table::rbindlist(list(nphen_dt, gaprow),
+            use.names = TRUE)
+        }
+        nphen_dt$table_name <- paste0("dt_", nphen_dt$dt_record_interval[1],
+          agg_dt_suffix, collapse = "")
+        nphen_dt$record_interval_type <- rit
+        p <- p[paste(p$orig_table_name, p$phen_name) %in%
+          paste(nphen_dt$orig_table_name, nphen_dt$phen_name)]
+        p[, table_name := nphen_dt$table_name[1]]
+        p$record_interval_type <- rit
+        p$dt_record_interval <- x
+        p <- p[, names(p)[!names(p) %in% nn], with = FALSE]
+      } else {
+        nphen_dt <- NULL
+        p <- NULL
+      }
+      # print(x)
+      return(list(phens_dt_new = nphen_dt, p = p))
+    })
+    rps <- unlist(rps, recursive = FALSE)
+    rp <- data.table::rbindlist(rps[names(rps) %in% "p"])[
+      !is.na(agg_f)][order(table_name, phen_name)]
+    rphen <- data.table::rbindlist(rps[names(rps) %in% "phens_dt_new"])[
+      phen_name %in% c(rp$phen_out_name, "gad")
+    ]
+    dt_parse <- list(phens_dt = rphen, f_params = list(agg_params = rp))
   }
   return(dt_parse)
 }

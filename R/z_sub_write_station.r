@@ -42,9 +42,9 @@ write_station <- function(
   station_file <- file.path(pipe_house$ipip_room, station_file)
   sf_tmp <- file.path(tempdir(), "sf", basename(station_file))
   # check sf
-  if (!is.null(sf) && !is.list(sf)) {
-    return("Error: \'sf\' station file must be a list object!")
-  }
+  # if (!is.null(sf) && !is.list(sf)) {
+  #   return("Error: \'sf\' station file must be a list object!")
+  # }
 
   ex <- file.exists(station_file)
   extmp <- file.exists(sf_tmp)

@@ -2,6 +2,7 @@
 #' @description Package subroutine for opening a station file for work.
 #' @param pipe_house Optional. Used to generate filepath to station file name. List of pipeline directories. __See__ `ipayipi::ipip_init()` __for details__.
 #' @param station_file Path (with file name and extension) to 'ipip' station file.
+#' @param tmp Logical that defaults to FALSE. If TRUE then the station file is ignored. If TRUE then the temporary station is updated with information from the station file.
 #' @keywords write station; edit station; add to station;
 #' @export
 #' @author Paul J Gordijn
@@ -10,6 +11,7 @@
 open_sf_con <- function(
   pipe_house = NULL,
   station_file = NULL,
+  tmp = FALSE,
   ...) {
 
   if (!is.null(pipe_house)) {
@@ -25,17 +27,16 @@ open_sf_con <- function(
   # check if the sf_tmp alread exists
   sf_tmp <- file.path(tempdir(), "sf", basename(station_file))
 
-  if (!file.exists(sf_tmp)) {
-    dir.create(path = sf_tmp, recursive = TRUE)
+  if (!file.exists(sf_tmp)) dir.create(path = sf_tmp, recursive = TRUE)
+  if (!tmp) {
     sf <- readRDS(station_file)
     sft <- sapply(seq_along(sf), function(i) {
       saveRDS(sf[[i]], file.path(sf_tmp, names(sf)[i]))
       invisible(file.path(sf_tmp, names(sf)[i]))
     })
     sfc <- sft
-  } else {
-    sfc <- list.files(sf_tmp, recursive = TRUE, full.names = TRUE)
   }
+  sfc <- list.files(sf_tmp, recursive = TRUE, full.names = TRUE)
   names(sfc) <- list.files(sf_tmp, recursive = TRUE, full.names = FALSE)
 
   return(sfc)

@@ -36,7 +36,8 @@ gap_eval_batch <- function(
 
   # open connections to station files
   lapply(station_files, function(x) {
-    ipayipi::open_sf_con(pipe_house = pipe_house, station_file = x)
+    ipayipi::open_sf_con(pipe_house = pipe_house, station_file = x,
+      FALSE)
   })
 
   # generate gap table for each station file

@@ -1,14 +1,22 @@
-#' @title Organise sequencial processing of phenomena aggregations.
-#' @description An alias for list in pipe processing.
-#' @param agg_offset A vector of two strings that can be coerced to a
-#'  `lubridate` period. These can be used to offset the date-time from
-#'  which aggregations are totalled. For example, for rainfall totals estimated
-#'  from 8 am to 8pm the `agg_offset` should be set to c(8 hours, 8 hours).
+#' @title Set custom aggregation parameters
+#' @description Used to generate a list of cusstom aggregation parameters, that is, `agg_params` using ipayipi::agg_params().
+#' @details `agg()` is an `ipayipi` alias for `list()`, that will only include elements generated using `ipayipi::agg_params()`. Aggregation parameters provided here will override default aggregation parameters. The `ipayipi::sts_agg_functions` table stores default aggregation functions for different phenomena types.
+#' @return List custom aggregation parameters for each phenomena listed.
 #' @author Paul J. Gordijn
 #' @export
-agg_gen <- function(
+aggs <- function(
   ...) {
   x <- list(...)
+  # x <- aggs(rain_mm = agg_params(phen_out_name = "rain",
+  #   units = "mm"), dew_drop = agg_params(phen_out_name =
+  #   "dew", measure = "smp"))
+
+  # ensure phen names are provided
+  xn <- names(x)
+  if (is.null(xn) || "" %in% xn) {
+    message("Missing \'agg_params\' names in \'aggs\'!")
+    x <- x[!sapply(xn, function(x) is.null(x) || x == "")]
+  }
   class(x) <- c("agg_params", "list")
   return(x)
 }

@@ -4,6 +4,8 @@
 #' @param station_ext Required argument. File extension of the station files in the pipe_house directory 'ipip_room'.
 #' @param gap_problem_thresh_s _Parsed to_ `ipayipi::gap_eval()`.
 #' @param event_thresh_s _Parsed to_ `ipayipi::gap_eval()`.
+#' @param start_dttm For plotting data.
+#' @param end_dttm For plotting data.
 #' @param meta_events _Parsed to_ `ipayipi::gap_eval()`.
 #' @param verbose Logical. Whether or not to report messages and progress.
 #' @param wanted A string of keywords to use to filter which stations are selected for processing. Multiple search kewords should be seperated with a bar ('|'), and spaces avoided unless part of the keyword.
@@ -23,6 +25,8 @@ plot_raw_availability <- function(
   station_ext = ".ipip",
   gap_problem_thresh_s = 6 * 60 * 60,
   event_thresh_s = 10 * 60,
+  start_dttm = NULL,
+  end_dttm = NULL,
   meta_events = "meta_events",
   verbose = FALSE,
   wanted = NULL,
@@ -35,7 +39,8 @@ plot_raw_availability <- function(
 ) {
   "station_n" <- "stnd_title" <- "dtt0" <- "dtt1" <- "station" <-
     "table_name" <- "data_yes" <- "date_time" <- "gap_yes" <-
-    "station_wrd" <- "i" <- "gs_data_yes" <- "problem_gap" <- NULL
+    "station_wrd" <- "i" <- "gs_data_yes" <- "problem_gap" <- "gs_gid" <-
+    NULL
   slist <- ipayipi::dta_list(input_dir = pipe_house$ipip_room,
     file_ext = ".ipip", prompt = prompt, recurr = recurr,
     unwanted = unwanted, wanted = wanted)
@@ -172,6 +177,14 @@ plot_raw_availability <- function(
     c("data_yes", "station", "station_n", "table_name", "station_wrd")][
       order(data_yes)
     ]
+  if (is.null(start_dttm)) start_dttm <- min(dts$date_time)
+  if (is.null(end_dttm)) end_dttm <- max(dts$date_time)
+  dts <- dts[date_time >= start_dttm]
+  dts <- dts[date_time <= end_dttm]
+  dt_label <- dts
+  dt_label <- dt_label[!is.na(gs_gid)][, date_time := min(date_time),
+    by = .(station, gs_gid)]
+  dt_label <- unique(dt_label)
   q <- unique(q)
   p <- ggplot2::ggplot(dts, ggplot2::aes(
       y = data_yes, x = date_time, group = data_yes, colour = station)) +
@@ -186,6 +199,9 @@ plot_raw_availability <- function(
     egg::theme_article() +
     ggplot2::theme(axis.title.y = ggplot2::element_blank(),
       legend.position = "top")
+  p <- p + ggplot2::geom_text(data = dt_label, inherit.aes = FALSE,
+    mapping = ggplot2::aes(y = data_yes, x = date_time, group = data_yes,
+      colour = station, label = gs_gid), nudge_y = 0.35, size = 3)
   data_availability <- list(p, dts)
   names(data_availability) <- c("plot_availability", "plot_data")
   return(data_availability)

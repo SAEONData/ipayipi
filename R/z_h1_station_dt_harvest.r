@@ -1,23 +1,18 @@
-#' @title  'dt' processing pipeline: harvest data from another station or table.
-#' @description Used to extract data from another table, station, or source.
+#' @title  'dt' processing pipeline: harvest data
+#' @description Used to extract data from other table/s, stations, or source/s.
 #' @param station_file File path of the station being processed.
-#' @param hsf_table The path of the directory in which to search for the
-#'  external data and/or data table.
-#' @param ext_station The name (or keyword) of the station from which to extract
-#'  data.
-#' @param output_dt The output table name where harvested data is extracted too.
+#' @param hsf_table The path of the directory in which to search for the external data and/or data table.
 #' @param time_interval The desirsed time_tinterval associated with the
 #'  extracted data. If this is `NULL` then the table is extracted as is.
-#' @param f_params A vector of phenomena name to be extracted from the
-#'  harvested data table. If NULL all column names are extracted.
+#' @param f_params A vector of phenomena name to be extracted from the harvested data table. If NULL all column names are extracted.
 #' @author Paul J. Gordijn
 #' details
-#'
 #' @export
 dt_harvest <- function(
   station_file = NULL,
   f_params = NULL,
   time_interval = NULL,
+  ppsij = NULL,
   sfc = NULL,
   ...) {
   "hsf_table" <- NULL
@@ -30,26 +25,25 @@ dt_harvest <- function(
         station_file = unique(f_params$hsf_station)[1]
       ), .w = ~stop)
   }
-
-  hsf <- ipayipi::sf_read(sfc = hsfc, tv = unique(f_params$hsf_table)[1],
-    tmp = TRUE)
-
-  # filter out unwanted phens
-  hsf_names <- names(hsf)
-  hsf <- lapply(hsf_names, function(x) {
-    n <- c(names(hsf[[x]])[names(hsf[[x]]) %in%
-      f_params[hsf_table == x]$phen_name])
-    if ("date_time" %in% names(hsf[[x]])) {
+  ppsid <- paste0(ppsij$dt_n, "_", ppsij$dtp_n)
+  hsf_params <- f_params[ppsid %in% ppsid]
+  hsf_names <- unique(hsf_params$hsf_table)
+  lapply(hsf_names, function(x) {
+    h <- ipayipi::sf_read(sfc = hsfc, tv = x, tmp = TRUE)
+    hn <- names(h)[1]
+    n <- c(names(h[[x]])[names(h[[x]]) %in% hsf_params$phen_name])
+    if ("date_time" %in% names(h[[x]])) {
       n <- c("date_time", n[!n %in% "date_time"])
     }
-    hsf <- hsf[[x]][, n, with = FALSE]
-    if ("id" %in% names(hsf)) {
-      n <- c("id", n[!n %in% "id"])
+    if (any(names(h[[x]]) %ilike% "*id$")) {
+      id <- names(h[[x]])[names(h[[x]]) %ilike% "*id$"]
+      n <- c(id, n)
+      n <- n[!duplicated(n, fromLast = FALSE)]
     }
-    hsf <- hsf[, n, with = FALSE]
-    return(hsf)
+    h[[x]] <- h[[x]][, n, with = FALSE]
+    # save the data
+    saveRDS(h[[x]], file.path(dirname(sfc)[1], paste0(ppsid, "_hsf_table_", x)))
+    return(hn)
   })
-  names(hsf) <- hsf_names
-  # return the results and summary info to be used in the pipe line
-  return(list(hsf_dts = hsf))
+  return(list(hsf_dts = hsf_names))
 }

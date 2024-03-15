@@ -62,10 +62,13 @@ mhlanga <- function(
   y_tbl <- data.table::setDT(y_tbl)
 
   # time_seq prep ----
+  if (is.null(time_seq)) time_seq <- FALSE
   if (length(time_seq) == 1) time_seq <- c(time_seq, time_seq)
 
   # fuzzy and key prep ----
-  if (!is.null(fuzzy)) { # fuzzy key prep ----
+  if (!is.null(fuzzy) ||
+    any(sapply(list(x_key, y_key), function(x) length(x) == 2))) {
+    if (is.null(fuzzy)) fuzzy <- 0
     if (length(fuzzy) == 1) fuzzy <- c(fuzzy, fuzzy)
     if (is.na(x_key[2])) x_key[2] <- x_key[1]
     if (is.na(y_key[2])) y_key[2] <- y_key[1]
@@ -119,14 +122,20 @@ mhlanga <- function(
     on <- paste0(on, " , rollends=c\\(", as.character(rollends[1]), ", ",
       as.character(rollends[length(rollends)]), "\\)", collapse = "")
   }
+
   # add preffix to duplicate column names in y_tbl
-  names(y_tbl)[names(y_tbl) %in% names(x_tbl)] <-
-    paste0("ydt_", names(y_tbl)[names(y_tbl) %in% names(x_tbl)])
+  if (join %in% c("left_join", "right_join")) {
+    names(y_tbl)[names(y_tbl) %in% names(x_tbl)] <-
+      paste0("ydt_", names(y_tbl)[names(y_tbl) %in% names(x_tbl)])
+  }
 
   # left_join ----
   if (join == "left_join") {
     dsyn <- paste0("y_tbl[x_tbl", on, "]", collapse = "")
     xy <- eval(parse(text = dsyn))
+    xy <- xy[, names(xy)[!names(xy) %in% c("xd1", "xd2")], with = FALSE]
+    xy <- xy[, c(names(x_tbl)[names(x_tbl) %in% names(xy)], names(y_tbl)),
+      with = FALSE]
   }
 
   # right join ----
@@ -142,13 +151,28 @@ mhlanga <- function(
   }
 
   # full_join ----
-  if (join == "full_join" && !any(time_seq[1], !time_seq[2])) {
-    dsyn <- "merge(x = x_tbl, y = y_tbl, all = TRUE)"
-    xy <- eval(parse(text = dsyn))
+  if (join == "full_join" && !any(time_seq[1], time_seq[2])) {
+    x_key <- names(x_tbl)[names(x_tbl) %ilike% x_key[1]][1]
+    y_key <- names(y_tbl)[names(y_tbl) %ilike% y_key[1]][1]
+    xy <- merge(x = x_tbl, y = y_tbl, all = TRUE, by.x = x_key, by.y = y_key)
+
+    # clean up duplicate names and cover over x table NA values
+    unames <- gsub(".y$|.x$", "", names(xy)[names(xy) %ilike% ".y$|.x$"])
+    unames <- unique(unames)
+    u <- lapply(unames, function(x) {
+      u <- data.table::data.table(
+        u = data.table::fifelse(!is.na(xy[[paste0(x, ".x")]]),
+        xy[[paste0(x, ".x")]], xy[[paste0(x, ".y")]]))
+      data.table::setnames(u, "u", x)
+      return(u)
+    })
+    u <- do.call("cbind", u)
+    xy <- xy[, c(names(xy)[!names(xy) %ilike% ".x|.y"]), with = FALSE]
+    xy <- cbind(xy, u)
   }
 
   # full_join --- time sensitive
-  if (join == "full_join" && all(time_seq[1], !time_seq[2])) {
+  if (join == "full_join" && all(time_seq[1], time_seq[2])) {
     xy <- ipayipi::append_phen_data2(station_file = x_tbl, ndt = y_tbl, phen_id
       = FALSE, phen_dt = phen_dt, overwrite_sf = over_right, ri = ri, ...)
   }
@@ -158,4 +182,3 @@ mhlanga <- function(
   xy <- xy[, names(xy)[!names(xy) %ilike% "ydt_"], with = FALSE]
   return(xy)
 }
-

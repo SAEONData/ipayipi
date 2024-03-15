@@ -5,64 +5,44 @@
 \title{'dt' processing pipeline: genearte aggregation criteria.}
 \usage{
 agg_param_eval(
+  sfc = NULL,
   full_eval = FALSE,
-  f_summary = NULL,
   f_params = NULL,
-  agg_offset = c("0 secs", "0 secs"),
-  all_phens = FALSE,
-  ignore_nas = FALSE,
-  eval_seq = NULL,
   ppsij = NULL,
-  sf = NULL,
+  agg_offset = c("0 secs", "0 secs"),
+  all_phens = TRUE,
+  ignore_nas = FALSE,
+  agg_input_tbl = NULL,
+  agg_intervals = NULL,
+  agg_dt_suffix = "_agg",
+  agg_parameters = NULL,
+  gaps = FALSE,
   ...
 )
 }
 \arguments{
-\item{full_eval}{Logical indicating whether to perform a full evaluation
-or not. A partial evaluation only produces a string single string for
-a summary of the function's parameters. Defaults to \code{FALSE}.}
+\item{full_eval}{Logical indicating whether to perform a full evaluation or not. A partial evaluation only produces a string single string for a summary of the function's parameters. Defaults to \code{FALSE}.}
 
-\item{f_summary}{Summary information used in full evaluation. Includes
-any tables in the station file with keywords, "phens" or "summary".}
+\item{f_params}{For the partial evaluation multiple phenomena can be described using \code{ipayipi::agg_params()}. If left blank defaults will be used on all phenomena harvested.}
 
-\item{f_params}{For the partial evaluation multiple phenomena can
-be described using \code{ipayipi::agg_params()}. If left blank defaults will
-be used on all phenomena harvested.}
+\item{agg_offset}{Character vector of length two. Strings describe period of offset from the rounded time interval used to aggregate data. For example, if aggregating rainfall data from five minute to daily records, but staggered so that daily rainfall is totalled from 8 am to 8 pm the next day the \code{agg_offset} must be set to \code{c("8 hours", "8 hours")}.  When \code{full_eval == TRUE} the function overwrites this parameter in favor of \code{agg_offset} extracted from the partial evaluation.}
 
-\item{agg_offset}{Character vector of length two. Strings describe period
-of offset from the rounded time interval used to aggregate data. For
-example, if aggregating rainfall data from five minute to daily records,
-but staggered so that daily rainfall is totalled from 8 am to 8 pm the
-next day the \code{agg_offset} must be set to \code{c("8 hours", "8 hours")}.
-When \code{full_eval == TRUE} the function overwrites this parameter in favor
-of \code{agg_offset} extracted from the partial evaluation.}
+\item{all_phens}{Defaults to \code{FALSE}. If \code{TRUE}, all harvested phenomena will be aggregated, despite the lesser number of phenomena listed/described in the partial evaluation.
+\emph{Note}:
+\itemize{
+\item phenomena with variable types (\code{var_type}) character (\code{chr}) and factor (\code{fac}) are not processed by this function.
+\item phenomena names (\code{phen_name}) ending with '_sn' (denoting a sensor number/identifier) are not aggregated in this function.
+}}
 
-\item{all_phens}{Defaults to \code{FALSE}. If \code{TRUE}, all harvested phenomena will
-be aggregated, despite the lesser number of phenomena listed/described in
-the partial evaluation.}
+\item{ignore_nas}{If \code{NA} values are ignores any periods or time interval of the data with any NA values will result in an \code{NA} aggregation value. Important if missing values have not been interpolated.}
 
-\item{ignore_nas}{If \code{NA} values are ignores any periods or time
-interval of the data with any NA values will result in an \code{NA}
-aggregation value. Important if missing values have not been
-interpolated.}
-
-\item{eval_seq}{Dynamic list of tables accessed throughout the evaluation
-process. The final evaluation tables are appended to the station file.}
-
-\item{sf}{Station file object.}
-
-\item{phens_summary}{A summary of the phens table of the particular
-phenomena that will be aggregated by \code{ipayipi::dt_agg()}.}
+\item{phens_summary}{A summary of the phens table of the particular phenomena that will be aggregated by \code{ipayipi::dt_agg()}.}
 }
 \description{
-Used in the processing pipeline to generate aggregation
-criteria. Data is aggregated by the time interval specified for the
-harvested data (\emph{in} \code{ipayipi::hsf_param_eval()}).
+Used in the processing pipeline to generate aggregation criteria.
 }
 \details{
-Default aggregation functions based on measure, variable types, and
-the unit of measurement. Function info is stored in the package
-data, "sts_agg_functions" --- \emph{see examples}.
+Default aggregation functions based on measure, variable types, and the unit of measurement. Function info is stored in the package data, "sts_agg_functions" --- \emph{see examples}. Note that columns/fields with character of factor variable types are not processed by this function.
 }
 \examples{
 # load the table from the function data folder to see default aggregation

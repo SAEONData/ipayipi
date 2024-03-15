@@ -5,32 +5,30 @@
 \title{Pulls multiple station data into a single file}
 \usage{
 ipayipi_flat_dta(
-  input_dir = NULL,
+  pipe_house = NULL,
   file_ext = ".ipi",
-  tab_name = NULL,
+  tab_names = NULL,
   phen_name = NULL,
+  ri = NULL,
   output_dir = NULL,
   prompt = FALSE,
   wanted = NULL,
   unwanted = NULL,
   out_csv = FALSE,
+  out_tab_name = NULL,
   out_csv_preffix = "",
   recurr = FALSE,
   ...
 )
 }
 \arguments{
-\item{input_dir}{The directory in which to search for stations form which
-to extract weather data.}
-
 \item{file_ext}{The extension of the stations from where data will be
 extracted.}
 
-\item{tab_name}{The name of the table in a station file (list object) from
-which to extract data.}
-
 \item{phen_name}{The field/column/name of the phenomena which to join into
 a single data table.}
+
+\item{ri}{Record interval string. This function will guess the record interval used to generate a flat table. However, the guess may not be possible if there is insufficient data.}
 
 \item{output_dir}{The output directory where an output csv file is saved.}
 
@@ -50,6 +48,11 @@ directory.}
 \item{out_csv_preffix}{Preffix for the output csv file. The phenomena name
 and then time interval by which the data are summarised are used as a
 suffix.}
+
+\item{input_dir}{The directory in which to search for stations form which
+to extract weather data.}
+
+\item{tab_name}{Vector of table names in a station files (list object) from which to extract data. Add items to the vector such that only one table per station is selected. Table names are selected via the \code{\%in\%} argument.}
 }
 \value{
 A list containing 1) the summarised data in a single data.table, 2)

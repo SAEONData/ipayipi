@@ -34,8 +34,10 @@ sts_interval_name <- function(
   time_units <- data.table::data.table(
     unit_difftime = c("secs", "mins", "hours", "days", "weeks", "months",
       "years"),
-    unit_df_like = c("sec|secs", "min|mins", "hour|hours|hr", "day|days",
-    "wk|week", "month|mon|months|monthly", "yr|year")
+    unit_df_like = c("sec|secs|seconds", "min|mins|minutes",
+      "hour|hours|hrs|hourly", "day|days|daily|daily",
+      "wks|weeks|weekly", "months|mons|months|monthly",
+      "yrs|years|yearly|annually")
   )
   if ("difftime" %in% class(intv)) {
     intv <- paste0(intv, "_", attr(intv, "units"))
@@ -60,18 +62,18 @@ sts_interval_name <- function(
     }
   } else {
     seq_int <- NA
-    dfft_secs <- NA
-    if (intv %in% "discnt") intv <- intv
+    dfft_secs <- as.numeric(NA, units = "secs")
+    if (intv %in% "discnt" || intv %in% "dicnt") intv <- intv
   }
   int_dt <- data.table::data.table(
     intv = intv,
     orig_units = u,
-    sts_intv = NA,
+    sts_intv = NA_character_,
     dfft = as.numeric(seq_int),
     dfft_units = attr(seq_int, "units"),
     dfft_secs = dfft_secs
   )
-  if (is.na(intv)) {
+  if (any(is.na(intv), all(is.na(u), !intv %in% "discnt"))) {
     intv <- "NA or NULL"
     stop(paste0("The time interval (", intv, ") for data aggregation is not ",
       "recognised by ipayipi::sts_interval_name"))
@@ -80,6 +82,39 @@ sts_interval_name <- function(
     int_dt$sts_intv <- intv
   } else {
     int_dt$sts_intv <- paste(int_dt$dfft, int_dt$dfft_units)
+    # round up standard to next time unit if possible
+    #' seconds to minutes
+    if (all(int_dt$dfft_secs / 60 == round(int_dt$dfft_secs / 60, digits = 0),
+          int_dt$dfft_units %in% "secs", int_dt$dfft_secs / 60 < 60)) {
+      int_dt$dfft_units <- "mins"
+      int_dt$dfft <- as.numeric(
+        int_dt$dfft_secs / 60, units = int_dt$dfft_units)
+    }
+    #' minutes to hours
+    if (all(int_dt$dfft_secs / 60 == round(int_dt$dfft_secs / 60, digits = 0),
+      int_dt$dfft_units %in% "mins", int_dt$dfft_secs / 60 > 60)) {
+      int_dt$dfft_units <- "hours"
+      int_dt$dfft <- as.numeric(
+        int_dt$dfft_secs / 60 / 60, units = int_dt$dfft_units)
+    }
+    #' hours to days
+    if (all(int_dt$dfft_secs / 60 / 60 / 24 ==
+          round(int_dt$dfft_secs / 60 / 60 / 24, digits = 0),
+        int_dt$dfft_units %in% "hours", int_dt$dfft_secs / 60 / 60 / 24 > 1)) {
+      int_dt$dfft_units <- "days"
+      int_dt$dfft <- as.numeric(
+        int_dt$dfft_secs / 60 / 60 / 24, units = int_dt$dfft_units)
+    }
+    #' days to weeks
+    if (all(int_dt$dfft_secs / 60 / 60 / 24 / 7 ==
+          round(int_dt$dfft_secs / 60 / 60 / 24 / 7, digits = 0),
+        int_dt$dfft_units %in% "days",
+        int_dt$dfft_secs / 60 / 60 / 24 / 7 > 1)) {
+      int_dt$dfft_units <- "weeks"
+      int_dt$dfft <- as.numeric(
+        int_dt$dfft_secs / 60 / 60 / 24 / 7, units = int_dt$dfft_units)
+    }
+    int_dt$sts_intv <- paste0(int_dt$dfft, " ", int_dt$dfft_units)
   }
   return(int_dt)
 }
