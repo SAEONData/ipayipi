@@ -312,7 +312,7 @@ imbibe_raw_logger_dt <- function(
     if (is.null(data_setup$id_col)) {
       id <- seq_len(nrow(file)) - data_setup$data_row
     } else {
-      id <- as.integer(file[
+      id <- as.numeric(file[
         data_setup$data_row:nrow(file), ][[data_setup$id_col]])
     }
     dta$id <- id
