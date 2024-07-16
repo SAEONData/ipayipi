@@ -2,7 +2,7 @@
 #' @description A function to check standardisation of logger data
 #'  phenomena to be run before introducing data into the pipeline.
 #' @param pipe_house List of pipeline directories. __See__
-#'  `ipayipi::ipip_init()` __for details__.
+#'  `ipayipi::ipip_house()` __for details__.
 #' @param file The (base) file name of the csv import. If NULL then the
 #'  function searches for the most recently modified csv file to read (and
 #'  deletes older phenomena csv files).
@@ -17,7 +17,8 @@ read_phentab_csv <- function(
   "..ck_cols" <- NULL
   if (is.null(file)) {
     phenlist <- ipayipi::dta_list(input_dir = pipe_house$wait_room, file_ext =
-      ".csv", wanted = "phentab")
+      ".csv", wanted = "phentab"
+    )
     if (length(phenlist) < 1) stop("There is no phentab file in the wait_room!")
     phen_dts <- lapply(phenlist, function(x) {
       mtime <- file.info(file.path(pipe_house$wait_room, x))$mtime
@@ -33,7 +34,8 @@ read_phentab_csv <- function(
     file <- names(phen_dts[which(phen_dts == max(phen_dts))])
   }
   phentab <- data.table::fread(file.path(pipe_house$wait_room, file),
-    header = TRUE)
+    header = TRUE
+  )
   ck_cols <- c("phen_name_full", "phen_name", "units", "measure")
   cans <- sum(
     sapply(phentab[, ck_cols, with = FALSE], function(x) sum(is.na(x)))

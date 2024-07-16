@@ -10,10 +10,29 @@ aggs(...)
 List custom aggregation parameters for each phenomena listed.
 }
 \description{
-Used to generate a list of cusstom aggregation parameters, that is, \code{agg_params} using ipayipi::agg_params().
+Used to generate a list of cusstom aggregation parameters, that is, \code{agg_params} using ipayipi::agg_params() for particular phenomena.
 }
 \details{
-\code{agg()} is an \code{ipayipi} alias for \code{list()}, that will only include elements generated using \code{ipayipi::agg_params()}. Aggregation parameters provided here will override default aggregation parameters. The \code{ipayipi::sts_agg_functions} table stores default aggregation functions for different phenomena types.
+\code{agg()} is an \code{ipayipi} alias for \code{list()} but is structured to modify aggregation parameters for specific phenomena. As such, list names must equal the 'phen_name' of interest. List objects, for associated 'phen_names' must be generated using \code{ipayipi::agg_params()}. Aggregation parameters provided here will override default aggregation parameters. The \code{ipayipi::sts_agg_functions} table stores default aggregation functions for different phenomena types.
+Set \code{all_phens} to \code{FALSE} (in the \code{pipe_seq} generation---\emph{see} \code{ipayipi::agg_param_eval()}) to limit the phenomena being aggregated in a table to those named and listed in \code{aggs()}.
+}
+\examples{
+
+# use of aggs() within a pipe_seq stage, step.
+# rain_mm is the phenomena of interest in the data being
+# aggregated.
+ p_step(dt_n = 6, dtp_n = 3, f = "dt_agg",
+  agg_param_eval(
+    agg_offset = c("8 hours", "8 hours"),
+    agg_intervals = c("daily"),
+    ignore_nas = TRUE,
+    all_phens = FALSE,
+    agg_parameters = aggs(
+      rain_mm = agg_params(units = "mm", phen_out_name = "rain_tot")
+    ),
+    agg_dt_suffix = "_agg_saws"
+  )
+)
 }
 \author{
 Paul J. Gordijn

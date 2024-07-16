@@ -33,11 +33,13 @@ sts_interval_name <- function(
   # reference table for standardisation
   time_units <- data.table::data.table(
     unit_difftime = c("secs", "mins", "hours", "days", "weeks", "months",
-      "years"),
+      "years"
+    ),
     unit_df_like = c("sec|secs|seconds", "min|mins|minutes",
       "hour|hours|hrs|hourly", "day|days|daily|daily",
       "wks|weeks|weekly", "months|mons|months|monthly",
-      "yrs|years|yearly|annually")
+      "yrs|years|yearly|annually"
+    )
   )
   if ("difftime" %in% class(intv)) {
     intv <- paste0(intv, "_", attr(intv, "units"))
@@ -51,14 +53,18 @@ sts_interval_name <- function(
     seq_int <- mondate::as.difftime(as.numeric(tu), units = u)
     if (u %in% c("months")) {
       dfft_secs <- as.numeric(
-        mondate::as.difftime(28, units = "days"), units = "secs")
+        mondate::as.difftime(28, units = "days"), units = "secs"
+      ) * tu
     }
     if (u %in% "years") {
-      dfft_secs <- as.numeric(lubridate::as.period("year"), units = "secs")
+      dfft_secs <- as.numeric(
+        lubridate::as.period("year"), units = "secs"
+      ) * tu
     }
     if (!u %in% c("months", "years")) {
-      dfft_secs <- as.numeric(mondate::as.difftime(as.numeric(seq_int),
-        units = u), units = "secs")
+      dfft_secs <- as.numeric(
+        mondate::as.difftime(as.numeric(seq_int), units = u), units = "secs"
+      ) * tu
     }
   } else {
     seq_int <- NA
@@ -76,7 +82,8 @@ sts_interval_name <- function(
   if (any(is.na(intv), all(is.na(u), !intv %in% "discnt"))) {
     intv <- "NA or NULL"
     stop(paste0("The time interval (", intv, ") for data aggregation is not ",
-      "recognised by ipayipi::sts_interval_name"))
+      "recognised by ipayipi::sts_interval_name"
+    ))
   }
   if (intv %in% "discnt") {
     int_dt$sts_intv <- intv
@@ -85,34 +92,42 @@ sts_interval_name <- function(
     # round up standard to next time unit if possible
     #' seconds to minutes
     if (all(int_dt$dfft_secs / 60 == round(int_dt$dfft_secs / 60, digits = 0),
-          int_dt$dfft_units %in% "secs", int_dt$dfft_secs / 60 < 60)) {
+      int_dt$dfft_units %in% "secs", int_dt$dfft_secs / 60 > 60
+    )) {
       int_dt$dfft_units <- "mins"
       int_dt$dfft <- as.numeric(
-        int_dt$dfft_secs / 60, units = int_dt$dfft_units)
+        int_dt$dfft_secs / 60, units = int_dt$dfft_units
+      )
     }
     #' minutes to hours
     if (all(int_dt$dfft_secs / 60 == round(int_dt$dfft_secs / 60, digits = 0),
-      int_dt$dfft_units %in% "mins", int_dt$dfft_secs / 60 > 60)) {
+      int_dt$dfft_units %in% "mins", int_dt$dfft_secs / 60 > 60
+    )) {
       int_dt$dfft_units <- "hours"
       int_dt$dfft <- as.numeric(
-        int_dt$dfft_secs / 60 / 60, units = int_dt$dfft_units)
+        int_dt$dfft_secs / 60 / 60, units = int_dt$dfft_units
+      )
     }
     #' hours to days
     if (all(int_dt$dfft_secs / 60 / 60 / 24 ==
-          round(int_dt$dfft_secs / 60 / 60 / 24, digits = 0),
-        int_dt$dfft_units %in% "hours", int_dt$dfft_secs / 60 / 60 / 24 > 1)) {
+        round(int_dt$dfft_secs / 60 / 60 / 24, digits = 0),
+      int_dt$dfft_units %in% "hours", int_dt$dfft_secs / 60 / 60 / 24 > 1
+    )) {
       int_dt$dfft_units <- "days"
       int_dt$dfft <- as.numeric(
-        int_dt$dfft_secs / 60 / 60 / 24, units = int_dt$dfft_units)
+        int_dt$dfft_secs / 60 / 60 / 24, units = int_dt$dfft_units
+      )
     }
     #' days to weeks
     if (all(int_dt$dfft_secs / 60 / 60 / 24 / 7 ==
-          round(int_dt$dfft_secs / 60 / 60 / 24 / 7, digits = 0),
-        int_dt$dfft_units %in% "days",
-        int_dt$dfft_secs / 60 / 60 / 24 / 7 > 1)) {
+        round(int_dt$dfft_secs / 60 / 60 / 24 / 7, digits = 0),
+      int_dt$dfft_units %in% "days",
+      int_dt$dfft_secs / 60 / 60 / 24 / 7 > 1
+    )) {
       int_dt$dfft_units <- "weeks"
       int_dt$dfft <- as.numeric(
-        int_dt$dfft_secs / 60 / 60 / 24 / 7, units = int_dt$dfft_units)
+        int_dt$dfft_secs / 60 / 60 / 24 / 7, units = int_dt$dfft_units
+      )
     }
     int_dt$sts_intv <- paste0(int_dt$dfft, " ", int_dt$dfft_units)
   }

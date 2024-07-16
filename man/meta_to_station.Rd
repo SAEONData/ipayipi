@@ -11,35 +11,28 @@ meta_to_station(
   file_ext = ".rmds",
   station_ext = ".ipip",
   in_station_meta_name = "meta_events",
+  stnd_title_col_name = "stnd_title",
   wanted = NULL,
   unwanted = NULL,
   ...
 )
 }
 \arguments{
-\item{pipe_house}{List of pipeline directories. \strong{See}
-\code{ipayipi::ipip_init()} \strong{for details}.}
+\item{pipe_house}{List of pipeline directories. \strong{See} \code{ipayipi::ipip_house()} \strong{for details}.}
 
-\item{input_dir}{Directory from which to retreieve a metadata file
-read and saved by \code{ipayipi::meta_read()}.}
+\item{input_dir}{Directory from which to retreieve a metadata file read and saved by \code{ipayipi::meta_read()}.}
 
-\item{meta_file}{File name of the standardised rainfall metadata
-database.}
+\item{meta_file}{File name of the standardised rainfall metadata database.}
 
 \item{file_ext}{Extension of the metadata file. Defaults to ".rmds".}
 
-\item{station_ext}{The extension of station files. Used by
-\code{ipayipi::dta_list()} to search for station files. Defaults to ".ipip".}
+\item{station_ext}{The extension of station files. Used by \code{ipayipi::dta_list()} to search for station files. Defaults to ".ipip".}
 
-\item{in_station_meta_name}{The file name (without extension) of the
-metadata file that will be filtered and appended to a station file.}
+\item{in_station_meta_name}{The file name (without extension) of the metadata file that will be filtered and appended to a station file.}
 
-\item{wanted}{A strong containing keywords to use to filter which stations
-are selected for processing. Multiple search kewords should be seperated
-with a bar ('|'), and spaces avoided unless part of the keyword.}
+\item{wanted}{A strong containing keywords to use to filter which stations are selected for processing. Multiple search kewords should be seperated with a bar ('|'), and spaces avoided unless part of the keyword.}
 
-\item{unwanted}{Similar to wanted, but keywords for filtering out unwanted
-stations.}
+\item{unwanted}{Similar to wanted, but keywords for filtering out unwanted stations.}
 
 \item{...}{Additional arguments passed to \code{ipayipi::dta_list()}.}
 }
@@ -47,14 +40,10 @@ stations.}
 Standardised data table of events.
 }
 \description{
-Reads standardised metadata and appends records the matching
-station.
+Reads standardised metadata and appends records the matching station standard titles.
 }
 \details{
-Reads in an events database or sheet in 'csv' format. Checks that
-column names have been standardised. Transforms the date-time columns to
-a standardised format --- ** this format and timezone must match that used
-by the data pipeline **.
+Reads in an events database or sheet in 'csv' format. Checks that column names have been standardised. Transforms the date-time columns to a standardised format --- ** this format and timezone must match that used by the data pipeline **.
 }
 \author{
 Paul J. Gordijn

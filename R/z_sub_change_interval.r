@@ -9,17 +9,20 @@
 #' @details This function is an internal function called by others in the
 #'  pipeline.
 change_intervals <- function(
-  int_dta = NULL,
-  ...) {
+    int_dta = NULL,
+    ...) {
   ":=" <- "q1" <- "id" <- NULL
   qt <- data.table::data.table(
     id = seq_along(int_dta),
     int_dta = int_dta,
-    q1 = rep(NA, length(int_dta)))
+    q1 = rep(NA, length(int_dta))
+  )
   nona_int_dta <- int_dta[!is.na(int_dta)]
   qt[!is.na(int_dta)]$q1 <- c(FALSE, nona_int_dta[
-    seq_len(length(nona_int_dta) - 1) + 1] == nona_int_dta[
-      seq_len(length(nona_int_dta) - 1)])
+    seq_len(length(nona_int_dta) - 1) + 1
+  ] == nona_int_dta[
+    seq_len(length(nona_int_dta) - 1)
+  ])
   qt_na <- qt[is.na(q1)]
   qt <- qt[!is.na(q1)]
   qt <- qt[q1 == FALSE, aphid := seq_len(nrow(qt[q1 == FALSE, ]))]

@@ -2,7 +2,7 @@
 #' @description Critical step in the data pipeline. A function to check standardisation of logger data header information. If an unrecognised
 #'  synonym/data attribute appears the nomenclature database will have to be updated.
 #' @param pipe_house List of pipeline directories. __See__
-#'  `ipayipi::ipip_init()` __for details__.
+#'  `ipayipi::ipip_house()` __for details__.
 #' @param check_nomenclature Should the file naming be checked. This helps ensure that files are named consistently and that data from different stations are not appended erraneously.
 #' @param out_csv Logical. If TRUE a csv file is made in the working directory if there are files with unrecognised nomenclature.
 #' @param file_ext The extension of the file for which the nomenclature is being assessed.
@@ -72,23 +72,24 @@
 #'  running `ipayipi::nomenclature_sts()`.
 #' @export
 nomenclature_chk <- function(
-    pipe_house = NA,
-    check_nomenclature = TRUE,
-    csv_out = TRUE,
-    file_ext = "ipr",
-    verbose = FALSE,
-    cores = getOption("mc.cores", 2L),
-    ...
-  ) {
+  pipe_house = NA,
+  check_nomenclature = TRUE,
+  csv_out = TRUE,
+  file_ext = "ipr",
+  verbose = FALSE,
+  cores = getOption("mc.cores", 2L),
+  ...
+) {
   "uz_station" <- "stnd_title" <- "station" <- "logger_type" <-
     "logger_title" <- "uz_record_interval_type" <- "uz_record_interval" <-
-      "record_interval_type" <- "record_interval" <- "uz_table_name" <-
-      "table_name" <- "location" <- NULL
+    "record_interval_type" <- "record_interval" <- "uz_table_name" <-
+    "table_name" <- "location" <- NULL
   # if there is a more recent csv nomtab update the nomtab.rns
-    # update nomtab.rns if csv is more recently modified
-    # generate nomtab.rns if there is sa csv
+  # update nomtab.rns if csv is more recently modified
+  # generate nomtab.rns if there is sa csv
   nomlist <- ipayipi::dta_list(input_dir = pipe_house$wait_room, file_ext =
-    ".csv", wanted = "nomtab")
+      ".csv", wanted = "nomtab"
+  )
   nom_dts <- lapply(nomlist, function(x) {
     mtime <- file.info(file.path(pipe_house$wait_room, x))$mtime
     invisible(mtime)
@@ -96,19 +97,22 @@ nomenclature_chk <- function(
   names(nom_dts) <- nomlist
   t1 <- attempt::attempt(max(unlist(nom_dts)), silent = !verbose)
   t2 <- as.numeric(attempt::attempt(silent = !verbose,
-    max(file.info(file.path(pipe_house$wait_room, "nomtab.rns"))$mtime)))
+    max(file.info(file.path(pipe_house$wait_room, "nomtab.rns"))$mtime)
+  ))
+  c1 <- file.exists(file.path(pipe_house$wait_room, "nomtab.rns"))
   if (is.na(t2)) t2 <- attempt::attempt(0)
   if (all(!attempt::is_try_error(t1), !attempt::is_try_error(t2), t1 > t2)) {
     ipayipi::read_nomtab_csv(pipe_house = pipe_house)
   }
-  if (all(!attempt::is_try_error(t1), attempt::is_try_error(t2))) {
+  if (all(!attempt::is_try_error(t1), attempt::is_try_error(t2), c1)) {
     ipayipi::read_nomtab_csv(pipe_house = pipe_house)
   }
   if (file.exists(file.path(pipe_house$wait_room, "nomtab.rns"))) {
     nomtab <- readRDS(file.path(pipe_house$wait_room, "nomtab.rns"))
     ns <- c("uz_station", "location", "station", "stnd_title", "logger_type",
       "logger_title", "uz_record_interval_type", "uz_record_interval",
-      "record_interval_type", "record_interval", "uz_table_name", "table_name")
+      "record_interval_type", "record_interval", "uz_table_name", "table_name"
+    )
     nomtab <- nomtab[, ns, with = FALSE]
   } else {
     nomtab <- data.table::data.table(
@@ -129,7 +133,8 @@ nomenclature_chk <- function(
 
   # extract nomenclature from files
   slist <- ipayipi::dta_list(input_dir = pipe_house$wait_room, file_ext =
-    file_ext, prompt = FALSE, recurr = TRUE, unwanted = NULL, wanted = NULL)
+      file_ext, prompt = FALSE, recurr = TRUE, unwanted = NULL, wanted = NULL
+  )
   nomtab_import <- parallel::mclapply(slist, function(x) {
     mfile <- readRDS(file.path(pipe_house$wait_room, x))
     nomtabo <- data.table::data.table(
@@ -147,17 +152,20 @@ nomenclature_chk <- function(
       table_name = NA_character_
     )
     invisible(nomtabo)
-  }, mc.cores = cores)
+  }, mc.cores = cores, mc.cleanup = TRUE)
   nomtab_import <- data.table::rbindlist(nomtab_import)
 
   nomtab <- rbind(nomtab, nomtab_import)
   nomtab <- nomtab[!is.na(uz_station), ]
+  # trim white spaace around uz_station
+  nomtab$uz_station <- gsub(" ^*|* $", "", nomtab$uz_station)
   nomtab <- nomtab[order(stnd_title, uz_station, station, logger_type,
     logger_title, uz_record_interval_type, uz_record_interval,
-    record_interval_type, record_interval, uz_table_name, table_name)]
-  nomtab <- unique(nomtab,
-    by = c("uz_station", "logger_type", "uz_record_interval_type",
-    "uz_record_interval", "uz_table_name"))
+    record_interval_type, record_interval, uz_table_name, table_name
+  )]
+  nomtab <- unique(nomtab, by = c("uz_station", "logger_type",
+    "uz_record_interval_type", "uz_record_interval", "uz_table_name"
+  ))
   # standardise raw table name preffix
   nomtab$table_name <- data.table::fifelse(
     !grepl(pattern = "raw_", x = nomtab$table_name),
@@ -166,17 +174,18 @@ nomenclature_chk <- function(
   saveRDS(nomtab, file.path(pipe_house$wait_room, "nomtab.rns"))
   # check critical nomenclature
   nomchk <- nomtab[is.na(location) | is.na(station) | is.na(stnd_title) |
-        is.na(record_interval_type) | is.na(record_interval) |
-        is.na(table_name)]
+      is.na(record_interval_type) | is.na(record_interval) | is.na(table_name)
+  ]
   if (check_nomenclature && nrow(nomchk) > 0) {
-      message("There are unconfirmed identities in the nomenclature!")
-      message("Check the nomenclature table.")
+    message("There are unconfirmed identities in the nomenclature!")
+    message("Check the nomenclature table.")
     if (csv_out) {
       message("A csv file has been generated with updated nomenclature.")
       message("Please complete the csv file to remove NAs.")
       out_name <-
-        paste0("nomtab_", format(as.POSIXlt(Sys.time()),
-          format = "%Y%m%d_%Hh%M"), ".csv")
+        paste0("nomtab_",
+          format(as.POSIXlt(Sys.time()), format = "%Y%m%d_%Hh%M"), ".csv"
+        )
       write.csv(nomtab, file.path(pipe_house$wait_room, out_name))
     }
   } else {

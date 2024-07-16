@@ -1,16 +1,13 @@
 #' @title Perform data processing calculations
 #' @description Calculations are parsed to data.table.
+#' @param sfc List of file paths to the temporary station file directory. Generated using `ipayipi::open_sf_con2()`.
 #' @param station_file Name of the station being processed.
-#' @param dta_in A list of data to be processed.
-#' param input_dt 
-#' param output_dt 
 #' @param f_params Function parameters evaluated by `ipayipi::calc_param_eval()`. These are parsed to `dt_calc()` from `dt_process()`.
-#' @param f_summary A summary table of function parameters. This
-#'  summary table is stored in the station file object. If there
-#'  is a summary table for the function, differences between the
-#'  `f_params` and table are checked and the 'f_summary' table
-#'  is updated---triggering a re-calculation of the whole time series instead
-#'  of for a slice of the series.
+#' @param ppsij Data processing `pipe_seq` table from which function parameters and data are extracted/evaluated. This is parsed to this function automatically by `ipayipi::dt_process()`.
+#' @param station_file_ext The station file extension (period included '.'). Defaults to '.ipip'.
+#' @param verbose Logical. Whether or not to report messages and progress.
+#' @param xtra_v Logical. Whether or not to report xtra messages, progess, plus print data tables.
+#' @param cores  Number of CPU's to use for processing in parallel. Only applies when working on Linux.
 #' @return A list containing the processed data sets 'dts_dt'.
 #' @author Paul J. Gordijn
 #' details
@@ -22,27 +19,38 @@ dt_calc <- function(
   f_params = NULL,
   station_file_ext = ".ipip",
   ppsij = NULL,
-  ...) {
-  "dt" <- "station" <- NULL
+  verbose = FALSE,
+  xtra_v = FALSE,
+  cores = getOption("mc.cores", 2L),
+  ...
+) {
+  "%ilike%" <- NULL
   # read in the available data
   sfcn <- names(sfc)
   dta_in <- NULL
   hsf_dta <- NULL
   if ("dt_working" %in% sfcn) {
-    dta_in <- ipayipi::sf_read(sfc = sfc, tv = "dt_working", tmp = TRUE)[[
-      "dt_working"
-    ]]
+    dta_in <- ipayipi::sf_dta_read(sfc = sfc, tv = "dt_working", tmp = TRUE)
   }
 
   if (is.null(dta_in) && any(sfcn %ilike% "_hsf_table_")) {
     hsf_dta <- sfcn[sfcn %ilike% "_hsf_table_"]
     hsf_dta <- hsf_dta[length(hsf_dta)]
-    dta_in <- ipayipi::sf_read(sfc = sfc, tv = hsf_dta, tmp = TRUE)[[1]]
+    dta_in <- ipayipi::sf_dta_read(sfc = sfc, tv = hsf_dta, tmp = TRUE)
   }
   # create station object for calc parsing
-  station <- gsub(paste(dirname(station_file), station_file_ext,
-    "/", sep = "|"), "", station_file)
-  dt <- data.table::as.data.table(dta_in)
+  station <- gsub(
+    paste(dirname(station_file), station_file_ext, "/", sep = "|"),
+    "", station_file
+  )
+  ipayipi::msg(paste0("Calc station: ", station), xtra_v)
+
+  # eindx filter
+  dta_in <- ipayipi::dt_dta_filter(dta_link = dta_in, ppsij = ppsij)
+  # open data ----
+  dt <- ipayipi::dt_dta_open(dta_link = dta_in[[1]])
+  ipayipi::msg("Pre-calc data", xtra_v)
+  if (xtra_v) print(head(dt))
 
   # organise f_params
   # extract ipip arguments from the seperate changes
@@ -73,18 +81,48 @@ dt_calc <- function(
   })
   names(fk_params) <- f_ipips
   fk_params <- fk_params[sapply(fk_params, function(x) !is.null(x))]
-  dt_fk_params <- lapply(fk_params, function(x) eval(parse(text = x)))
-  dt_working <- eval(parse(text = paste0(f_params, collapse = "")))
+  dt_fk_params <- lapply(fk_params, function(x) {
+    attempt::try_catch(expr = eval(parse(text = x)), .e = ~NULL)
+  })
+  dt_working <- attempt::try_catch(
+    expr = list(eval(parse(text = paste0(f_params, collapse = "")))),
+    .e = ~list(NULL)
+  )
+  names(dt_working) <- "dt_working"
+  ipayipi::msg("Post-calc data", xtra_v)
+  if (xtra_v) print(head(dt_working))
+
+  # dttm foor ppsij
+  if (all(
+    "date_time" %in% names(dt_working[["dt_working"]]),
+    nrow(dt_working[["dt_working"]]) > 0
+  )) {
+    ppsij$start_dttm <- min(dt_working[["dt_working"]]$date_time, na.rm = TRUE)
+    ppsij$end_dttm <- max(dt_working[["dt_working"]]$date_time, na.rm = TRUE)
+  }
   # save working data
-  saveRDS(dt_working, file.path(dirname(sfc[1]), "dt_working"))
+  unlink(sfc["dt_working"], recursive = TRUE)
+  # work through data to be saved
+  dta_sets <- c(dt_fk_params, dt_working)
+  lapply(seq_along(dta_sets), function(dsi) {
+    d <- dta_sets[[dsi]]
+    if (!data.table::is.data.table(d)) d <- unlist(d, recursive = TRUE)
+    n <- names(dta_sets)[dsi]
+    ipayipi::msg("Chunking data", xtra_v)
+    ipayipi::sf_dta_wr(dta_room = file.path(dirname((sfc[1])), n[1]),
+      dta = d, overwrite = TRUE, tn = n[1], ri = ppsij[1]$time_interval,
+      cores = cores, verbose = verbose, xtra_v = xtra_v
+    )
+  })
   # remove harvest data from this step
   if (!is.null(hsf_dta)) {
     ppsid_hsf <- unique(gsub("_hsf_table_?.+", "", hsf_dta))
     hsf_rm <- sfc[
-      names(sfc)[names(sfc) %ilike% paste0(ppsid_hsf, "_hsf_table_*.")]]
+      names(sfc)[names(sfc) %ilike% paste0(ppsid_hsf, "_hsf_table_*.")]
+    ]
     lapply(hsf_rm, function(x) {
       unlink(file.path(dirname(sfc[1]), x), recursive = TRUE)
     })
   }
-  return(dt_fk_params)
+  return(list(ppsij = ppsij))
 }

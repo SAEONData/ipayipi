@@ -38,20 +38,33 @@ mhlanga(
 \item \emph{right_join}. Adds the matching rows of 'y' to 'x' by keyed columns.
 \item \emph{inner_join}. Retains only rows of 'x' and 'y' that match by keyed columns.
 \strong{Keys}
-Keys are the columns of the 'x' (left) and 'y' (right) tables used for finding matches for a join. Because \code{ipayipi} is based on date-time data the default keys are assumed to be "date_time" if not provided. Unlike conventional joins where rows are only matched if there is an exact match, for 'fuzzy' or 'non-equi' joins are flexible. When using a 'fuzzy' join an inequality sign must be provided in the key list. \emph{See below}_.
+Keys are the columns of the 'x' (left) and 'y' (right) tables used for finding matches (identifiers) for a join. Because \code{ipayipi} is based on date-time data the default keys are assumed to be "date_time". Unlike conventional joins where rows are only matched if there is an exact match of keyed values, 'fuzzy' or 'non-equi', joins are flexible. When using a 'fuzzy' join an inequality sign must be provided in the key list. \emph{See below}_.
 }}
 
-\item{x_key}{Name(s) of the column(s) to key by the 'x' table. Vector of length one or two for conventional or fuzzy or non-equi joins, respectiely.}
+\item{x_key}{Name(s) of the column(s) to key by the 'x' table. Vector of length one or two for conventional or fuzzy or non-equi joins, respectively. Defaults to \code{date_time}.}
 
-\item{y_key}{Same as above but for the 'y' or right table.}
+\item{y_key}{Same as above but for the 'y' or right table. Defaults to \code{date_time}.}
 
-\item{fuzzy}{Numeric duration of time used to generate first and second 'x' and 'y' key columns. If provided fuzzy columns will override the \code{x_key} and \code{y_key} columns with auto generated default names. The default names for these are xd1 and xd2, and yd1 and yd2, for 'x' and 'y' tables, respectively. Columns are d1 and d2 columns are calculated around the "date_time" (POSIXct) columns specified in the key arguments. By default this will be "date_time" for both 'x' and 'y' tables. Provided as a single value or vector of two.
-For 'fuzzy' joins where the two keys are provided for each 'x' and 'y' table the join syntax is compiled like this:
+\item{fuzzy}{A numeric (seconds) vector of length one or two.
+Fuzzy time-series joins require four keys in total: two keys for the 'x', and two for the 'y' table'. The nature of how these keys are join are controlled by arguments such as \code{inq} below.
+Both keys can be provided using the \code{x_key} and \code{y_key} arguments. But, if only one key is specified in the \code{x_key} and \code{y_key} arguments, the second key for each table can be generated based on the values provided here. For each 'x' and 'y' table, given the \code{fuzzy} argument is provided, the first and second keys for a table are calculated as:
+
+\eqn{x_key[1] = x_key[1] - fuzzy[1]}
+\eqn{x_key[2] = x_key[2] + fuzzy[1]}
+\eqn{y_key[1] = y_key[1] - fuzzy[2]}
+\eqn{y_key[2] = y_key[2] + fuzzy[2]}
+
+Note that if only one key is provided in the \code{x_key} and \code{y_key} arguments then the first value will be recycled for the second.
+
+Internally, the default names for these are xd1 and xd2, and yd1 and yd2, for 'x' and 'y' tables, respectively.
+
+For 'fuzzy' joins where two keys are provided for each 'x' and 'y' table the join syntax is compiled like this:
 '1st x key' 'x inequality' '1st y key', '2nd y key' 'x inequality' '2nd x key'.}
 
 \item{inq}{Inequality signs, vector of two (i.e., ">", ">=", "<", "<=") for fuzzy (non-equi) joins. Defaults to NULL.}
 
 \item{y_phen_names}{Names of phenomena (columns) to retain post the join.
+
 \emph{Custom data.table arguments}
 \code{data.table} has great documentation for these arguments.}
 
@@ -65,7 +78,7 @@ For 'fuzzy' joins where the two keys are provided for each 'x' and 'y' table the
 
 \item{allow.cartesian}{Can't get better than the \code{data.table} documentation here.}
 
-\item{time_seq}{If data is continuous this can be set to TRUE to run time-series sensitive joining of data. Time-series sensitive joining on ensures the date-time series is continuous, i.e., the record intervalis kept constant, and unique (no duplicate time stamps).}
+\item{time_seq}{If data is continuous this can be set to TRUE to run time-series sensitive joining of data. Time-series sensitive joining on ensures the date-time series is continuous, i.e., the record interval is kept constant, and unique (no duplicate time stamps).}
 
 \item{ri}{Record interval of the 'y' or 'x' for left and right joins, respectively, or for both in a time-sensitive full join (\emph{see} \code{time_seq}). Single character string of a standardised time-series/record interval. Record intervals can be standardised using \code{ipayipi::sts_interval_name()}.}
 

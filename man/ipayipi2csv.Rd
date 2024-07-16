@@ -7,13 +7,13 @@
 ipayipi2csv(
   data_dir = NULL,
   output_dir = NULL,
-  file_ext = ".rds",
+  file_ext = ".ipip",
   wanted_tabs = NULL,
   prompt = FALSE,
   wanted = NULL,
   unwanted = NULL,
   baros = FALSE,
-  recurr = FALSE,
+  recurr = TRUE,
   dt_export_format = "write.csv",
   ...
 )

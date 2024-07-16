@@ -40,7 +40,7 @@ gw_vis_dy2 <- function(
   ) {
 
   # summarise station data
-  dta <- ipayipi::ipayipi_flat_dta(input_dir = input_dir, file_ext = ".rds",
+  dta <- ipayipi::dta_flat_pull(input_dir = input_dir, file_ext = ".rds",
     tab_name = "log_t", phen_name = "t_level_m", prompt = prompt,
     recurr = recurr, wanted = wanted, unwanted = unwanted)
 

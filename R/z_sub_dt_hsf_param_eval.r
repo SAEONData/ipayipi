@@ -33,6 +33,7 @@ hsf_param_eval <- function(
   f_params = NULL,
   ppsij = NULL,
   sfc = NULL,
+  xtra_v = FALSE,
   ...
 ) {
   "%ilike%" <- "phen_name" <- "table_name" <- "input_dt" <- "phen_syn" <-
@@ -63,7 +64,7 @@ hsf_param_eval <- function(
     f_params <- hsf_params[!sapply(hsf_params, is.null)]
     class(f_params) <- c(class(f_params), "dt_harvest_params")
   } else {
-  # full function evaluation --------------------------------------------------
+    # full function evaluation -------------------------------------------------
     # extract parts of ppsij and assign values in env
     if (!is.null(ppsij)) {
       ppsi_names <- names(ppsij)[!names(ppsij) %in% c("n", "f", "f_params")]
@@ -75,17 +76,15 @@ hsf_param_eval <- function(
     # extract parts of f_params and assign values in environment
     hsf_param_names <- names(f_params)
     for (k in seq_along(hsf_param_names)) {
-      if (exists(hsf_param_names[k])) {
-        assign(hsf_param_names[k],
-          f_params[[hsf_param_names[k]]])
-      }
+      assign(hsf_param_names[k], f_params[[hsf_param_names[k]]])
     }
 
     # single out the harvest (hsf) station
     if (!is.null(hsf_station)) {
       hsfn <- ipayipi::dta_list(input_dir = harvest_dir, recurr = recurr,
         file_ext = harvest_station_ext, wanted = hsf_station,
-        unwanted = NULL, prompt = prompt, single_out = single_out)
+        unwanted = NULL, prompt = prompt, single_out = single_out
+      )
       hsfn <- gsub(pattern = "^./", replacement = "", hsfn)
     } else {
       station_file <- gsub(pattern = "^./", replacement = "", station_file)
@@ -93,12 +92,17 @@ hsf_param_eval <- function(
     }
     # open hsf file if different from sf
     if (basename(hsfn) != basename(station_file)) {
-      hsfc <- attempt::try_catch(ipayipi::open_sf_con(station_file = hsfn))
+      hsfc <- attempt::try_catch(
+        ipayipi::open_sf_con2(station_file = hsfn, verbose = verbose,
+          tv = hsf_table, xtra_v = xtra_v, tmp = TRUE
+        )
+      )
     } else {
       hsfc <- sfc
     }
-    hsf_summary <- ipayipi::sf_read(sfc = hsfc, tmp = TRUE,
-      tv = c("data_summary", "phens", "phens_dt"), station_file = hsfn)
+    hsf_summary <- ipayipi::sf_dta_read(sfc = hsfc, tmp = TRUE,
+      tv = c("data_summary", "phens", "phens_dt"), station_file = hsfn
+    )
     ## prepare hsf phen metadata ----
     # - depends on time series data type (discnt or continuous)
     # - if extracting from standardised pipe data we can extract phenomena
@@ -118,21 +122,24 @@ hsf_param_eval <- function(
     # extract from raw data phen table
     if (hsf_table %ilike% "raw") {
       p <- phen_tabs$phens[table_name %ilike% "raw",
-        c("phid", "phen_name", "units", "measure", "var_type", "table_name")]
+        c("phid", "phen_name", "units", "measure", "var_type", "table_name")
+      ]
       if (hsf_table != "raw") p <- p[table_name == hsf_table]
       # join on data summary info
       s <- unique(
         hsf_summary$data_summary[
           table_name %in% unique(p$table_name)
-        ], by = "table_name")
+        ], by = "table_name"
+      )
     }
 
     # extract from other source
     if (!any(sapply(phen_tabs, function(x) any(x$table_name %in% hsf_table))) &&
-      hsf_table != "raw") {
+        hsf_table != "raw"
+    ) {
       # open table
-      ht <- ipayipi::sf_read(sfc = hsfc, tv = hsf_table, tmp = TRUE)[[
-        hsf_table]]
+      ht <- ipayipi::sf_dta_read(sfc = hsfc, tv = hsf_table, tmp = TRUE)
+      ht <- ipayipi::dt_dta_open(dta_link = ht)
       # get date time info
       dttm <- names(ht)[names(ht) %ilike% "date_time|date-time"][1]
       if (is.na(dttm)) {
@@ -140,7 +147,8 @@ hsf_param_eval <- function(
       }
       # evaluate other data record interval
       dtti <- ipayipi::record_interval_eval(dt = ht[[dttm]], dta_in = ht,
-        record_interval_type = "event_based")
+        record_interval_type = "event_based"
+      )
       p <- data.table::data.table(
         phid = NA_integer_, phen_name = names(ht), units = NA_character_,
         measure = NA_character_, var_type = sapply(ht, function(x) class(x)[1]),
@@ -158,7 +166,7 @@ hsf_param_eval <- function(
       )
 
       s <- data.table::data.table(record_interval_type =
-        dtti$record_interval_type, record_interval = dtti$record_interval,
+          dtti$record_interval_type, record_interval = dtti$record_interval,
         start_dttm = sd, end_dttm = se, table_name = hsf_table
       )
       p$var_type <- as.vector(sapply(p$var_type, function(x) {
@@ -169,17 +177,17 @@ hsf_param_eval <- function(
       ## phen aggregation interval options ----
       # add record interval to p to organise aggregation intervals and phenomena
       # selection
-      s <- s[, names(s)[names(s) %in% c("record_interval_type",
-        "record_interval", "table_name", "start_dttm", "end_dttm")],
-          with = FALSE]
+      s <- s[, names(s)[names(s) %in% c(
+        "record_interval_type", "record_interval", "table_name", "start_dttm",
+        "end_dttm"
+      )], with = FALSE]
       sx <- lapply(s$record_interval, ipayipi::sts_interval_name)
       sx <- data.table::rbindlist(sx)
       s <- cbind(s, sx)
       p <- merge(x = p, y = s, all.y = TRUE, by = "table_name")
     }
     # extract from processed data phen table ('dt_')
-    if (hsf_table %ilike% "dt_" && "phens_dt" %in% names(sfc) &&
-      is.null(p)) {
+    if (hsf_table %ilike% "dt_" && "phens_dt" %in% names(sfc) && is.null(p)) {
       p <- phen_tabs$phens_dt[table_name %ilike% "dt_"]
       p <- p[table_name == hsf_table]
       # check aggregation interval
@@ -230,10 +238,13 @@ hsf_param_eval <- function(
       table_name = output_dt
     )
 
-    hsf_params <- phens_dt[, c("ppsid", "orig_table_name", "phen_name"),
-      with = FALSE][, ":="(station_file = station_file, hsf_station = hsfn)][,
-        hsf_table := orig_table_name][, c("ppsid", "station_file",
-        "hsf_station", "hsf_table", "phen_name"), with = FALSE]
+    hsf_params <- phens_dt[,
+      c("ppsid", "orig_table_name", "phen_name"), with = FALSE
+    ][, ":="(station_file = station_file, hsf_station = hsfn)][,
+      hsf_table := orig_table_name
+    ][, c("ppsid", "station_file", "hsf_station", "hsf_table", "phen_name"),
+      with = FALSE
+    ]
 
     if (is.null(phen_names[1]) || is.na(phen_names[1])) {
       phen_names <- unique(p$phen_name)
@@ -242,7 +253,8 @@ hsf_param_eval <- function(
     if (!is.null(phen_names)) phen_names <- phen_names[order(phen_names)]
 
     f_params <- list(f_params = list(hsf_params = hsf_params),
-      phens_dt = phens_dt)
+      phens_dt = phens_dt
+    )
   }
   return(f_params)
 }

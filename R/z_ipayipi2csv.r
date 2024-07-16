@@ -27,27 +27,30 @@
 ipayipi2csv <- function(
   data_dir = NULL,
   output_dir = NULL,
-  file_ext = ".rds",
+  file_ext = ".ipip",
   wanted_tabs = NULL,
   prompt = FALSE,
   wanted = NULL,
   unwanted = NULL,
   baros = FALSE,
-  recurr = FALSE,
+  recurr = TRUE,
   dt_export_format = "write.csv",
   ...
 ) {
+  "%ilike%" <- NULL
   # get list of available files
   station_files <- ipayipi::dta_list(
     input_dir = data_dir, file_ext = file_ext, prompt = prompt,
-    recurr = FALSE, baros = FALSE, unwanted = NULL, wanted = wanted)
+    recurr = FALSE, baros = FALSE, unwanted = NULL, wanted = wanted
+  )
 
   # read in each file and export respective tables
   exported_stations <- lapply(seq_along(station_files), function(z) {
     file <- readRDS(file.path(data_dir, station_files[z]))
     file_name <- basename(station_files[z])
     file_name <- gsub(pattern = file_ext, replacement = "", x = file_name,
-      ignore.case = TRUE)
+      ignore.case = TRUE
+    )
     tab_names <- names(file)
     if (!is.null(wanted_tabs)) {
       tab_names <- tab_names[tab_names %ilike% wanted_tabs]
@@ -56,9 +59,10 @@ ipayipi2csv <- function(
       if (any(!class(file[[tab_names[x]]]) %in% "list")) {
         data.table::fwrite(file[[tab_names[x]]],
           file = file.path(output_dir,
-            paste0(file_name, "-", tab_names[x], ".csv")),
-          row.names = FALSE, dateTimeAs = dt_export_format,
-          na = "NA")
+            paste0(file_name, "-", tab_names[x], ".csv")
+          ), row.names = FALSE, dateTimeAs = dt_export_format,
+          na = "NA"
+        )
       }
       return(file_name)
     })

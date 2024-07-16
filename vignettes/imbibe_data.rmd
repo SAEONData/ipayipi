@@ -57,7 +57,7 @@ wd <- "ipayipi/data-raw/eg_data/met_eg"
 sd <- "ipayipi/data-raw/eg_data/met_eg/dta_in"
 
 # setup pipeline directory structure
-pipe_house <- ipip_init(work_dir = wd, source_dir = sd)
+pipe_house <- ipip_house(work_dir = wd, source_dir = sd)
 
 ## 3. read & imbibe in data ----
 logger_data_import_batch(pipe_house)
@@ -99,13 +99,13 @@ wd <- "ipayipi/data-raw/eg_data/met_eg"
 sd <- "ipayipi/data-raw/eg_data/met_eg/dta_in"
 
 ## initiate pipeline
-pipe_house <- ipip_init(work_dir = wd, source_dir = sd)
+pipe_house <- ipip_house(work_dir = wd, source_room = sd)
 print(pipe_house)
 ```
 
-What has `ipip_init()` done? It has created the following directories, if they don't already exist*:
+What has `ipip_house()` done? It has created the following directories, if they don't already exist*:
 
-1. 'source_dir': where new logger data is going to be made available.
+1. 'source_room': where new logger data is going to be made available.
 2. 'wait_room': waiting room for imbibing data into the pipeline.
 3. 'nomvet_room': where standardised/corrected logger files get archived (nomenclature vetted).
 4. 'ipip_room': here data get appended into contiguous single station records, and processed.
@@ -115,7 +115,7 @@ What has `ipip_init()` done? It has created the following directories, if they d
 
 # Imbibe data
 
-In this step, data gets pulled from pipelines data source, that is, the 'source directory' (`pipe_house$source_dir`), into the 'waiting room' (`pipe_house$wait_room`). The example data contains two-years of Cambell Scientific logger text files derived from sensors on a [SAEON](https://www.saeon.ac.za) meteorological station in northern Maputaland, South Africa.
+In this step, data gets pulled from pipelines data source, that is, the 'source directory' (`pipe_house$source_room`), into the 'waiting room' (`pipe_house$wait_room`). The example data contains two-years of Cambell Scientific logger text files derived from sensors on a [SAEON](https://www.saeon.ac.za) meteorological station in northern Maputaland, South Africa.
 
 
 ```{r, import-set, eval = TRUE, echo = FALSE}

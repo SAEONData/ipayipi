@@ -23,8 +23,9 @@ pipe_process <- function(
   overwrite_pipe_memory = TRUE,
   pipe_eval = TRUE,
   update_pipe_data = FALSE,
-  ...) {
-
+  ...
+) {
+  "dt_n" <- "dtp_n" <- "id" <- NULL
   # terminte if no pipe_seq
   if (is.null(pipe_seq) || !data.table::is.data.table(pipe_seq)) {
     message("Warning! pipe_seq required.")
@@ -45,17 +46,21 @@ pipe_process <- function(
       pps_common <- pps_old[id %in% pps_new$id]
       pps_common$f <- data.table::fifelse(
         pps_common$f != pps_new[id %in% pps_old$id]$f,
-        pps_new[id %in% pps_old$id]$f, pps_common$f)
+        pps_new[id %in% pps_old$id]$f, pps_common$f
+      )
       pps_common$input_dt <- data.table::fifelse(
         pps_common$input_dt != pps_new[id %in% pps_old$id]$input_dt,
-        pps_new[id %in% pps_old$id]$input_dt, pps_common$input_dt)
+        pps_new[id %in% pps_old$id]$input_dt, pps_common$input_dt
+      )
       pps_common$output_dt <- data.table::fifelse(
         pps_common$output_dt != pps_new[id %in% pps_old$id]$output_dt,
-        pps_new[id %in% pps_old$id]$output_dt, pps_common$output_dt)
+        pps_new[id %in% pps_old$id]$output_dt, pps_common$output_dt
+      )
       pps <- rbind(
         pps_new[!id %in% pps_common$id],
         pps_new[!id %in% pps_common$id],
-        pps_common)[order(dt_n, dtp_n)]
+        pps_common
+      )[order(dt_n, dtp_n)]
       pps <- subset(pps, select = -id)
 
       update_pipe_data <- TRUE # need to run full eval and data processing
@@ -66,5 +71,6 @@ pipe_process <- function(
     update_pipe_data <- TRUE  # need to run full eval and data processing
   }
   return(list(pipe_seq = pipe_seq, update_pipe_data = update_pipe_data,
-    overwrite_pipe_memory = overwrite_pipe_memory))
+    overwrite_pipe_memory = overwrite_pipe_memory
+  ))
 }

@@ -14,30 +14,17 @@ harvseting of the loggers serial number using the search pattern
 information is provided for harvesting of logger file header information.
 __See \code{ipayipi::imbibe_raw_logger_dt()} documentation for a describtion of
 a \code{data_setup}.
-}
-
-\subsection{'file_read_meta'}{
-
-iPayipi file_read_meta table used for setting defaults when attempting to
-read/imbibe raw data files. This table is used in:
-\code{ipayipi::imbibe_raw_batch()}. If the \code{file_ext} and/or \code{col_dlm}
-arguments are \code{NULL} this table assists with reading in data in the
-correct format.
+This data_setup contains two varieties of hobo pendant logger outputs, the
+first option contains an id column, whilst the second does not.
 }
 }
 \source{
 Internal
-
-Internal
 }
 \usage{
-hobo_rain
-
 hobo_rain
 }
 \description{
 ipayipi data setup for Hobo logger files exported from a 'rainfall pendant'
-
-File defaults used when imbibing raw logger data
 }
 \keyword{datasets}

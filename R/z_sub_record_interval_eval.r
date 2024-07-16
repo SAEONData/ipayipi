@@ -1,7 +1,6 @@
 #' @title Evaluates the consistency of record interval date-time values
 #' @param dt vector of POSIXct values with defined time zone.
 #' @param dt_format The input date-time format of the time series, e.g., "%y-%m-%d %H:%M:%S". See ?base::strptime() for details.
-#' @param dt_tz recognized time-zone of the data locale.
 #' @param dta_in Input data must have the same number of rows as dt. If inconsistent time intervals are detected then the input data will be filtered out and returned.
 #' @param remove_prompt Logical. Activate a readline prompt to choose whether or not filter our records from `dta_in` with inconsistent record intervals. If TRUE then the `max_rows` argument is ignored.
 #' @param record_interval_type If there is only one data record the this parameter will be used as the default. This must be either "event_based" or "continuous".
@@ -21,8 +20,6 @@
 #' @author Paul J. Gordijn
 record_interval_eval <- function(
   dt = NULL,
-  dt_format = "%Y-%m-%d %H:%M:%S",
-  dt_tz = "Africa/Johannesburg",
   dta_in = NULL,
   remove_prompt = FALSE,
   record_interval_type = NULL,
@@ -48,18 +45,20 @@ record_interval_eval <- function(
       stop("Undetermined interval type. Only one data record!")
     }
     ri_eval <- list(
-    dt = dt,
-    interval_checks = NA,
-    record_interval_type = record_interval_type,
-    record_interval = "discnt",
-    record_interval_difftime = NA,
-    new_data = dta_in)
+      dt = dt,
+      interval_checks = NA,
+      record_interval_type = record_interval_type,
+      record_interval = "discnt",
+      record_interval_difftime = NA,
+      new_data = dta_in
+    )
   } else {
     # monthly data
     if (any(diff(dtt) %in% c(28:31)) &&
         attr(diff(dtt), "units") %in% c("days") &&
         all(data.table::second(dtt) == 0) &&
-          all(data.table::minute(dtt) == 0)) {
+        all(data.table::minute(dtt) == 0)
+    ) {
       record_interval <- mondate::as.difftime(1, units = "months")
       ri_cks <- rep(TRUE, length(dtt))
       record_interval_type <- "continuous"
@@ -67,22 +66,27 @@ record_interval_eval <- function(
       # other record intervals
       # extract modal record interval
       record_interval <- mondate::as.difftime(getmode(diff(dtt)),
-        units = attr(diff(dtt), "units"))
+        units = attr(diff(dtt), "units")
+      )
       ri_cks <- diff(dtt) == record_interval
       # continuous
       if ((length(ri_cks[ri_cks == TRUE]) / length(ri_cks)) > 0.98 &&
-          (sum(second(dtt) %in% 0) / length(dtt)) > 0.98) {
+          (sum(second(dtt) %in% 0) / length(dtt)) > 0.98
+      ) {
         record_interval_type <- "continuous"
         record_interval <- mondate::as.difftime(getmode(diff(dtt[ri_cks])),
-          units = attr(diff(dtt[ri_cks]), "units"))
-      # mixed
+          units = attr(diff(dtt[ri_cks]), "units")
+        )
+        # mixed
       } else if ((length(ri_cks[ri_cks == TRUE]) / length(ri_cks)) < 0.98 &&
           (length(ri_cks[ri_cks == TRUE]) / length(ri_cks)) > 0.2 &&
-          length(dt[ri_cks]) > 4 && any(second(dt) %in% 0)) {
+          length(dt[ri_cks]) > 4 && any(second(dt) %in% 0)
+      ) {
         record_interval_type <- "mixed"
         record_interval <- mondate::as.difftime(getmode(diff(dt[ri_cks])),
-          units = attr(diff(dt[ri_cks]), "units"))
-      # discontinuous
+          units = attr(diff(dt[ri_cks]), "units")
+        )
+        # discontinuous
       } else {
         record_interval_type <- "event_based"
         record_interval <- "discnt"
@@ -95,17 +99,14 @@ record_interval_eval <- function(
       ri_cks <- c(TRUE, ri_cks)
     }
     if (all(any(!ri_cks), remove_prompt,
-          record_interval_type == "continuous")) {
+      record_interval_type == "continuous"
+    )) {
       message(paste0("Warning! There are inconsistent record intervals!"))
       chosen <- function() {
-        n <- readline(
-          prompt =
-            paste0("Would you like to remove the data with inconsistent",
-            " time intervals? (Y/n)  ")
-          )
-        if (!n %in% c("Y", "n")) {
-          chosen()
-        }
+        n <- readline(prompt = paste0("Would you like to remove the data with",
+          " inconsistent time intervals? (Y/n)  ", collapse = ""
+        ))
+        if (!n %in% c("Y", "n")) chosen()
         if (n == "Y") {
           new_dta <- dta_in[ri_cks, ]
           new_dt <- dtt[ri_cks]
@@ -125,7 +126,9 @@ record_interval_eval <- function(
     } else {
       dta <- dta_in
       dt <- dt
-      ri_cks <- rep_len(TRUE, length.out = nrow(dta_in))
+      ri_cks <- rep_len(
+        TRUE, length.out = if (is.null(nrow(dta_in))) 0 else nrow(dta_in)
+      )
     }
     if (record_interval_type == "event_based") {
       record_interval_chr <- "discnt"
@@ -133,9 +136,9 @@ record_interval_eval <- function(
     # make character representation of diff time object
     if (!record_interval %in% c("discnt")) {
       ri <- paste0(as.character(record_interval), " ",
-        attr(record_interval, "units"))
-      record_interval_chr <- ipayipi::sts_interval_name(
-        ri)[["sts_intv"]]
+        attr(record_interval, "units")
+      )
+      record_interval_chr <- ipayipi::sts_interval_name(ri)[["sts_intv"]]
       record_interval_chr <- gsub(" ", "_", record_interval_chr)
     }
     ri_eval <- list(
@@ -144,7 +147,8 @@ record_interval_eval <- function(
       record_interval_type = record_interval_type,
       record_interval = record_interval_chr,
       record_interval_difftime = record_interval,
-      new_data = dta)
+      new_data = dta
+    )
   }
   return(ri_eval)
 }

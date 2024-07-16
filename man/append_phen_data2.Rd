@@ -2,7 +2,7 @@
 % Please edit documentation in R/z_sub_append_phen_data2.r
 \name{append_phen_data2}
 \alias{append_phen_data2}
-\title{Appends data tables by phenomena}
+\title{Appends data table phenomena by phenomena}
 \usage{
 append_phen_data2(
   pipe_house = NULL,
@@ -21,6 +21,8 @@ append_phen_data2(
 )
 }
 \arguments{
+\item{pipe_house}{List of pipeline directories. \strong{See} \code{ipayipi::ipip_house()} \strong{for details}.}
+
 \item{station_file}{Path and filename of the station file or station file object.}
 
 \item{sf_phen_ds}{Optional argument. Phenomena summary from the station file (developed by the data pipeline).}
@@ -29,23 +31,19 @@ append_phen_data2(
 
 \item{new_phen_ds}{Phenomena summary for the new data.}
 
-\item{phen_id}{Set this to TRUE for generating updated station file phenomena data summaries. When set to FALSE processing to produce this data summary will not be executed.}
+\item{phen_id}{Set this to TRUE for generating updated station file phenomena data summaries. When set to FALSE, a new phenomena data summary will not be executed. Set to FALSE if no phenomena data summaries are available.}
 
-\item{phen_dt}{Phenomena table of from both the station and new data files
-combined. These are combined and phids standarised in
-ipayipi::station_append().}
+\item{phen_dt}{Phenomena table of from both the station and new data files combined. These are combined and phids standarised in ipayipi::station_append().}
 
-\item{overwrite_sf}{If \code{TRUE} then original data is disgarded
-in favour of new data. If TRUE both data sets will be evaluated and where
-there are NA values, a replacement, if available, will be used to replace
-the NA value. Defaults to FALSE.}
+\item{overwrite_sf}{If \code{TRUE} then original data is disgarded in favour of new data. If TRUE both data sets will be evaluated and where there are NA values, a replacement, if available, will be used to replace the NA value. Defaults to FALSE.}
 
 \item{tn}{The name of the phenomena data tables.}
 
-\item{ri}{The record interval associated with the data sets. As a
-standardised string.}
+\item{ri}{The record interval associated with the data sets. String standardised using \code{ipayipi::sts_interval_name()}.}
 
 \item{rit}{Record interval type. One of the following options for time-series data: 'continuous', 'event_based', or 'mixed'.}
+
+\item{cores}{Number of CPU's to use for processing in parallel. Only applies when working on Linux systems.}
 }
 \value{
 A phenomena table that contains the start and end dates of each
@@ -53,11 +51,7 @@ phenomena and the respective data source identification numbers of the
 data. Also, the appended data.
 }
 \description{
-This function is for internal use. The function is designed to
-append phenomena data and associated phenomena standards efficiently, but
-retaining metadata records for each phenomena. Moreover, the function
-evaluates missing data and compares new and older data records so avoid
-loosing data.
+This function is for internal use. The function is designed to append phenomena data and associated phenomena standards efficiently, but retaining phenomena associated metadata records. Moreover, the function evaluates missing data and compares new and older data records so avoid   loosing data.
 }
 \details{
 This function is an internal function called by others in the

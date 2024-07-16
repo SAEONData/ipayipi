@@ -1,7 +1,7 @@
 #' @title Standardises ipayipi header information
 #' @description Uses the nomenclature table, to standardise the record-interval string, start and end date-times in the file header, and the file name is copied from the standardised station name, that is, the 'standardised title'. The standardised station file header nomenclature is retained in an ipayipi station file 'data_summary' table.
 #' @param pipe_house List of pipeline directories. __See__
-#'  `ipayipi::ipip_init()` __for details__.
+#'  `ipayipi::ipip_house()` __for details__.
 #' @param prompt Should the function use an interactive file selection function
 #'  otherwise all files are returned. TRUE or FALSE. Defaults to FALSE.
 #' @param recurr Should the function search recursively into sub directories for hobo rainfall csv export files? TRUE or FALSE.
@@ -32,29 +32,33 @@ header_sts <- function(
   cores = getOption("mc.cores", 2L),
   ...
 ) {
-  "uz_station" <- "logger_type" <- "record_interval_type" <-
-    "record_interval" <- "uz_table_name" <- "old_fn" <-
+  ".SD" <- ":=" <- NULL
+  "uz_station" <- "logger_type" <- "uz_table_name" <- "old_fn" <-
     "uz_record_interval_type" <- "uz_record_interval" <- NULL
   # get list of data to be imported
   slist <- ipayipi::dta_list(input_dir = pipe_house$wait_room, file_ext =
-    file_ext_in, prompt = prompt, recurr = recurr, unwanted = unwanted,
-    wanted = wanted)
-  cr_msg <- padr(core_message =
-    paste0(" Standardising ", length(slist), " ipayipi header info ",
-      collapes = ""), wdth = 80, pad_char = "=",
-      pad_extras = c("|", "", "", "|"), force_extras = FALSE, justf = c(0, 0))
-  msg(cr_msg, verbose)
+      file_ext_in, prompt = prompt, recurr = recurr, unwanted = unwanted,
+    wanted = wanted
+  )
+  cr_msg <- padr(core_message = paste0(" Standardising ", length(slist),
+      " ipayipi header info ", collapes = ""
+    ), wdth = 80, pad_char = "=", pad_extras = c("|", "", "", "|"),
+    force_extras = FALSE, justf = c(0, 0)
+  )
+  ipayipi::msg(cr_msg, verbose)
   nomtab <- ipayipi::nomenclature_chk(pipe_house = pipe_house,
     check_nomenclature = TRUE, csv_out = TRUE, file_ext = file_ext_in,
-    cores = cores)
+    cores = cores
+  )
   if (!is.na(nomtab$output_csv_name)) message("Update nomenclature")
   nomtab <- nomtab$update_nomtab
 
   file_name_dt <- parallel::mclapply(seq_along(slist), function(i) {
     cr_msg <- padr(core_message = paste0(" +> ", slist[i], collapes = ""),
       wdth = 80, pad_char = " ", pad_extras = c("|", "", "", "|"),
-      force_extras = FALSE, justf = c(1, 1))
-    msg(cr_msg, verbose)
+      force_extras = FALSE, justf = c(1, 1)
+    )
+    ipayipi::msg(cr_msg, verbose)
     m <- readRDS(file.path(pipe_house$wait_room, slist[i]))
 
     # update the start and end date_times
@@ -62,16 +66,21 @@ header_sts <- function(
     m$data_summary$end_dttm <- max(m$raw_data$date_time)
 
     # update header nomenclature
+    m$data_summary$uz_station <- gsub(" ^*|* $", "", m$data_summary$uz_station)
     nt <- nomtab[
       uz_station == m$data_summary$uz_station &
-      logger_type == m$data_summary$logger_type &
-      uz_record_interval_type == m$data_summary$uz_record_interval_type &
-      uz_record_interval == m$data_summary$uz_record_interval &
-      uz_table_name == m$data_summary$uz_table_name
+        logger_type == m$data_summary$logger_type &
+        uz_record_interval_type == m$data_summary$uz_record_interval_type &
+        uz_record_interval == m$data_summary$uz_record_interval &
+        uz_table_name == m$data_summary$uz_table_name
     ]
     # flag na_sub -- those that need further nomtab updates
-    na_sub <- anyNA.data.frame(nt[, c("stnd_title", "location", "station",
-      "record_interval_type", "record_interval", "table_name"), with = FALSE])
+    na_sub <- anyNA.data.frame(
+      nt[, c("stnd_title", "location", "station", "record_interval_type",
+          "record_interval", "table_name"
+        ), with = FALSE
+      ]
+    )
     if (na_sub | nrow(nt) == 0 | nt$table_name == "raw_NA") {
       msg <- paste0("Update header nomenclature for: ", slist[i], collapse = "")
       message(msg)
@@ -84,6 +93,38 @@ header_sts <- function(
       m$data_summary$record_interval <- nt$record_interval[1]
       m$data_summary$table_name <- nt$table_name[1]
       m$phen_data_summary$table_name <- nt$table_name[1]
+      # ensure continuous date-time sequence of continuous data
+      m$raw_data <- ipayipi::dttm_extend_long(
+        data_sets = list(m$raw_data), ri = nt$record_interval[1],
+        intra_check = TRUE, cores = cores
+      )
+      # adjust inc exc timeline if necessary
+      if (nt$record_interval_type[1] %in% "continuous" &&
+          m$data_summary$dttm_ie_chng
+      ) {
+        tbls_ie <- c("data_summary", "phen_data_summary", "raw_data",
+          "logg_interfere"
+        )
+        dttm_cols <- c("date_time", "start_dttm", "end_dttm")
+        # round up or down dates
+        if (!m$data_summary$dttm_inc_exc) {
+          # minus ti
+          lapply(seq_along(tbls_ie), function(j) {
+            sdc <- names(m[[tbls_ie[j]]])[names(m[[tbls_ie[j]]]) %in% dttm_cols]
+            m[[tbls_ie[j]]][, (sdc) := lapply(.SD, function(x) {
+              x - lubridate::as.duration(nt$record_interval[1])
+            }), .SDcols = sdc]
+          })
+        } else {
+          # add ti
+          lapply(seq_along(tbls_ie), function(j) {
+            sdc <- names(m[[tbls_ie[j]]])[names(m[[tbls_ie[j]]]) %in% dttm_cols]
+            m[[tbls_ie[j]]][, (sdc) := lapply(.SD, function(x) {
+              x + lubridate::as.duration(nt$record_interval[1])
+            }), .SDcols = sdc]
+          })
+        }
+      }
       z <- list(update = FALSE)
     }
     # save m
@@ -99,7 +140,7 @@ header_sts <- function(
     }
     file_name <- paste0(
       m$data_summary$stnd_title[1], "_",
-        gsub(" ", "", intv_name), "_",
+      gsub(" ", "", intv_name), "_",
       as.character(format(st_dt, "%Y")),
       as.character(format(st_dt, "%m")),
       as.character(format(st_dt, "%d")), "-",
@@ -110,40 +151,49 @@ header_sts <- function(
     ri <- m$data_summary$record_interval
     z <- c(z, list(fn = file_name, old_fn = slist[[i]], ri = ri, rep = 1))
     return(z)
-  }, mc.cores = cores)
+  }, mc.cores = cores, mc.cleanup = TRUE)
   file_name_dt <- data.table::rbindlist(file_name_dt)
 
-  # check for duplicates and make unique integers
-  split_file_name_dt <- split(file_name_dt, f = factor(file_name_dt$fn))
-  split_file_name_dt <- lapply(split_file_name_dt, function(x) {
-    x$rep <- seq_len(nrow(x))
-    return(x)
-  })
-  split_file_name_dt <- data.table::rbindlist(split_file_name_dt)
-  split_file_name_dt <- split_file_name_dt[order(old_fn)]
+  if (nrow(file_name_dt) > 0) {
+    # check for duplicates and make unique integers
+    split_file_name_dt <- split(file_name_dt, f = factor(file_name_dt$fn))
+    split_file_name_dt <- lapply(split_file_name_dt, function(x) {
+      x$rep <- seq_len(nrow(x))
+      return(x)
+    })
+    split_file_name_dt <- data.table::rbindlist(split_file_name_dt)
+    split_file_name_dt <- split_file_name_dt[order(old_fn)]
 
-  # rename saved files if they don't still need nomenclature updates
-  no_update <- split_file_name_dt[update == TRUE]
-  tbl_update <- split_file_name_dt[update == FALSE]
-  parallel::mclapply(seq_len(nrow(tbl_update)), function(i) {
-    fn <- file.path(pipe_house$wait_room, paste0(tbl_update$fn[i], "__",
-      tbl_update$rep[i], file_ext_out))
-    old_fn <- file.path(pipe_house$wait_room, paste0(tbl_update$old_fn[i]))
-    if (file.exists(old_fn)) {
-      s <- file.rename(from = old_fn, to = fn)
-    } else {
-      s <- FALSE
-    }
-    invisible(s)
-  }, mc.cores = cores)
-  data.table::setnames(tbl_update, old = c("fn", "old_fn", "ri"),
-    new = c("file_name", "old_file_name", "record_interval"))
-  data.table::setnames(no_update, old = c("fn", "old_fn", "ri"),
-    new = c("file_name", "old_file_name", "record_interval"))
-  cr_msg <- padr(core_message = paste0(
-    "  headers standarised  ", collapes = ""),
-    wdth = 80, pad_char = "=", pad_extras = c("|", "", "", "|"),
-    force_extras = FALSE, justf = c(0, 0))
-  msg(cr_msg, verbose)
+    # rename saved files if they don't still need nomenclature updates
+    no_update <- split_file_name_dt[update == TRUE]
+    tbl_update <- split_file_name_dt[update == FALSE]
+    parallel::mclapply(seq_len(nrow(tbl_update)), function(i) {
+      fn <- file.path(pipe_house$wait_room, paste0(tbl_update$fn[i], "__",
+        tbl_update$rep[i], file_ext_out
+      ))
+      old_fn <- file.path(pipe_house$wait_room, paste0(tbl_update$old_fn[i]))
+      if (file.exists(old_fn)) {
+        s <- file.rename(from = old_fn, to = fn)
+      } else {
+        s <- FALSE
+      }
+      invisible(s)
+    }, mc.cores = cores, mc.cleanup = TRUE)
+    data.table::setnames(tbl_update, old = c("fn", "old_fn", "ri"),
+      new = c("file_name", "old_file_name", "record_interval")
+    )
+    data.table::setnames(no_update, old = c("fn", "old_fn", "ri"),
+      new = c("file_name", "old_file_name", "record_interval")
+    )
+  } else {
+    tbl_update <- NULL
+    no_update <- NULL
+  }
+  cr_msg <- padr(core_message =
+      paste0("  headers standarised  ", collapes = ""), wdth = 80,
+    pad_char = "=", pad_extras = c("|", "", "", "|"), force_extras = FALSE,
+    justf = c(0, 0)
+  )
+  ipayipi::msg(cr_msg, verbose)
   invisible(list(updated_files = tbl_update, no_updates = no_update))
 }

@@ -8,7 +8,7 @@ read_nomtab_csv(pipe_house = NULL, file = NULL, ...)
 }
 \arguments{
 \item{pipe_house}{List of pipeline directories. \strong{See}
-\code{ipayipi::ipip_init()} \strong{for details}.}
+\code{ipayipi::ipip_house()} \strong{for details}.}
 
 \item{file}{name of the csv file to be read as the nomenclature table.}
 }

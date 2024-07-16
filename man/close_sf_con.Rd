@@ -13,7 +13,7 @@ close_sf_con(
 )
 }
 \arguments{
-\item{pipe_house}{List of pipeline directories. \strong{See} \code{ipayipi::ipip_init()} \strong{for details}.}
+\item{pipe_house}{List of pipeline directories. \strong{See} \code{ipayipi::ipip_house()} \strong{for details}.}
 
 \item{station_file}{Path to 'ipip' station file.}
 }

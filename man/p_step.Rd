@@ -2,7 +2,7 @@
 % Please edit documentation in R/z_sub_dt_process_p_step.r
 \name{p_step}
 \alias{p_step}
-\title{Unpack data processing step}
+\title{Unpack processing step}
 \usage{
 p_step(
   dt_n = 1,
@@ -20,37 +20,25 @@ p_step(
 \arguments{
 \item{dt_n}{The numeric (integer) order of the processing stage.}
 
-\item{dtp_n}{A processing stage ('dt_n') contains multiple steps. A stage
-generally only outputs one processed data table with the specified
-\code{time_interval} given at the harvesting stage.}
+\item{dtp_n}{A processing stage ('dt_n') contains multiple steps. A stage generally only outputs one processed data table with the specified \code{time_interval} given at the harvesting stage.}
 
-\item{f}{One of the following functions given as a string: "dt_harvest",
-"dt_calc_chain", "dt_agg", and "dt_join".
+\item{f}{One of the following functions given as a string: "dt_harvest", "dt_calc_chain", "dt_agg", and "dt_join".
 \itemize{
-\item "dt_harvest": function used to harvest data from a station or other
-source.
-\item "dt_calc_chain": uses \code{data.table} chaining to perform calculations,
-filtering/subsetting, and generate new variables.
-\item "dt_agg": used to aggregate data by a specified/default function by
-a desired \code{time_interval}.
-\item "dt_join": merges two datasets via overlap, left, right, inner and
-outer joins. \emph{Not yet implemented}.
+\item "dt_harvest": function used to harvest data from a station or other source.
+\item "dt_calc_chain": uses \code{data.table} chaining to perform calculations, filtering/subsetting, and generate new variables.
+\item "dt_agg": used to aggregate data by a specified/default function by a desired \code{time_interval}.
+\item "dt_join": merges two datasets via overlap, left, right, inner and outer joins. \emph{Not yet implemented}.
 }}
 
 \item{input_dt}{The name/keyword of the input data table (character string).
-If not specified at the harvesting stage, "raw" data imported into a
-station file will be harvested.}
+If not specified at the harvesting stage, "raw" data imported into a station file will be harvested.}
 
-\item{output_dt}{The name of the output data table (character string) ---
-the final table is appended to a station file object.}
+\item{output_dt}{The name of the output data table (character string) --- the final table is appended to a station file object.}
 
-\item{time_interval}{Only has to be specified in the harvesting step. Only
-one time interval per stage. If the time interval is left as the default
-\code{NA} then \code{time_interval} becomes discontinuous ("discnt").}
+\item{time_interval}{Only has to be specified in the harvesting step. Only one time interval per stage. If the time interval is left as the default \code{NA} then \code{time_interval} becomes discontinuous ("discnt").}
 }
 \description{
-Internal function used to unpack a data pipeline processing
-step. Essentially converts parameters into a list.
+Prepares formatting of a single data processing step.
 }
 \details{
 Note that the \code{f_params} argument is parsed to text in this

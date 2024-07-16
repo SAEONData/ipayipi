@@ -1,50 +1,54 @@
 #' @title Writes a station file to disk
 #' @description Takes input station values and tables and saves them to disk.
-#' @param pipe_house Required. List of pipeline directories. __See__ `ipayipi::ipip_init()` __for details__.
+#' @param pipe_house Required. List of pipeline directories. __See__ `ipayipi::ipip_house()` __for details__.
 #' @param sf Station file object.
 #' @param station_file Path to station file. Required.
-#' @param overwrite If `TRUE` then old data is overwritten. _Vice versa_ if `FALSE`.
-#' @param append If `TRUE` then new values/tables will be written to an existing station file. If `FALSE` a new station will be created. When `append` and overwrite are `TRUE` then station tables/values will be overwritten by tables/values with similar names.
-#' @param keep_open Maintains the station connection, i.e., the hidden station file is not removed (deleted).
+#' @param overwrite If `TRUE`: old data overwritten. If `FALSE`: old data not overwritten.
+#' @param append Logical:
+#'  - `TRUE`: new values/tables will be written to an existing station file.
+#'  - `FALSE`: Old station file deleted, and new station created.
+#' NB! If `append` and `overwrite` == `TRUE`: Station tables/values will be overwritten by tables/values with similar names.
+#' @param keep_open Maintains the station connection, i.e., the 'hidden' station file is not removed (deleted).
 #' @keywords write station; edit station; add to station;
 #' @export
 #' @author Paul J Gordijn
 #' @return File path of station file.
-#' @details In order to speed processing of data 'ipayipi' decompresses a station file list of tables/values into a 'hidden' temporary folder in the same working directory as a particular station file. This function assumes that if a temporary folder or station file is open, that is the most up-to-date station file information. This has implications for when saving whole station files or appending data to station files. A number of scenarios may arise when writing a station file when different items are available or privided.
-#' 
+#' @details
+#'
 #' #' __Scenario 1__: sf R object
 #' 'sf R object' written as a station file on disk ('sf on disk').
-#' 
+#'
 #' __Scenario 2__: 'hidden' sf on disk + sf on disk + sf R object
-#' __NB!__ In this scenario the station file on disk is _always_ assumed to be outdated/older than the 'hidden' station file on disk. Therefore, only the station file object, and 'hidden' station file are *merged under this scenario. The merged file is written as a station file on disk ('sf on disk').
-#' 
+#' __NB!__ In this scenario the station file on disk is _always_ assumed to be outdated/older than the 'hidden' station file on disk. Therefore, only the station file object, and 'hidden' station file are *merged. The merged file is written as a station file on disk ('sf on disk').
+#'
 #' __Scenario 3__: 'hidden' sf on disk + sf R object
 #' Merges the 'sf on disk' with the provided 'sf R object'. The merged file is written as a station file on disk ('sf on disk').
-#' 
+#'
 #'  __Scenario 4__: 'hidden' sf on disk
 #' Writes the 'hidden' station file to disk.
 #'
 #' Arguments `append` and `overwrite` control how different station files (i.e., hidden, R environment, or on disk) are merged.
-#' 
+#'
 write_station <- function(
-  pipe_house = NULL,
-  sf = NULL,
-  station_file = NULL,
-  overwrite = FALSE,
-  append = TRUE,
-  keep_open = FALSE,
-  ...) {
+    pipe_house = NULL,
+    sf = NULL,
+    station_file = NULL,
+    overwrite = FALSE,
+    append = TRUE,
+    keep_open = FALSE,
+    con_f = "open_sf_con2",
+    verbose = FALSE,
+    xtra_v = FALSE,
+    ...) {
+  "%ilike%" <- NULL
 
+  ipayipi::msg(paste0("Writing station: ", station_file), xtra_v)
   if (is.null(station_file) || is.null(pipe_house)) {
     return("No station file path (`pipe_house`) or filename ('station_file')!")
   }
   station_file <- basename(station_file)
   station_file <- file.path(pipe_house$ipip_room, station_file)
   sf_tmp <- file.path(tempdir(), "sf", basename(station_file))
-  # check sf
-  # if (!is.null(sf) && !is.list(sf)) {
-  #   return("Error: \'sf\' station file must be a list object!")
-  # }
 
   ex <- file.exists(station_file)
   extmp <- file.exists(sf_tmp)
@@ -93,23 +97,43 @@ write_station <- function(
 
   if (all(extmp, is.null(sf))) {
     # write temp station to station file
-    sf_names <- list.files(path = sf_tmp, full.names = TRUE)
-    sf <- lapply(seq_along(sf_names), function(i) {
-      sfi <- readRDS(sf_names[i])
-      return(sfi)
+    sfn <- list.files(path = sf_tmp, full.names = TRUE, recursive = TRUE)
+    sfn <- sfn[!basename(sfn) %ilike% "^i_"]
+    sfnn <- dirname(sfn[basename(sfn) %ilike% "aindxr"])
+    names(sfnn) <- basename(sfnn)
+    sfn <- sfn[!basename(sfn) %ilike% "aindxr"]
+    names(sfn) <- basename(sfn)
+    sfn <- sfn[order(sfn)]
+    # need option here to read chunked data
+    # filter out index files and aindxr from file
+    # write temp station to station file paths
+    sfd <- lapply(seq_along(sfnn), function(i) {
+      fs <- list.files(file.path(sfnn[i]), full.names = TRUE,
+        recursive = TRUE
+      )
+      fs <- fs[!fs %ilike% "*aindxr$"]
+      dta <- data.table::rbindlist(lapply(fs, readRDS),
+        fill = TRUE, use.names = TRUE
+      )
+      return(dta)
     })
-    names(sf) <- basename(sf_names)
+    names(sfd) <- basename(sfnn)
+    sfo <- lapply(seq_along(sfn), function(i) readRDS(sfn[i]))
+    names(sfo) <- basename(sfn)
+    sf <- c(sfd, sfo)
   }
 
   # save station file
-  if (all(!is.null(sf))) {
+  if (!is.null(sf)) {
     sf <- sf[order(names(sf))]
     saveRDS(sf, file = station_file)
   }
   if (all(!keep_open, extmp)) unlink(sf_tmp, recursive = TRUE)
   if (all(keep_open, !extmp)) {
-    sfc <- ipayipi::open_sf_con(pipe_house = pipe_house, station_file =
-      station_file)
+    args <- list(pipe_house = pipe_house, station_file = station_file,
+      verbose = verbose, xtra_v = xtra_v
+    )
+    sfc <- do.call(con_f, args)
   } else {
     sfc <- NULL
   }

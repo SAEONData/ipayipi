@@ -170,7 +170,7 @@ calc_param_eval <- function(
         phens_dt$c_var_type, phens_dt$var_type)
       phens_dt <- phens_dt[, phens_dt_n, with = FALSE]
     }
-
+    if (!"phen_name" %in% names(phens_dt)) phens_dt <- NULL
     dt_parse <- list(f_params = list(calc_params = f_params),
       phens_dt = phens_dt)
   }

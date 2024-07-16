@@ -81,6 +81,8 @@
 #' information is provided for harvesting of logger file header information.
 #' __See `ipayipi::imbibe_raw_logger_dt()` documentation for a describtion of
 #' a `data_setup`.
+#' This data_setup contains two varieties of hobo pendant logger outputs, the
+#' first option contains an id column, whilst the second does not.
 #' @source Internal
 "hobo_rain"
 
@@ -95,4 +97,4 @@
 #' arguments are `NULL` this table assists with reading in data in the
 #' correct format.
 #' @source Internal
-"hobo_rain"
+"file_read_meta"

@@ -3,7 +3,7 @@
 #'  'wait_room'. Duplicate file names will have unique consequtive integers
 #'  added as a suffix.
 #' @param pipe_house List of pipeline directories. __See__
-#'  `ipayipi::ipip_init()` __for details__.
+#'  `ipayipi::ipip_house()` __for details__.
 #' @param prompt Should the function use an interactive file selection function
 #'  otherwise all files are returned. `TRUE` or `FALSE`.
 #' @param recurr Should the function search recursively into sub directories
@@ -37,21 +37,21 @@ logger_data_import_batch <- function(
 ) {
 
   # get list of data to be imported
-  unwanted <- paste(".ipr|.ipi|.iph|.xls|.rps|.rns|.ods|.doc", unwanted,
-    sep = "|")
+  unwanted <- paste(".ipr|.ipi|.iph|.xls|.rps|.rns|.ods|.doc|wait_room",
+    unwanted, sep = "|"
+  )
   unwanted <- gsub(pattern = "\\|$", replacement = "", x = unwanted)
-  slist <- ipayipi::dta_list(input_dir = pipe_house$source_dir,
+  slist <- ipayipi::dta_list(input_dir = pipe_house$source_room,
     file_ext = file_ext, prompt = prompt, recurr = recurr,
-    unwanted = unwanted, wanted = wanted)
-  cr_msg <- padr(core_message =
-    paste0(" Introducing ", length(slist),
-      " data files into the pipeline waiting room", collapes = ""),
-    wdth = 80, pad_char = "=", pad_extras = c("|", "", "", "|"),
-    force_extras = FALSE, justf = c(0, 0))
+    unwanted = unwanted, wanted = wanted
+  )
+  cr_msg <- padr(core_message = paste0(" Introducing ", length(slist),
+      " data files into the pipeline waiting room", collapes = ""
+    ), wdth = 80, pad_char = "=", pad_extras = c("|", "", "", "|"),
+    force_extras = FALSE, justf = c(0, 0)
+  )
   ipayipi::msg(cr_msg, verbose)
-  slist_df <- data.table::data.table(
-    name = slist,
-    basename = basename(slist),
+  slist_df <- data.table::data.table(name = slist, basename = basename(slist),
     rep = rep(NA_integer_, length(slist))
   )
   slist_dfs <- split(slist_df, f = factor(slist_df$basename))
@@ -63,27 +63,29 @@ logger_data_import_batch <- function(
   parallel::mclapply(seq_len(nrow(slist_dfs)), function(x) {
     if (is.null(file_ext)) {
       file_ext <- tools::file_ext(slist_dfs$name[x])
-      file_ext <- paste0(
-        ".", sub(pattern = "\\.", replacement = "", file_ext))
+      file_ext <- paste0(".", sub(pattern = "\\.", replacement = "", file_ext))
     }
     file.copy(
-      from = file.path(pipe_house$source_dir, slist_dfs$name[x]),
+      from = file.path(pipe_house$source_room, slist_dfs$name[x]),
       to = file.path(pipe_house$wait_room,
         paste0(gsub(pattern = file_ext, replacement = "",
-          x = slist_dfs$basename[x], ignore.case = TRUE),
-          "__", slist_dfs$rep[x], file_ext)
+            x = slist_dfs$basename[x], ignore.case = TRUE
+          ), "__", slist_dfs$rep[x], file_ext
+        )
       ), overwrite = TRUE
     )
     cr_msg <- padr(core_message =
-      paste0(basename(slist[x]), " done ...", collapes = ""),
+        paste0(basename(slist[x]), " done ...", collapes = ""),
       wdth = 80, pad_char = " ", pad_extras = c("|", "", "", "|"),
-      force_extras = FALSE, justf = c(-1, 2))
+      force_extras = FALSE, justf = c(-1, 2)
+    )
     ipayipi::msg(cr_msg, verbose)
-  }, mc.cores = cores)
+  }, mc.cores = cores, mc.cleanup = TRUE)
 
   cr_msg <- padr(core_message =
-    paste0("  import complete  ", collapes = ""),
+      paste0("  import complete  ", collapes = ""),
     wdth = 80, pad_char = "=", pad_extras = c("|", "", "", "|"),
-    force_extras = FALSE, justf = c(0, 0))
+    force_extras = FALSE, justf = c(0, 0)
+  )
   return(ipayipi::msg(cr_msg, verbose))
 }

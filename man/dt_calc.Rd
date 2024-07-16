@@ -10,24 +10,28 @@ dt_calc(
   f_params = NULL,
   station_file_ext = ".ipip",
   ppsij = NULL,
+  verbose = FALSE,
+  xtra_v = FALSE,
+  cores = getOption("mc.cores", 2L),
   ...
 )
 }
 \arguments{
+\item{sfc}{List of file paths to the temporary station file directory. Generated using \code{ipayipi::open_sf_con2()}.}
+
 \item{station_file}{Name of the station being processed.}
 
 \item{f_params}{Function parameters evaluated by \code{ipayipi::calc_param_eval()}. These are parsed to \code{dt_calc()} from \code{dt_process()}.}
 
-\item{dta_in}{A list of data to be processed.
-param input_dt
-param output_dt}
+\item{station_file_ext}{The station file extension (period included '.'). Defaults to '.ipip'.}
 
-\item{f_summary}{A summary table of function parameters. This
-summary table is stored in the station file object. If there
-is a summary table for the function, differences between the
-\code{f_params} and table are checked and the 'f_summary' table
-is updated---triggering a re-calculation of the whole time series instead
-of for a slice of the series.}
+\item{ppsij}{Data processing \code{pipe_seq} table from which function parameters and data are extracted/evaluated. This is parsed to this function automatically by \code{ipayipi::dt_process()}.}
+
+\item{verbose}{Logical. Whether or not to report messages and progress.}
+
+\item{xtra_v}{Logical. Whether or not to report xtra messages, progess, plus print data tables.}
+
+\item{cores}{Number of CPU's to use for processing in parallel. Only applies when working on Linux.}
 }
 \value{
 A list containing the processed data sets 'dts_dt'.

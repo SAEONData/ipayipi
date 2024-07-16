@@ -16,7 +16,7 @@ nomenclature_chk(
 }
 \arguments{
 \item{pipe_house}{List of pipeline directories. \strong{See}
-\code{ipayipi::ipip_init()} \strong{for details}.}
+\code{ipayipi::ipip_house()} \strong{for details}.}
 
 \item{check_nomenclature}{Should the file naming be checked. This helps ensure that files are named consistently and that data from different stations are not appended erraneously.}
 

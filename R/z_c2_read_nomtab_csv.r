@@ -2,7 +2,7 @@
 #' @description Reads a user edited nomenclature file and saves as a usable
 #'  nomtab (nomenclature table) file in the 'waiting room' folder.
 #' @param pipe_house List of pipeline directories. __See__
-#'  `ipayipi::ipip_init()` __for details__.
+#'  `ipayipi::ipip_house()` __for details__.
 #' @param file name of the csv file to be read as the nomenclature table.
 #' @details
 #'  - Searches for the most recently edited nomenclature table csv

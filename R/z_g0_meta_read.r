@@ -67,7 +67,8 @@ meta_read <- function(
     "Ymd HMOS", "Ymd IMOSp",
     "ymd HMOS", "ymd IMOSp",
     "mdY HMOS", "mdy IMOSp",
-    "dmY HMOS", "dmy IMOSp"),
+    "dmY HMOS", "dmy IMOSp"
+  ),
   dt_tz = "Africa/Johannesburg",
   d_format = "ymd",
   T_format = "hms",
@@ -79,7 +80,7 @@ meta_read <- function(
 ) {
   # avoid no visible bind for data.table variables
   "%like%" <- ":=" <- ".SD" <- "event_thresh_s" <- "date_time" <-
-    "start_dttm" <- NULL
+    "start_dttm" <- "end_dttm" <- NULL
   # if we need to read in object
   if (is.character(meta_file)) {
     meta_file <- file.path(input_dir, meta_file)
@@ -88,11 +89,13 @@ meta_read <- function(
     }
     edb <- attempt::attempt(data.table::fread(file = meta_file, header = TRUE,
       check.names = FALSE, blank.lines.skip = TRUE, sep = col_dlm,
-      id_col = FALSE, strip.white = TRUE, fill = TRUE, ...))
+      id_col = FALSE, strip.white = TRUE, fill = TRUE, ...
+    ))
     # if there was an error then we try and read the file using base r
     if (attempt::is_try_error(edb)) {
       edb <- attempt::attempt(data.table::as.data.table(read.csv(
-        meta_file, header = TRUE, colClasses = "character")))
+        meta_file, header = TRUE, colClasses = "character"
+      )))
       if (attempt::is_try_error(edb)) {
         stop("Failed reading file using base R.")
       }
@@ -119,8 +122,10 @@ meta_read <- function(
     })
     rfm <- c("l", "i", "d", "n", "T", "c", "f")
     if (!any(z %in% rfm)) {
-      m <- paste0("Unrecognised col_types: ", paste(unlist(
-        unlist(z[!z %in% rfm]), "!"), collapse = ", "), collapse = "")
+      m <- paste0("Unrecognised col_types: ", paste(
+        unlist(unlist(z[!z %in% rfm]), "!"), collapse = ", "
+      ), collapse = ""
+      )
       stop(m)
     }
     names(z) <- names(edb)
@@ -147,14 +152,15 @@ meta_read <- function(
     vars <- names(z)[z %like% "T"]
     if (length(vars)) {
       edb[, (vars) := lapply(.SD, function(x) {
-          lubridate::parse_date_time2(x = x, orders = dt_format, tz = dt_tz)
-        }), .SDcols = vars]
+        lubridate::parse_date_time2(x = x, orders = dt_format, tz = dt_tz)
+      }), .SDcols = vars]
     }
   }
 
   # standard event threshold information
-  if (all(c("date_time", "start_dttm", "end_dttm", "event_thresh_s")
-    %in% names(edb))) {
+  if (all(
+    c("date_time", "start_dttm", "end_dttm", "event_thresh_s") %in% names(edb)
+  )) {
     edb[is.na(event_thresh_s), "event_thresh_s"] <- event_thresh
     edb[!is.na(date_time) & is.na(start_dttm), "start_dttm"] <-
       edb[!is.na(date_time) & is.na(start_dttm), ]$date_time - event_thresh
