@@ -32,7 +32,7 @@ globalVariables(c(": ="),
         "conduct_mS_per_cm",
         "xle_FileInfo", "xle_LoggerInfo", "xle_LoggerHeader",
         "date_time", "%ilike%"))
-RoxygenNote: 7.2.3
+RoxygenNote: 7.3.1
 Roxygen: list(markdown = TRUE)
 LazyData: true
 Encoding: UTF-8

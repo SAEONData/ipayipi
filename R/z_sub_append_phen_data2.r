@@ -1,25 +1,17 @@
-#' @title Appends data tables by phenomena
-#' @description This function is for internal use. The function is designed to
-#'  append phenomena data and associated phenomena standards efficiently, but
-#'  retaining metadata records for each phenomena. Moreover, the function
-#'  evaluates missing data and compares new and older data records so avoid
-#'  loosing data.
+#' @title Appends data table phenomena by phenomena
+#' @description This function is for internal use. The function is designed to append phenomena data and associated phenomena standards efficiently, but retaining phenomena associated metadata records. Moreover, the function evaluates missing data and compares new and older data records so avoid   loosing data.
+#' @param pipe_house List of pipeline directories. __See__ `ipayipi::ipip_house()` __for details__.
 #' @param station_file Path and filename of the station file or station file object.
 #' @param sf_phen_ds Optional argument. Phenomena summary from the station file (developed by the data pipeline).
 #' @param ndt Data from the new-data file.
 #' @param new_phen_ds Phenomena summary for the new data.
-#' @param phen_id Set this to TRUE for generating updated station file phenomena data summaries. When set to FALSE processing to produce this data summary will not be executed.
-#' @param phen_dt Phenomena table of from both the station and new data files
-#'  combined. These are combined and phids standarised in
-#'  ipayipi::station_append().
-#' @param overwrite_sf If `TRUE` then original data is disgarded
-#'  in favour of new data. If TRUE both data sets will be evaluated and where
-#'  there are NA values, a replacement, if available, will be used to replace
-#'  the NA value. Defaults to FALSE.
+#' @param phen_id Set this to TRUE for generating updated station file phenomena data summaries. When set to FALSE, a new phenomena data summary will not be executed. Set to FALSE if no phenomena data summaries are available.
+#' @param phen_dt Phenomena table of from both the station and new data files combined. These are combined and phids standarised in ipayipi::station_append().
+#' @param overwrite_sf If `TRUE` then original data is disgarded in favour of new data. If TRUE both data sets will be evaluated and where there are NA values, a replacement, if available, will be used to replace the NA value. Defaults to FALSE.
 #' @param tn The name of the phenomena data tables.
-#' @param ri The record interval associated with the data sets. As a
-#'  standardised string.
+#' @param ri The record interval associated with the data sets. String standardised using `ipayipi::sts_interval_name()`.
 #' @param rit Record interval type. One of the following options for time-series data: 'continuous', 'event_based', or 'mixed'.
+#' @param cores  Number of CPU's to use for processing in parallel. Only applies when working on Linux systems.
 #' @keywords append phenomena data, overwrite data, join tables,
 #' @author Paul J Gordijn
 #' @return A phenomena table that contains the start and end dates of each
@@ -144,15 +136,14 @@ append_phen_data2 <- function(
   }
 
   # join data and ensure continuous time series
-  data_sets <- list(sfno1, sfno2, ndno1, ndno2)
-  data_sets <- lapply(data_sets, function(x) {
+  data_sets <- list(sfno1, sfno2, ndno1, ndno2, raw_dto)
+  data_sets <- data_sets[sapply(data_sets, function(x) !is.null(x))]
+  data_sets <- parallel::mclapply(data_sets, function(x) {
     data.table::setcolorder(x, c("id", "date_time",
       names(x)[!names(x) %in% c("id", "date_time")]))
-  })
-  dtsnd <- ipayipi::dttm_extend_long(data_sets = data_sets, ri = ri)
-  data_sets <- list(
-    data.table::rbindlist(data_sets, fill = TRUE), raw_dto, dtsnd)
-  app_dta <- data.table::rbindlist(data_sets, fill = TRUE)[order(date_time)]
+  }, mc.cores = cores, mc.cleanup = TRUE)
+  app_dta <- ipayipi::dttm_extend_long(data_sets = data_sets, ri = ri,
+    intra_check = TRUE)
   # message(paste0(min(app_dta$date_time), "--", max(app_dta$date_time)))
   # message(nrow(app_dta))
   return(list(app_dta = app_dta, phen_ds = phen_ds))

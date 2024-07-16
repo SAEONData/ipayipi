@@ -27,18 +27,23 @@ win_rows <- function(
   c_row = NULL,
   pos = "center",
   include_center = TRUE,
-  ...) {
-  if (pos %in% c(
-      c("center", "centre", "c"), c("lead", "l"), c("trail", "t"))) {
+  ...
+) {
+  if (pos %in% c(c("center", "centre", "c"), c("lead", "l"),
+      c("trail", "t")
+    )
+  ) {
     if (length(dta) <= rng_side) {
       message("Insufficient data for drift correction")
     }
-      if (include_center == TRUE) {
-        win_size <- 1 + 2 * rng_side
-      } else win_size <- 2 * rng_side
-      i <- rng_side
+    if (include_center == TRUE) {
+      win_size <- 1 + 2 * rng_side
+    } else {
+      win_size <- 2 * rng_side
+    }
+    i <- rng_side
     if (pos %in% c("center", "centre", "c")) {
-      while (i <= rng_side & i <= rng_max) {
+      while (i <= rng_side && i <= rng_max) {
         if ((c_row - rng_side) <= 1) ss <- 1
         if ((c_row - rng_side) > 1) ss <- c_row - rng_side
         if ((c_row + rng_side) >= length(dta)) se <- length(dta)
@@ -46,7 +51,9 @@ win_rows <- function(
         if (length(!is.na(dta[ss:se])) < win_size) {
           i <- i + 1
           rng_side <- rng_side + 1
-        } else i <- i + 1
+        } else {
+          i <- i + 1
+        }
       }
     }
     if (pos %in% c("lead", "l")) {
@@ -55,20 +62,24 @@ win_rows <- function(
         if ((c_row - rng_side) > 1) ss <- c_row - rng_side
         se <- c_row
         if (length(!is.na(dta[ss:se])) < win_size) {
-        i <- i + 1
-        rng_side <- rng_side + 1
-        }else i <- i + 1
+          i <- i + 1
+          rng_side <- rng_side + 1
+        } else {
+          i <- i + 1
+        }
       }
     }
     if (pos %in% c("trail", "t")) {
-      while (i <= rng_side & i <= rng_max) {
+      while (i <= rng_side && i <= rng_max) {
         if ((c_row + rng_side) >= length(dta)) se <- length(dta)
         if ((c_row + rng_side) < length(dta)) se <- c_row + rng_side
         ss <- c_row
         if (length(!is.na(dta[ss:se])) < win_size) {
           i <- i + 1
           rng_side <- rng_side + 1
-        } else i <- i + 1
+        } else {
+          i <- i + 1
+        }
       }
     }
     v <- c(ss:se)
@@ -78,6 +89,8 @@ win_rows <- function(
         v <- NULL
       }
     }
-  } else v <- NULL
+  } else {
+    v <- NULL
+  }
   return(v)
 }

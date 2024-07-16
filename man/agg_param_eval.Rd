@@ -9,34 +9,43 @@ agg_param_eval(
   full_eval = FALSE,
   f_params = NULL,
   ppsij = NULL,
-  agg_offset = c("0 secs", "0 secs"),
+  agg_offset = "0 secs",
   all_phens = TRUE,
-  ignore_nas = FALSE,
-  agg_input_tbl = NULL,
   agg_intervals = NULL,
   agg_dt_suffix = "_agg",
   agg_parameters = NULL,
   gaps = FALSE,
+  ignore_nas = FALSE,
   ...
 )
 }
 \arguments{
+\item{sfc}{List of file paths to the temporary station file directory. Generated using \code{ipayipi::open_sf_con()}.}
+
 \item{full_eval}{Logical indicating whether to perform a full evaluation or not. A partial evaluation only produces a string single string for a summary of the function's parameters. Defaults to \code{FALSE}.}
 
 \item{f_params}{For the partial evaluation multiple phenomena can be described using \code{ipayipi::agg_params()}. If left blank defaults will be used on all phenomena harvested.}
 
-\item{agg_offset}{Character vector of length two. Strings describe period of offset from the rounded time interval used to aggregate data. For example, if aggregating rainfall data from five minute to daily records, but staggered so that daily rainfall is totalled from 8 am to 8 pm the next day the \code{agg_offset} must be set to \code{c("8 hours", "8 hours")}.  When \code{full_eval == TRUE} the function overwrites this parameter in favor of \code{agg_offset} extracted from the partial evaluation.}
+\item{ppsij}{Pipe-process summary table (stage 'i', step 'j') for the function. If provided this data will be used to overwrite similar arguments provided in the function. This must be provided for the full function evaluation.}
 
-\item{all_phens}{Defaults to \code{FALSE}. If \code{TRUE}, all harvested phenomena will be aggregated, despite the lesser number of phenomena listed/described in the partial evaluation.
+\item{agg_offset}{String describing period of offset from the rounded time interval used to aggregate data. For example, if aggregating rainfall data from five minute to daily records, but staggered so that daily rainfall is totalled from 8 am to 8 pm the next day the \code{agg_offset} must be set to \code{"8 hours"}.  When \code{full_eval == TRUE} the function overwrites this parameter in favor of \code{agg_offset} extracted from the partial evaluation.}
+
+\item{all_phens}{Defaults to \code{TRUE} whereby all phenomena in the working data table of the pipeline stage-step will be aggregated. If \code{FALSE} then only the 'phen_names' listed in \code{agg_parameters} will be aggregated.
 \emph{Note}:
 \itemize{
 \item phenomena with variable types (\code{var_type}) character (\code{chr}) and factor (\code{fac}) are not processed by this function.
 \item phenomena names (\code{phen_name}) ending with '_sn' (denoting a sensor number/identifier) are not aggregated in this function.
 }}
 
-\item{ignore_nas}{If \code{NA} values are ignores any periods or time interval of the data with any NA values will result in an \code{NA} aggregation value. Important if missing values have not been interpolated.}
+\item{agg_intervals}{Vector of time intervals (character strings) used to aggregate data.}
 
-\item{phens_summary}{A summary of the phens table of the particular phenomena that will be aggregated by \code{ipayipi::dt_agg()}.}
+\item{agg_dt_suffix}{Suffix to use when naming aggregated data output tables. The naming convention will take this format for agg interval 'i': 'dt_' \& \code{agg_interval}\link{i} \& 'agg_dt_suffix'.}
+
+\item{agg_parameters}{Used to set custom aggregation parameters via \code{ipayipi::aggs()}.}
+
+\item{gaps}{Logical or vector of phenomena/string names. If TRUE then the station 'gaps', i.e. the 'gap' table will be joined to the aggregated table. If a vector of string/s is supplied then these are used to filter the gap table before joining this to aggregated data.}
+
+\item{ignore_nas}{If \code{NA} values are ignores any periods or time interval of the data with any NA values will result in an \code{NA} aggregation value. \emph{This does not apply for non-default functions supplied by the partial evaluation}.}
 }
 \description{
 Used in the processing pipeline to generate aggregation criteria.

@@ -4,15 +4,25 @@
 \alias{dttm_extend_long}
 \title{Generate date-time data for sequence gaps}
 \usage{
-dttm_extend_long(data_sets = NULL, ri = NULL, ...)
+dttm_extend_long(
+  data_sets = NULL,
+  intra_check = FALSE,
+  ri = NULL,
+  cores = getOption("mc.cores", 2L),
+  ...
+)
 }
 \arguments{
 \item{data_sets}{List of time-series data sets with a 'date_time' column.}
 
-\item{ri}{Standardised record interval. Function will not process event-based/'discontinuous' ('discnt') data; requires a regular time-interval.}
+\item{intra_check}{Logical. If \code{TRUE} the function will join each dataset to a continuous date_time sequence. If \code{FALSE}, only the gaps between listed datasets will be made continuous using the standardised record interval \code{ri}.}
+
+\item{ri}{Standardised record interval. Function will not process event-based/'discontinuous' ('discnt') data; requires a regular time-interval character string standardised by \code{ipayipi::record_interval_eval()}.}
+
+\item{cores}{Number of CPU's to use for processing in parallel. Only applies when working on Linux systems.}
 }
 \description{
-Internal function to generate time-series data tables, with 'date_time' sequences only, to fill missing date-time values in a list of non-overlapping data sets.
+Function to generate time-series data tables with 'date_time' sequences in a list of non-overlapping data sets.
 }
 \author{
 Paul J. Gordijn

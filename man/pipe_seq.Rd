@@ -18,7 +18,7 @@ Data processing pipeline in the format of a \code{data.table} of class "pipe_seq
 Builds a pipeline from processing \emph{steps} nested within pipeline \emph{stages}. Each stage, with its respective steps, are partially evaluated by this function.
 }
 \details{
-This function assists with building a tabluar representation of a data processing pipeline. The table is fully evaluated, for example, by checking station parameters and time intervals, prior to performing processing functions. Once fully evaluated the function parameters (\code{f_params}) for processing data are stored in a station file. Once stored partial evaluation is not necessary until the pipeline sequence requires updating.
+This function assists with building a tabluar representation of a data processing pipeline. The table is fully evaluated, for example, by checking station parameters and time intervals, prior to performing processing functions within \code{ipayipi::dt_process()}. Once fully evaluated the function parameters (\code{f_params}) for processing data are stored in a station file. Once stored partial evaluation is not necessary until the pipeline sequence requires updating.
 }
 \examples{
 ## generate a basic processing pipeline
@@ -31,8 +31,8 @@ pipe_seq1 <- pipe_seq(p = pdt(
      dt_n = 1,
      dtp_n = 1,
      f = "dt_harvest",
-     f_params = hsf_param_eval(),
-     time_interval = "month"),
+     f_params = hsf_param_eval()
+   ),
 # then aggregate data by month
    p_step(
      dt_n = 1,
@@ -41,7 +41,9 @@ pipe_seq1 <- pipe_seq(p = pdt(
      f_params = agg_param_eval(
        rain_tot = agg_params(phen_out_name = "rain",
          agg_f = "mean(x)", units = "mm", measure = "avg"),
-         agg_offset = c("0 sec", "0 sec"), all_phens = TRUE))))
+         agg_offset = c("0 sec", "0 sec"), all_phens = TRUE))
+       )
+   )
 print(pipe_seq1)
 
 

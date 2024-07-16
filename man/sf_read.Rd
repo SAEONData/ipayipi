@@ -2,7 +2,7 @@
 % Please edit documentation in R/z_sub_sf_read.r
 \name{sf_read}
 \alias{sf_read}
-\title{Opens a connection to an ipayipi station file.}
+\title{Simple data table reading function.}
 \usage{
 sf_read(
   sfc = NULL,
@@ -11,6 +11,8 @@ sf_read(
   tmp = FALSE,
   pipe_house = NULL,
   verbose = TRUE,
+  start_dttm = NULL,
+  end_dttm = NULL,
   ...
 )
 }
@@ -23,7 +25,7 @@ sf_read(
 
 \item{tmp}{Logical. If TRUE then \code{sf_read()} reads from the sessions temporary file location for stations.}
 
-\item{pipe_house}{List of pipeline directories. \strong{See} \code{ipayipi::ipip_init()} \strong{for details}.}
+\item{pipe_house}{List of pipeline directories. \strong{See} \code{ipayipi::ipip_house()} \strong{for details}.}
 
 \item{verbose}{Logical. Whether or not to report messages and progress.}
 }
@@ -31,7 +33,7 @@ sf_read(
 Station file connection file paths. To be used in the pipeline.
 }
 \description{
-Package subroutine for opening a station file for work.
+Package subroutine for opening a station file for work. NB! Will not work for chunked data tables.
 }
 \details{
 This function is an internal function called by others in the
@@ -40,8 +42,9 @@ pipeline.
 \author{
 Paul J Gordijn
 }
-\keyword{add}
-\keyword{edit}
-\keyword{station;}
-\keyword{to}
-\keyword{write}
+\keyword{data}
+\keyword{data;}
+\keyword{lists}
+\keyword{open}
+\keyword{read}
+\keyword{tables;}

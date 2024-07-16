@@ -96,8 +96,17 @@ rain_hobo_clean <- function(
   input_file_name = NULL,
   false_tip_thresh = 10 * 60,
   tip_value = 0.254,
-  dt_format = "%x %r",
-  tz = NULL,
+  dt_format = c(
+    "Ymd HMOS", "Ymd HMS",
+    "Ymd IMOSp", "Ymd IMSp",
+    "ymd HMOS", "ymd HMS",
+    "ymd IMOSp", "ymd IMSp",
+    "mdY HMOS", "mdY HMS",
+    "mdy HMOS",  "mdy HMS",
+    "mdy IMOSp",  "mdy IMSp",
+    "dmY HMOS", "dmY HMS",
+    "dmy IMOSp", "dmy IMSp"),
+  tz = "Africa/Johannesburg",
   temp = TRUE,
   instrument_type = NA,
   ptitle = NA,
@@ -295,20 +304,25 @@ rain_hobo_clean <- function(
   hb[, names(hb) := lapply(.SD,
     function(x) replace(x, x == "" | x == " ", NA))]
 
-  if (!suppressWarnings(
-      is.na(as.numeric(as.character(hb[1, "date_time"]))))) {
-    hb$date_time <- as.POSIXct(
-      as.numeric(hb$date_time) * (60 * 60 * 24) - (60 * 60 * 2),
-      origin = "1899-12-30",
-      tz = tz
-    )
-  } else {
-    hb <- transform(hb,
-      date_time = as.POSIXct(hb$date_time, format = dt_format, tz = tz))
-  }
-  if (anyNA(hb$date_time)) {
+  # if (!suppressWarnings(
+  #     is.na(as.numeric(as.character(hb[1, "date_time"]))))) {
+  #   hb$date_time <- as.POSIXct(
+  #     as.numeric(hb$date_time) * (60 * 60 * 24) - (60 * 60 * 2),
+  #     origin = "1899-12-30",
+  #     tz = tz
+  #   )
+  # } else {
+  #   hb <- transform(hb,
+  #     date_time = as.POSIXct(hb$date_time, format = dt_format, tz = tz))
+  # }
+  date_time <- attempt::attempt(lubridate::parse_date_time(x = hb$date_time,
+    orders = dt_format, tz = tz))
+
+  if (attempt::is_try_error(date_time)) {
     stop(paste0(" Date time formatting problem: ",
           input_file_name, "!", collapse = ""))
+  } else {
+    hb$date_time <- date_time
   }
 
   # format the data columns

@@ -11,21 +11,29 @@ write_station(
   overwrite = FALSE,
   append = TRUE,
   keep_open = FALSE,
+  con_f = "open_sf_con2",
+  verbose = FALSE,
+  xtra_v = FALSE,
   ...
 )
 }
 \arguments{
-\item{pipe_house}{Required. List of pipeline directories. \strong{See} \code{ipayipi::ipip_init()} \strong{for details}.}
+\item{pipe_house}{Required. List of pipeline directories. \strong{See} \code{ipayipi::ipip_house()} \strong{for details}.}
 
 \item{sf}{Station file object.}
 
 \item{station_file}{Path to station file. Required.}
 
-\item{overwrite}{If \code{TRUE} then old data is overwritten. \emph{Vice versa} if \code{FALSE}.}
+\item{overwrite}{If \code{TRUE}: old data overwritten. If \code{FALSE}: old data not overwritten.}
 
-\item{append}{If \code{TRUE} then new values/tables will be written to an existing station file. If \code{FALSE} a new station will be created. When \code{append} and overwrite are \code{TRUE} then station tables/values will be overwritten by tables/values with similar names.}
+\item{append}{Logical:
+\itemize{
+\item \code{TRUE}: new values/tables will be written to an existing station file.
+\item \code{FALSE}: Old station file deleted, and new station created.
+NB! If \code{append} and \code{overwrite} == \code{TRUE}: Station tables/values will be overwritten by tables/values with similar names.
+}}
 
-\item{keep_open}{Maintains the station connection, i.e., the hidden station file is not removed (deleted).}
+\item{keep_open}{Maintains the station connection, i.e., the 'hidden' station file is not removed (deleted).}
 }
 \value{
 File path of station file.
@@ -34,13 +42,11 @@ File path of station file.
 Takes input station values and tables and saves them to disk.
 }
 \details{
-In order to speed processing of data 'ipayipi' decompresses a station file list of tables/values into a 'hidden' temporary folder in the same working directory as a particular station file. This function assumes that if a temporary folder or station file is open, that is the most up-to-date station file information. This has implications for when saving whole station files or appending data to station files. A number of scenarios may arise when writing a station file when different items are available or privided.
-
 #' \strong{Scenario 1}: sf R object
 'sf R object' written as a station file on disk ('sf on disk').
 
 \strong{Scenario 2}: 'hidden' sf on disk + sf on disk + sf R object
-\strong{NB!} In this scenario the station file on disk is \emph{always} assumed to be outdated/older than the 'hidden' station file on disk. Therefore, only the station file object, and 'hidden' station file are *merged under this scenario. The merged file is written as a station file on disk ('sf on disk').
+\strong{NB!} In this scenario the station file on disk is \emph{always} assumed to be outdated/older than the 'hidden' station file on disk. Therefore, only the station file object, and 'hidden' station file are *merged. The merged file is written as a station file on disk ('sf on disk').
 
 \strong{Scenario 3}: 'hidden' sf on disk + sf R object
 Merges the 'sf on disk' with the provided 'sf R object'. The merged file is written as a station file on disk ('sf on disk').

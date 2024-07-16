@@ -11,8 +11,8 @@ imbibe_raw_batch(
   file_ext_out = ".ipr",
   col_dlm = NULL,
   dt_format = c("Ymd HMOS", "Ymd HMS", "Ymd IMOSp", "Ymd IMSp", "ymd HMOS", "ymd HMS",
-    "ymd IMOSp", "ymd IMSp", "mdY HMOS", "mdY HMS", "mdy IMOSp", "mdy IMSp", "dmY HMOS",
-    "dmY HMS", "dmy IMOSp", "dmy IMSp"),
+    "ymd IMOSp", "ymd IMSp", "mdY HMOS", "mdY HMS", "mdy HMOS", "mdy HMS", "mdy IMOSp",
+    "mdy IMSp", "dmY HMOS", "dmY HMS", "dmy IMOSp", "dmy IMSp"),
   dt_tz = "Africa/Johannesburg",
   record_interval_type = "continuous",
   remove_prompt = FALSE,
@@ -24,13 +24,14 @@ imbibe_raw_batch(
   unwanted = NULL,
   recurr = FALSE,
   verbose = FALSE,
+  xtra_v = FALSE,
   cores = getOption("mc.cores", 2L),
   ...
 )
 }
 \arguments{
 \item{pipe_house}{List of pipeline directories. \strong{See}
-\code{ipayipi::ipip_init()} \strong{for details}.}
+\code{ipayipi::ipip_house()} \strong{for details}.}
 
 \item{wipe_source}{Logical. If \code{TRUE} then raw data files in the source location will be deleted. \emph{See details}}
 
@@ -77,7 +78,7 @@ to archive all 'raw' data files in the pipeline structure, \emph{see details}.
 In the pipeline structure this function should be used post \code{ipayipi::logger_data_import_batch()}. \code{ipayipi::imbibe_raw_batch()} is a wrapper for \code{ipayipi::imbibe_raw_logger_dt()} --- see this functions documentation for more details.
 
 \strong{'Archiving' raw data}
-Files brought into the 'wait_room' are only housed there temporarily. In order to archive these raw data files a 'raw_room' directory must be provided in the 'pipe_house' object (\emph{see} \code{ipayipi::ipip_init()}). Files will be archived in structured directories in the 'raw_room' named by the last year and month in their respective date time records. Original  file names are maintained, and have a suffix with a unique integer plus the date and time of which they were archived. N.B. Files in the source directory (\code{source_dir}) are only deleted when \code{wipe_source} is set to \code{TRUE}.
+Files brought into the 'wait_room' are only housed there temporarily. In order to archive these raw data files a 'raw_room' directory must be provided in the 'pipe_house' object (\emph{see} \code{ipayipi::ipip_house()}). Files will be archived in structured directories in the 'raw_room' named by the last year and month in their respective date time records. Original  file names are maintained, and have a suffix with a unique integer plus the date and time of which they were archived. N.B. Files in the source directory (\code{source_dir}) are only deleted when \code{wipe_source} is set to \code{TRUE}.
 }
 \author{
 Paul J. Gordijn

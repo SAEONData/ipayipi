@@ -19,7 +19,7 @@ transfer_sts_files(
 }
 \arguments{
 \item{pipe_house}{List of pipeline directories. \strong{See}
-\code{ipayipi::ipip_init()} \strong{for details}.}
+\code{ipayipi::ipip_house()} \strong{for details}.}
 
 \item{prompt}{Should the function use an interactive file selection function
 otherwise all files are returned. TRUE or FALSE.}

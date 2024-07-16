@@ -19,6 +19,7 @@ hsf_param_eval(
   f_params = NULL,
   ppsij = NULL,
   sfc = NULL,
+  xtra_v = FALSE,
   ...
 )
 }

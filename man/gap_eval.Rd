@@ -9,14 +9,19 @@ gap_eval(
   station_file = NULL,
   gap_problem_thresh_s = 6 * 60 * 60,
   event_thresh_s = 10 * 60,
+  phen_eval = TRUE,
+  phens = NULL,
   keep_open = FALSE,
   meta_events = "meta_events",
   verbose = FALSE,
+  cores = getOption("mc.cores", 2L),
+  xtra_v = FALSE,
+  tbl_n = "^raw_*",
   ...
 )
 }
 \arguments{
-\item{pipe_house}{Required. List of pipeline directories. \strong{See} \code{ipayipi::ipip_init()} \strong{for details}.}
+\item{pipe_house}{Required. List of pipeline directories. \strong{See} \code{ipayipi::ipip_house()} \strong{for details}.}
 
 \item{station_file}{Required. Standardised \strong{ipayipi} station file.}
 
@@ -24,11 +29,17 @@ gap_eval(
 
 \item{event_thresh_s}{A gap can also be specified in the event metadata by providing only a single date-time stamp and an 'event_threshold_s' (in seconds). By taking this date-time stamp the function approximates the start and end-time of the data gap by adding and subtracting the given \code{event_thresh_s} to the date-time stamp, respectively. If the \code{event_thresh_s} is supplied in the 'meta_events' data (\emph{see} \code{meta_to_station()}) then the value supplied therein is used in preference to the \code{event_thresh_s} argument in this function. The default event threshold here is ten minutes, i.e., 10 * 60 seconds.}
 
+\item{phen_eval}{Logical. If TRUE phenomena will be evaluate for 'NA' values. Note this is not appropriate from some loggers where gaps have to be determined from logger data input summaries, e.g., hobo logger event data---rainfall.}
+
+\item{phens}{Vector of phenomena names used for the 'phen' gap evaluation. Phenomena gap evaluation checks for 'NA' values in each phenomena column of a data table. Phenomena gaps result from sensor errors, whilst logger downtime result in 'logger' data gaps.}
+
 \item{keep_open}{Logical. Keep \emph{hidden} 'station_file' open for ease of access. Defaults to \code{FALSE}.}
 
 \item{meta_events}{Optional. The name of the data.table in the station file with event metadata. Defaults to "meta_events".}
 
 \item{verbose}{Logical. Whether or not to report messages and progress.}
+
+\item{cores}{Number of CPU's to use for processing in parallel. Only applies when working on Linux.}
 }
 \value{
 A table describing data 'gaps'

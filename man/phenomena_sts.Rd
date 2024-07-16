@@ -7,6 +7,7 @@
 phenomena_sts(
   pipe_house = NULL,
   remove_dups = FALSE,
+  external_phentab = NULL,
   prompt = FALSE,
   recurr = TRUE,
   wanted = NULL,
@@ -19,7 +20,11 @@ phenomena_sts(
 )
 }
 \arguments{
-\item{pipe_house}{List of pipeline directories. \strong{See} \code{ipayipi::ipip_init()} \strong{for details}.}
+\item{pipe_house}{List of pipeline directories. \strong{See} \code{ipayipi::ipip_house()} \strong{for details}.}
+
+\item{remove_dups}{Logical. If true then a prompt is used to facilitate the removal of duplicate phenomena. Files with duplicate phenomena names will not be processed into a pipeline until the issue of duplication issue is resolved.}
+
+\item{external_phentab}{File path to phenomena database. By default the function will search in the 'pipe_house' 'wait_room' for a phenomena database ('phentab'). If \code{external_phentab} is provided this option will override the 'pipe_house' default enabling access to another pipelines phenomena database.}
 
 \item{prompt}{Should the function use an interactive file selection function otherwise all files are returned. TRUE or FALSE.}
 
@@ -33,14 +38,14 @@ phenomena_sts(
 
 \item{verbose}{Print some details on the files being processed? Logical.}
 
-\item{cores}{Number of CPU's to use for processing in parallel. Only applies when working on Linux.}
+\item{cores}{Number of CPU's to use for processing in parallel. Only applies when working on linux systems.}
 }
 \description{
 Standardise raw data inputs formats and more for the
 'ipayipi' pipeline though an interactive process.
 }
 \details{
-The raw data formats, units, and offsets, in an 'ipayipi' station file are standardised using this function. The function keeps a record of phenomena (variable) metadata and uses this to implement transformations to standardise the data. If 'new' phenomena are detected in the data then a csv file is generated and the user must fill in the 'blank' (NA) values. Once the csv is complete this file can be read back into the pipeline using \code{ipayipi::phenomena_read_csv()}.
+The raw data formats, units, and offsets, in an 'ipayipi' station file are standardised using this function. The function keeps a record of phenomena (variable) metadata and uses this to implement transformations to standardise the data. If 'new' phenomena are detected in the data then a csv file is generated and the user must fill in the 'blank' (NA) values. The most recently modified 'phentab' (phenomena table) csv will be imbibed by this function and used to update the pipelines 'phentab' database.
 
 The following phenomena (variable) metadata fields are allowed. Required fields are denoted with an asterix.
 \enumerate{
@@ -62,7 +67,7 @@ When unrecognised synonyms are introduced (e.g., after a change in logger progra
 \strong{Duplicate phenomena names}:
 Duplicate phenomena in a single data series table cannot be tolerated. If a duplicate phenomena name is detected a prompt will work with the user to delete the duplicate. Most logger programmes avoid generating duplicates, but the situation can arise where perhaps a table is recording the same phenomenon multiple times.
 
-\strong{Other}: A number of other phenomena standardisation proceedure are included here:
+\strong{Other}: A number of other phenomena standardisation proceedures are included here:
 \itemize{
 \item '\emph{Interference events}': Some logger files, e.g., hobo data logger files include useful columns that describe what within the ipayipi pipeline are termed 'logger interference events'. Logger interference events include events such as manual logger data downloads where the logger, or related data recording mechanism is 'interfered' with, and consequently, data near the time of interference may be altered undesirably. In hobo files interference column data are generally called 'logged' events, but spelling and capitalisation of this may change depending on the data. As part of the phenomena standardisation process, all interference events are marked in the data as 'logged'. Any column/phenomena in the data with the key 'interfere' will be marked as an 'interference' column. Therefore, when selecting phenomena names, take care to include the key 'interfere' so that the column is treated as recording 'interference' events.
 }

@@ -10,8 +10,8 @@ imbibe_raw_logger_dt(
   file_ext = NULL,
   col_dlm = NULL,
   dt_format = c("Ymd HMOS", "Ymd HMS", "Ymd IMOSp", "Ymd IMSp", "ymd HMOS", "ymd HMS",
-    "ymd IMOSp", "ymd IMSp", "mdY HMOS", "mdY HMS", "mdy IMOSp", "mdy IMSp", "dmY HMOS",
-    "dmY HMS", "dmy IMOSp", "dmy IMSp"),
+    "ymd IMOSp", "ymd IMSp", "mdY HMOS", "mdY HMS", "mdy HMOS", "mdy HMS", "mdy IMOSp",
+    "mdy IMSp", "dmY HMOS", "dmY HMS", "dmy IMOSp", "dmy IMSp"),
   dt_tz = "Africa/Johannesburg",
   record_interval_type = "continuous",
   max_rows = 1000,
@@ -19,12 +19,12 @@ imbibe_raw_logger_dt(
   remove_prompt = FALSE,
   logg_interfere_type = "on_site",
   verbose = TRUE,
+  xtra_v = FALSE,
   ...
 )
 }
 \arguments{
-\item{pipe_house}{List of pipeline directories. \strong{See}
-\code{ipayipi::ipip_init()} \strong{for details}.}
+\item{pipe_house}{List of pipeline directories. \strong{See} \code{ipayipi::ipip_house()} \strong{for details}.}
 
 \item{file_path}{Path and name of file (excluding the file extension).}
 
@@ -32,30 +32,15 @@ imbibe_raw_logger_dt(
 
 \item{col_dlm}{The column delimter which is fed to \code{data.table::fread()}. Defaults to NULL. When \code{NULL} the function uses \code{data.table::fread} ability to 'guess' the delimeter.}
 
-\item{dt_format}{The function attempts to work out the date-time format
-from a vector of format types supplied to this argument. The testing is
-done via \code{lubridate::parse_date_time()}. \code{lubridate::parse_date_time()}
-prioritizes the tesing of date-time formats in the order vector of
-formats supplied. The default vector of date-time formats supplied should
-work well for most logger outputs.}
+\item{dt_format}{The function attempts to work out the date-time format from a vector of format types supplied to this argument. The testing is done via \code{lubridate::parse_date_time()}. \code{lubridate::parse_date_time()} prioritizes the tesing of date-time formats in the order vector of formats supplied. The default vector of date-time formats supplied should work well for most logger outputs.}
 
-\item{dt_tz}{Recognized time-zone (character string) of the data locale. The
-default for the package is South African, i.e., "Africa/Johannesburg" which
-is equivalent to "SAST".}
+\item{dt_tz}{Recognized time-zone (character string) of the data locale. The default for the package is South African, i.e., "Africa/Johannesburg" which is equivalent to "SAST".}
 
-\item{record_interval_type}{If there are is no discrete record interval set
-in the logger program, i.e., the sampling is event-based, then this
-parameter must be set to "event_based". By default this function has this
-parameter set to "continuous", but the record interval is scrutinized by
-'ipayipi::record_interval_eval()' --- see the help files for this function
-for more information.
-The parameter supplied here is only used if there is only one data record
-and the record interval cannot be evaluated by
-\code{ipayipi::record_interval_eval()}.}
+\item{record_interval_type}{If there are is no discrete record interval set in the logger program, i.e., the sampling is event-based, then this parameter must be set to "event_based". By default this function has this parameter set to "continuous", but the record interval is scrutinized by 'ipayipi::record_interval_eval()' --- see the help files for this function for more information.
+The parameter supplied here is only used if there is only one data record and the record interval cannot be evaluated by \code{ipayipi::record_interval_eval()}.}
 
-\item{data_setup}{List of options used to extract data and metadata from
-instrument data outputs. Mandatory fields are indicated with an '\emph{'.
-File header options include}^1^:
+\item{data_setup}{List of options used to extract data and metadata from instrument data outputs. Mandatory fields are indicated with an '*'.
+File header options include\eqn{*^1}:
 \enumerate{
 \item *\strong{file_format} -- the native/raw file format.
 \item *\strong{station_title} -- the supplied instrument station title.
@@ -71,90 +56,49 @@ signature' on Cambel Scientific systems).
 \item table_name -- the generic name of the table containing data.
 }
 
-*^1^ These options must be supplied as a charater string or the row and
-column index provided as for example, rici(ri = 1, ci = 2). See
-\code{?ipayipi::rici()} for more details.
+\eqn{*^1} These options must be supplied as a charater string or the row and column index provided as for example, rici(ri = 1, ci = 2). See \code{?ipayipi::rici()} for more details.
 \enumerate{
 \item date_time -- Only the column index must be provided here as an integer,
 e.g., 3.
 }
 
-File phenomena information and data *^2^:
+File phenomena information and data \eqn{*^2}:
 \enumerate{
-\item *\strong{phen_name} -- a list of row and column numbers corresponding to the
-names of phenomena (variables).
-\item phen_unit -- a list of row and column numbers corresponding to the
-names of phenomena units.
-\item phen_var_type -- a vector of character strings designating the type of
-variable for each phenomenon.
-\item phen_measure -- a list of row and column numbers corresponding to the
-type of measurement calculated by the logger for each phenomena, e.g.,
-an 'average', 'sample', 'minimum', etc.
-\item phen_offset -- a list of offset values that have been pre-applied to
-the data, i.e, the offset is only noted and not used to transform the
-data.
-\item sensor_id -- a list of row and column numbers corresponding to sensor
-unique id values. Otherwise a vector of character strings designating
-the type of 'sensor_id' for each phenomenon.
+\item *\strong{phen_name} -- a list of row and column numbers corresponding to the names of phenomena (variables).
+\item phen_unit -- a list of row and column numbers corresponding to the names of phenomena units.
+\item phen_var_type -- a vector of character strings designating the type of variable for each phenomenon.
+\item phen_measure -- a list of row and column numbers corresponding to the type of measurement calculated by the logger for each phenomena, e.g., an 'average', 'sample', 'minimum', etc.
+\item phen_offset -- a list of offset values that have been pre-applied to the data, i.e, the offset is only noted and not used to transform the data.
+\item sensor_id -- a list of row and column numbers corresponding to sensor unique id values. Otherwise a vector of character strings designating the type of 'sensor_id' for each phenomenon.
 }
 
-*^2^ These options must be supplied as using \code{ipayipi::rng_rici()}, or input
-as a vector of character strings with the actual values. If using
-\code{ipayipi::rng_rici()}, at least the row in which phenomena details are
-found and the columns wherein these lie are required. See
-?ipayipi::rng_rici() for more details.
+\eqn{*^2} These options must be supplied as using \code{ipayipi::rng_rici()}, or input as a vector of character strings with the actual values. If using     \code{ipayipi::rng_rici()}, at least the row in which phenomena details are found and the columns wherein these lie are required. See ?ipayipi::rng_rici() for more details.
 \enumerate{
-\item *\strong{data_row} -- a single integer value designating the row where
-phenomena data begin from.
-\item *\strong{id_col} -- a single integer value designating a data row unique
-identifier row.
-}}
+\item *\strong{data_row} -- a single integer value designating the row where phenomena data begin from.
+\item *\strong{id_col} -- a single integer value designating a data row unique identifier row.
+}
 
-\item{remove_prompt}{Logical; passed to \code{ipayipi::record_interval_eval()}.
-Activate a readline prompt to choose whether or not filter our records from
-\code{dta_in} with inconsistent record intervals.}
+NB! Note that for Solonist xle files there is a prebuilt 'data_setup' \code{ipayipi::solonist}. If the \code{file_path} is for an 'xle' file, and \code{data_setup} is null, then this default data_setup will be used.}
 
-\item{logg_interfere_type}{Two options here: "remote" or "on_site". Each
-time a logger is visited is counted as a logger interference event.
-Type \emph{'remote'} occurs when data is downloaded remotely. Type \emph{'on_site'}
-is when data was downloaded on site. \emph{See details} ...}
+\item{remove_prompt}{Logical; passed to \code{ipayipi::record_interval_eval()}. Activate a readline prompt to choose whether or not filter our records from \code{dta_in} with inconsistent record intervals.}
 
-\item{verbose}{Logical passed to \code{attempt::attempt()} which reads the logger
-text file in with either \code{data.table::fread()} or base R. Also whether to
-print progress.}
+\item{logg_interfere_type}{Two options here: "remote" or "on_site". Each time a logger is visited is counted as a logger interference event. Type \emph{'remote'} occurs when data is downloaded remotely. Type \emph{'on_site'} is when data was downloaded on site. \emph{See details} ...}
+
+\item{verbose}{Logical passed to \code{attempt::attempt()} which reads the logger text file in with either \code{data.table::fread()} or base R. Also whether to print progress.}
 }
 \value{
-A list of class "ipayipi_raw_data" that contains a 'data_summary',
-'phens' (phenomena), and 'raw_data' tables (data.table).
+A list of class "ipayipi_raw_data" that contains a 'data_summary', 'phens' (phenomena), and 'raw_data' tables (data.table).
 }
 \description{
-Function to read in 'flat' loggers files into R. A first step
-towards processing data in \code{ipayipi}.
+Function to read in 'flat' loggers files into R. A first step towards processing data in \code{ipayipi}.
 }
 \details{
-This function uses \code{data.table::fread} which is optimized for
-processing 'big data'. Apart from usual the usual options which can be
-parsed to \code{data.table::fread} this function generates some standardised
-metadata to complement the read from a logger data table (if
-\code{data.table::fread()} is unsuccessful \code{base::read.csv()} is used). This
-metadata may vary from one logger output to another. To cater for this
-variation this function requires a \code{data_setup} to be completed. Once setup
-this can be used as a standard for further imports.
-This function also attempts to check whether the recording interval in the
-data date-time stamp has been consistent. A prompt is called if there are
-inconsistent time intervals between record events, and data rows with
-inconsistent time intervals will be removed if approved.
-A basic check is performed to check the success of converting date-time
-values to a recognised format in R (i.e., POSIXct).
-Regarding the \code{logg_interfere_type} parameter. Owing to potential
-interference of sensors etc when downloading data 'on site' or logger
-related issues when data is sent/obtained remotely, the date-time stamps
-of these events must be preserved. A \code{logg_interfere} data table is
-generated for this purpose and stored with the data. This data cannot
-necessarily be extracted from the 'data_summary' once data has been
-appended as some of this data will be overwritten during the appending
-process. The purpose of the 'logg_interfere' table is to retain this
-information, which is used by \code{ipayipi} for further processing.
+This function uses \code{data.table::fread} for flat text files, which is optimized for processing 'big data'. Apart from usual the usual options which can be parsed to \code{data.table::fread} this function generates some standardised metadata to complement the read from a logger data table (if \code{data.table::fread()} is unsuccessful \code{base::read.csv()} is used). This metadata may vary from one logger output to another. To cater for this variation this function requires a \code{data_setup} to be completed. Once setup this can be used as a standard for further imports.
+There is support for 'xml' formatted Solonist 'xle' format files with a default \code{data_setup} that is parsed automatically for files with the '.xle' extension.
+
+This function attempts to check whether the recording interval in the data date-time stamp has been consistent. A prompt is called if there are inconsistent time intervals between record events, and data rows with inconsistent time intervals will be removed if approved.
+A basic check is performed to check the success of converting date-time values to a recognised format in R (i.e., POSIXct).
+Regarding the \code{logg_interfere_type} parameter. Owing to potential interference of sensors etc when downloading data 'on site' or logger related issues when data is sent/obtained remotely, the date-time stamps of these events must be preserved. A \code{logg_interfere} data table is generated for this purpose and stored with the data. This data cannot necessarily be extracted from the 'data_summary' once data has been appended as some of this data will be overwritten during the appending process. The purpose of the 'logg_interfere' table is to retain this information, which is used by \code{ipayipi} for further processing.
 }
 \author{
 Paul J. Gordijn

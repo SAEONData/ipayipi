@@ -7,19 +7,21 @@
 dt_harvest(
   station_file = NULL,
   f_params = NULL,
-  time_interval = NULL,
   ppsij = NULL,
   sfc = NULL,
+  verbose = FALSE,
+  xtra_v = FALSE,
   ...
 )
 }
 \arguments{
 \item{station_file}{File path of the station being processed.}
 
-\item{f_params}{A vector of phenomena name to be extracted from the harvested data table. If NULL all column names are extracted.}
+\item{f_params}{Function parameters parsed by \code{ipayipi::dt_process()}.}
 
-\item{time_interval}{The desirsed time_tinterval associated with the
-extracted data. If this is \code{NULL} then the table is extracted as is.}
+\item{ppsij}{The desirsed time_interval associated with the extracted data. If this is \code{NULL} then the table is extracted as is.}
+
+\item{sfc}{Station file connection; see \code{ipayipi::open_sf_con2()}.}
 
 \item{hsf_table}{The path of the directory in which to search for the external data and/or data table.}
 }

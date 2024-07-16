@@ -8,7 +8,7 @@ phenomena_read_csv(pipe_house = NULL, file = NULL, ...)
 }
 \arguments{
 \item{pipe_house}{List of pipeline directories. \strong{See}
-\code{ipayipi::ipip_init()} \strong{for details}.}
+\code{ipayipi::ipip_house()} \strong{for details}.}
 
 \item{file}{The (base) file name of the csv import. If NULL then the
 function searches for the most recently modified csv file to read (and

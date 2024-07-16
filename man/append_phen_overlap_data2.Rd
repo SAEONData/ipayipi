@@ -55,7 +55,7 @@ append_phen_overlap_data2(
 
 \item{overwrite_sf}{Logical. If TRUE the station file or 'x' table values, if not NA, will be overwritten by values from the 'y' or new data table.}
 
-\item{cores}{Integer representing the number of cores available for processing data.}
+\item{cores}{Integer representing the number of cores available for processing data. Multiple core usage only supported on linux systems.}
 }
 \value{
 List of useful items for internal use. Overap data.

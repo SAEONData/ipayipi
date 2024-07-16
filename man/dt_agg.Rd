@@ -2,63 +2,51 @@
 % Please edit documentation in R/z_h1_station_dt_agg.r
 \name{dt_agg}
 \alias{dt_agg}
-\title{Aggregate time series data by a time interval}
+\title{Aggregate data by a time interval}
 \usage{
 dt_agg(
+  sfc = NULL,
   station_file = NULL,
-  dta_in = NULL,
   f_params = NULL,
   ppsij = NULL,
   gaps = FALSE,
-  agg_offset = c("0 sec", "0 sec"),
-  sfc = NULL,
+  agg_offset = "0 sec",
   verbose = FALSE,
+  xtra_v = FALSE,
+  cores = getOption("mc.cores", 2L),
   ...
 )
 }
 \arguments{
+\item{sfc}{List of file paths to the temporary station-file directory. Generated using \code{ipayipi::open_sf_con()}.}
+
 \item{station_file}{The file path of the station being assessed.}
 
-\item{dta_in}{A list of data tables to be aggregated. The tables
-must come from the same station, but may have different record intervals.}
+\item{f_params}{Function parameters evaluated by \code{ipayipi::agg_param_eval()}.}
 
-\item{f_params}{Function parameters evaluated by
-\code{ipayipi::agg_param_eval()}.}
+\item{ppsij}{Table derived from \code{ipayipi::pipe_seq()} showing the summarised function parameters for a data processing step.}
 
-\item{ppsij}{Table derived from \code{ipayipi::pipe_seq()} showing the summarised
-function parameters.}
+\item{gaps}{Logical. It \code{TRUE} then gaps with their respective unique gap identifiers from the 'gap table' of a station are joined to the aggregated series. These identifiers could be used for further processing.}
 
-\item{agg_offset}{Character vector of length two. Strings describe period
-of offset from the rounded time interval used to aggregate data. For
-example, if aggregating rainfall data from five minute to daily records,
-but staggered so that daily rainfall is totalled from 8 am to 8 pm the
-next day the \code{agg_offset} must be set to \code{c("8 hours", "8 hours")}.}
+\item{agg_offset}{String describing period of offset from the rounded time interval used to aggregate data. For example, if aggregating rainfall data from five minute to daily records, but staggered so that daily rainfall is totalled from 8 am to 8 pm the next day the \code{agg_offset} must be set to \code{"8 hours"}.  When \code{full_eval == TRUE} the function overwrites this parameter in favor of \code{agg_offset} extracted from the partial evaluation.}
 
-\item{phens_dt}{The phenomena table describing each of the phenomena in the
-\code{dta_in} parameter. This information is used in the aggregation process.}
+\item{verbose}{Logical. Whether or not to report messages and progress.}
 
-\item{f_summary}{List of tables with data summaries.}
+\item{xtra_v}{Logical. Whether or not to report xtra messages, progess, plus print data tables.}
+
+\item{cores}{Number of CPU's to use for processing in parallel. Only applies when working on Linux.}
 }
 \description{
-This function aggregates 'ipayipi' formatted data by
-time periods. The requries an evaluated pipeline.
+This function aggregates 'ipayipi' formatted data by time periods.
 }
 \details{
-Function has to work within the \code{ipayipi} pipeline as parameters
-for aggregation are determined during the pipeline evaluation process.
+Function has to work within the \code{ipayipi} pipeline as parameters for aggregation are determined during the pipeline evaluation process. The data has to have a column named 'date_time' for aggregation to work.
 
-Processing is done whilst keeping a minimum amount of data in memory. The
-station file being worked on is saved in a temporary location so if any
-errors occur in the processing the original file will not be overwritten.
+All recognised variable types, that is, those for which aggregation functions are by default defined in \code{ipayipi::sts_agg_functions}, will be aggregated unless otherwise specified in the aggregation parameters
 
-If an offset on the aggregation is used then the secon value of the offset
-is added to the 'date_time' stamp for the data.tables 'date_time' value.
-Aggregation defaults are determined by \code{ipayipi::agg_param_eval()}. Default
-aggregation functions are determined by the phenomena measure parameter ---
-see the function for more details.
-\itemize{
-\item requires date_time col
-}
+Processing is done whilst keeping a minimum amount of data in memory. The station file being worked on is saved in a temporary location so if any errors occur in the processing the original file will not be overwritten.
+
+If an offset on the aggregation is used then the secon value of the offset is added to the 'date_time' stamp for the data.tables 'date_time' value. Aggregation defaults are determined by \code{ipayipi::agg_param_eval()}. Default aggregation functions are determined by the phenomena measure parameter --- see the function for more details.
 }
 \author{
 Paul J. Gordijn

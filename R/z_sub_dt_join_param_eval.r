@@ -42,16 +42,17 @@ join_param_eval <- function(
   ppsij = NULL,
   sf = NULL,
   ...
-  ) {
-  "orig_table_name" <- NULL
+) {
 
   # default data.tableish arguments
   d_args <- list(join = "full_join", x_tbl = "NULL", y_tbl = "NULL",
     x_key = "date_time", y_key = "date_time", nomatch = NA, mult = "all",
-    roll = FALSE, rollends = FALSE, allow.cartesian = FALSE)
+    roll = FALSE, rollends = FALSE, allow.cartesian = FALSE
+  )
   p_args <- list(y_phen_names = "NULL", time_seq = TRUE, fuzzy = "NULL",
     full_eval = FALSE, eval_seq = "NULL", f_summary = "NULL", ppsij = "NULL",
-    sf = "NULL", inq = "NULL")
+    sf = "NULL", inq = "NULL"
+  )
   pda <- append(p_args, d_args)
 
   if (!full_eval) {
@@ -61,8 +62,9 @@ join_param_eval <- function(
     join <- list(join)
     m <- join[!join %in% j]
     m <- lapply(m, function(x) {
-      stop(paste0("Mismatch in \'join\' arg: ",
-        paste0(m, collapse = ", ")), call. = FALSE)
+      stop(paste0("Mismatch in \'join\' arg: ", paste0(m, collapse = ", ")),
+        call. = FALSE
+      )
     })
     join <- unlist(join)
     # time seq arg
@@ -85,7 +87,7 @@ join_param_eval <- function(
     dt_parse <- f_params[!sapply(f_params, function(x) is.null(x))]
     class(dt_parse) <- c(class(dt_parse), "dt_join_params")
   } else {
-  ## full function evaluation -------------------------------------------------
+    ## full function evaluation -----------------------------------------------
     if (!is.null(ppsij)) {
       # extract parts of ppsij and assign values in env
       ppsi_names <- names(ppsij)[!names(ppsij) %in% c("n", "f", "f_params")]
@@ -96,10 +98,7 @@ join_param_eval <- function(
     # extract parts of f_params and assign values in environment
     join_param_names <- names(f_params)
     for (k in seq_along(join_param_names)) {
-      if (exists(join_param_names[k])) {
-        assign(join_param_names[k],
-          f_params[[join_param_names[k]]])
-      }
+      assign(join_param_names[k], f_params[[join_param_names[k]]])
     }
     # check args
     m <- list("join", "x_tbl", "y_tbl", "f_summary")
@@ -111,18 +110,6 @@ join_param_eval <- function(
     #  and check key phens
     #  generate new phen_dt
     phens_dt <- eval_seq$phens_dt
-
-    # # evaluate the table keys
-    # keys <- list(x_key = x_key, y_key = y_key)
-    # keys <- keys[!keys %in% "date_time"]
-    # sapply(names(keys), function(x) {
-    #   p_n <- phens_dt[orig_table_name == f_params$y_tbl]$phen_name
-    #   if (!keys[[x]] %in% p_n) {
-    #     ms <- paste0("Stop ", x, " not present in listed phenomena:",
-    #       "dt_n:dtp_n ", ppsij$dt_n, ":", ppsij$dtp_n, collapse = "")
-    #     stop(ms)
-    #   }
-    # })
 
     dt_parse <- list(
       f_params = list(join_params = f_params),

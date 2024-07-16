@@ -1,6 +1,5 @@
 #' @title Append meteorological station data
-#' @description Appends two standardised 'ipayipi' meteorological' station
-#'  files.
+#' @description Appends two standardised 'ipayipi' meteorological' station files.
 #' @param station_file The main data set to which data will be appended.
 #' @param new_data The data that will be appended to the main 'hobo station'.
 #' @param overwrite_sf Logical. Defaults to FALSE so that data from the
@@ -23,11 +22,11 @@ append_station <- function(
 ) {
   "phen_name" <- "table_name" <- "dups" <- "phid_new" <-
     "phen_name_full" <- "phen_type" <- "measure" <- "uz_phen_name" <-
-      "var_type" <- "uz_units" <- "uz_measure" <- "phid" <- "origin" <-
-        "date_time" <- NULL
+    "var_type" <- "uz_units" <- "uz_measure" <- "phid" <- "origin" <-
+    "date_time" <- NULL
 
   sfc <- ipayipi::open_sf_con(pipe_house = pipe_house, station_file =
-    station_file)
+    station_file, tmp = TRUE)
 
   ## read in data ----
   sfi <- ipayipi::sf_read(sfc = sfc, station_file = station_file,
@@ -52,7 +51,8 @@ append_station <- function(
   # update the dsid in the phen data summary of the new data
   if ("phen_name" %in% names(new_data$phen_data_summary)) {
     new_data$phen_data_summary <- subset(new_data$phen_data_summary,
-      select = -phen_name)
+      select = -phen_name
+    )
   }
   if ("phen_name" %in% names(sf_phen_ds)) {
     sf_phen_ds <- subset(sf_phen_ds, select = -phen_name)
@@ -90,7 +90,8 @@ append_station <- function(
   phb <- phb[, -c("origin", "phid_update"), with = FALSE]
   phb <- unique(phb, by = c("phen_name", "phid", "table_name"))
   phen_dt <- phb[order(table_name, phen_name_full, phen_name)][
-    table_name == tn]
+    table_name == tn
+  ]
   new_data$phen_data_summary <- data.table::data.table(
     phid = phb[table_name == tn]$phid,
     start_dttm = min(new_data[[tn]]$date_time),
@@ -114,7 +115,8 @@ append_station <- function(
       # record_interval from station data
       if (nrow(new_data[[tn]]) < 2) {
         message(paste0("nrow(", tn, ") data < 2.",
-          " Inheriting record interval from station.", collapse = ""))
+          " Inheriting record interval from station.", collapse = ""
+        ))
         new_data$data_summary[table_name == tn]$record_interval <- stint[1]
         ndint <- stint[1]
       }
@@ -131,8 +133,8 @@ append_station <- function(
       dt_seq <- data.table::data.table(date_time = dt_seq)
       # special handing of "mixed" record intervals
       if (any(rit %in% "mixed")) {
-          dmix <- new_data[[tn]][!date_time %in% dt_seq$date_time]
-          new_data[[tn]][date_time %in% dt_seq$date_time]
+        dmix <- new_data[[tn]][!date_time %in% dt_seq$date_time]
+        new_data[[tn]][date_time %in% dt_seq$date_time]
       } else {
         dmix <- new_data[[tn]][0, ]
         # now use dt_seq to ensure continuity of time series data
@@ -158,11 +160,10 @@ append_station <- function(
       station_file = station_file, sf_phen_ds = sf_phen_ds, ndt = ndt,
       new_phen_ds = new_phen_ds, tn = tn, overwrite_sf = overwrite_sf,
       phen_dt = phen_dt, rit = rit, ri = ri, phen_id = phen_id, cores =
-      cores)
+        cores
+    )
   } else {
-    phd <- list(
-      app_dta = new_data[[tn]],
-      phen_ds = new_data$phen_data_summary)
+    phd <- list(app_dta = new_data[[tn]], phen_ds = new_data$phen_data_summary)
   }
 
   # finalise the data summary
@@ -184,7 +185,8 @@ append_station <- function(
   parallel::mclapply(seq_along(utbls), function(i) {
     if (!is.null(original_tbl[names(original_tbl) %in% utbls[i]])) {
       o <- ipayipi::sf_read(sfc = sfc, tv = utbls[i], station_file =
-        station_file, pipe_house = pipe_house, tmp = TRUE)
+          station_file, pipe_house = pipe_house, tmp = TRUE
+      )
       names(o) <- utbls[i]
       if (is.null(o[[1]])) o <- NULL
     } else {
@@ -205,7 +207,7 @@ append_station <- function(
     }
     # save table to temp dir
     saveRDS(a[[1]], file = file.path(dirname(sfc[1]), names(a)))
-  }, mc.cores = cores)
+  }, mc.cores = cores, mc.cleanup = TRUE)
 
   # add in the data_summary table
   sfds <- sf_ds[table_name != tn]
@@ -215,21 +217,21 @@ append_station <- function(
   # add in the raw data
   saveRDS(phd$app_dta, file.path(dirname(sfc[1]), tn))
   sf_phens <- unique(rbind(phen_dt, non_tab_phens, fill = TRUE))[
-    order(table_name, phen_name_full, uz_phen_name)]
+    order(table_name, phen_name_full, uz_phen_name)
+  ]
   saveRDS(sf_phens, sfc[names(sfc) %in% "phens"])
 
   # add in the phen data summary
   phends <- rbind(non_tab_phen_ds, phd$phen_ds, fill = TRUE)[
     , names(phd$phen_ds)[!names(phd$phen_ds) %in% c("phen_name")],
-    with = FALSE]
+    with = FALSE
+  ]
   phends <- unique(phends)
-  phends <- merge(x = unique(sf_phens[,
-    c("phid", "phen_name"), with = FALSE]),
-    y = phends, by = "phid", all.y = TRUE,
-    allow.cartesian = TRUE)[
-    order(table_name, phen_name, start_dttm, end_dttm)]
+  phends <- merge(
+    x = unique(sf_phens[, c("phid", "phen_name"), with = FALSE]),
+    y = phends, by = "phid", all.y = TRUE, allow.cartesian = TRUE
+  )[order(table_name, phen_name, start_dttm, end_dttm)]
   phends <- unique(phends)
   saveRDS(phends, sfc[names(sfc) %in% "phen_data_summary"])
-
   return(station_file)
 }

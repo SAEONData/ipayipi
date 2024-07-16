@@ -9,6 +9,7 @@ phenomena_chk(
   check_phenomena = TRUE,
   file_ext_in = ".iph",
   csv_out = TRUE,
+  external_phentab = NULL,
   verbose = FALSE,
   wanted = NULL,
   unwanted = NULL,
@@ -17,48 +18,33 @@ phenomena_chk(
 )
 }
 \arguments{
-\item{pipe_house}{List of pipeline directories. \strong{See}
-\code{ipayipi::ipip_init()} \strong{for details}.}
+\item{pipe_house}{List of pipeline directories. \strong{See} \code{ipayipi::ipip_house()} \strong{for details}.}
 
-\item{check_phenomena}{Should the file naming be check. This helps ensure
-that files are named consistently and that data from different stations are
-not appended erraneously.}
+\item{check_phenomena}{Should the file naming be check. This helps ensure that files are named consistently and that data from different stations are not appended erraneously.}
 
 \item{verbose}{Print some details on the files being processed? Logical.}
 
-\item{wanted}{A string of keywords to use to filter which stations
-are selected for processing. Multiple search kewords should be seperated
-with a bar ('|'), and spaces avoided unless part of the keyword.}
+\item{wanted}{A string of keywords to use to filter which stations are selected for processing. Multiple search kewords should be seperated with a bar ('|'), and spaces avoided unless part of the keyword.}
 
-\item{unwanted}{Similar to wanted, but keywords for filtering out unwanted
-stations.}
+\item{unwanted}{Similar to wanted, but keywords for filtering out unwanted stations.}
 
-\item{cores}{Number of CPU's to use for processing in parallel. Only applies when working on Linux.}
+\item{cores}{Number of CPU's to use for processing in parallel. Only applies when working on linux systems.}
 
-\item{nomtab_import}{Is there an update to the extant (or non-existant)
-phenomena table? This parameter can be used to input these updates.}
+\item{nomtab_import}{Is there an update to the extant (or non-existant) phenomena table? This parameter can be used to input these updates.}
 
-\item{out_csv}{Logical. If \code{TRUE} a csv file is made in the working
-directory if there are files with unrecognised phenomena.}
+\item{out_csv}{Logical. If \code{TRUE} a csv file is made in the working directory if there are files with unrecognised phenomena.}
 }
 \value{
-returns a csv phenomena file. Screen output notes whether
-the phenomena table is complete.
+returns a csv phenomena file. Screen output notes whether the phenomena table is complete.
 }
 \description{
-Critical standardisation for maintaining time-series
-data pipelines.
+Critical standardisation for maintaining time-series data pipelines.
 }
 \details{
-Logger data phenomena must be standardised prior to being
-transferred to the nomenclature vetted room. This standardisation step
-must only be run once header information has been standardised using the
-\code{ipayipi::nomenclature_sts()} and \code{ipayipi::header_sts()} functionality.
+Logger data phenomena must be standardised prior to being transferred to the nomenclature vetted room. This standardisation step must only be run once header information has been standardised using the \code{ipayipi::nomenclature_sts()} and \code{ipayipi::header_sts()} functionality.
+Phenomena are standardised using the following unstandardised fields: "uz_phen_name", "uz_units", "uz_measure", "sensor_id".
 
-A phenomena table or or database is kept in the pipelines 'wait_room'
-directory as an RDS file ('phentab.rps'). If this file is deleted the
-\code{ipayipi::phenomena_sts()} will initiate the recreation of this file. The
-csv file is only produced for user convienience for editing.
+A phenomena table or or database is kept in the pipelines 'wait_room' directory as an RDS file ('phentab.rps'). If this file is deleted the \code{ipayipi::phenomena_sts()} will initiate the recreation of this file. The csv file is only produced for user convienience for editing.
 }
 \author{
 Paul J. Gordijn

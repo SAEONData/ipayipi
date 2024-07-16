@@ -6,8 +6,6 @@
 \usage{
 record_interval_eval(
   dt = NULL,
-  dt_format = "\%Y-\%m-\%d \%H:\%M:\%S",
-  dt_tz = "Africa/Johannesburg",
   dta_in = NULL,
   remove_prompt = FALSE,
   record_interval_type = NULL,
@@ -18,10 +16,6 @@ record_interval_eval(
 \arguments{
 \item{dt}{vector of POSIXct values with defined time zone.}
 
-\item{dt_format}{The input date-time format of the time series, e.g., "\%y-\%m-\%d \%H:\%M:\%S". See ?base::strptime() for details.}
-
-\item{dt_tz}{recognized time-zone of the data locale.}
-
 \item{dta_in}{Input data must have the same number of rows as dt. If inconsistent time intervals are detected then the input data will be filtered out and returned.}
 
 \item{remove_prompt}{Logical. Activate a readline prompt to choose whether or not filter our records from \code{dta_in} with inconsistent record intervals. If TRUE then the \code{max_rows} argument is ignored.}
@@ -29,6 +23,8 @@ record_interval_eval(
 \item{record_interval_type}{If there is only one data record the this parameter will be used as the default. This must be either "event_based" or "continuous".}
 
 \item{max_rows}{Maximum length of \code{dt} vector to use for evaluating the record interval. Defaults to 1000. If \code{remove_prompt} is TRUE, this argument is ignored.}
+
+\item{dt_format}{The input date-time format of the time series, e.g., "\%y-\%m-\%d \%H:\%M:\%S". See ?base::strptime() for details.}
 }
 \value{
 List containing a logical list of 1) the adjusted date-time values

@@ -2,7 +2,7 @@
 #' @description A function to check standardisation of meteorological data
 #'  phenomena to be run before introducing data into the pipeline.
 #' @param pipe_house List of pipeline directories. __See__
-#'  `ipayipi::ipip_init()` __for details__.
+#'  `ipayipi::ipip_house()` __for details__.
 #' @param file The (base) file name of the csv import. If NULL then the
 #'  function searches for the most recently modified csv file to read (and
 #'  deletes older phenomena csv files).
@@ -16,7 +16,8 @@ phenomena_read_csv <- function(
     ...) {
   if (is.null(file)) {
     phenlist <- ipayipi::dta_list(input_dir = pipe_house$wait_room, file_ext =
-      ".csv", wanted = "phentab")
+        ".csv", wanted = "phentab"
+    )
     if (length(phenlist) < 1) stop("There is no nomtab file in the wait_room!")
     phen_dts <- lapply(phenlist, function(x) {
       mtime <- file.info(file.path(pipe_house$wait_room, x))$mtime

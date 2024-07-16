@@ -8,6 +8,8 @@ gap_eval_batch(
   pipe_house = NULL,
   gap_problem_thresh_s = 6 * 60 * 60,
   event_thresh_s = 10 * 60,
+  phens = NULL,
+  phen_eval = FALSE,
   meta_events = "meta_events",
   station_ext = ".ipip",
   prompt = FALSE,
@@ -15,11 +17,13 @@ gap_eval_batch(
   unwanted = NULL,
   verbose = FALSE,
   keep_open = FALSE,
+  cores = getOption("mc.cores", 2L),
+  xtra_v = FALSE,
   ...
 )
 }
 \arguments{
-\item{pipe_house}{Required. List of pipeline directories. \strong{See} \code{ipayipi::ipip_init()} \strong{for details}.}
+\item{pipe_house}{Required. List of pipeline directories. \strong{See} \code{ipayipi::ipip_house()} \strong{for details}.}
 
 \item{gap_problem_thresh_s}{A duration threshold (in seconds) beyond which a gap, in event-based time series records, is considered problematic --- a 'true' gap. These gaps require infilling or 'patching'. The default for event-based data is six hours (i.e., 6 * 60 * 60 seconds). If the 'record_interval_type' is not 'mixed' or 'event_based', i.e. it is only continuous, then the 'record_interval' parameter is used as the \code{gap_problem_thresh_s}.}
 

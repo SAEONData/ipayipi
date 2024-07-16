@@ -3,7 +3,7 @@
 #'  data files to the begining stages of the `ipayipi` data pipeline. Option
 #'  to archive all 'raw' data files in the pipeline structure, _see details_.
 #' @param pipe_house List of pipeline directories. __See__
-#'  `ipayipi::ipip_init()` __for details__.
+#'  `ipayipi::ipip_house()` __for details__.
 #' @param wipe_source Logical. If `TRUE` then raw data files in the source location will be deleted. _See details_
 #' @param file_ext_in The file extension defaults of the raw logger data files. This can be left as `NULL` so 'all' files but those with extensions that cannot be imbibed (".ipr|.ipi|.iph|.xls|.rps|.rns|.ods|.doc").
 #' @param file_ext_out The file extension used when raw logger data which has
@@ -28,7 +28,7 @@
 #'  In the pipeline structure this function should be used post `ipayipi::logger_data_import_batch()`. `ipayipi::imbibe_raw_batch()` is a wrapper for `ipayipi::imbibe_raw_logger_dt()` --- see this functions documentation for more details.
 #'
 #'  __'Archiving' raw data__
-#'  Files brought into the 'wait_room' are only housed there temporarily. In order to archive these raw data files a 'raw_room' directory must be provided in the 'pipe_house' object (_see_ `ipayipi::ipip_init()`). Files will be archived in structured directories in the 'raw_room' named by the last year and month in their respective date time records. Original  file names are maintained, and have a suffix with a unique integer plus the date and time of which they were archived. N.B. Files in the source directory (`source_dir`) are only deleted when `wipe_source` is set to `TRUE`.
+#'  Files brought into the 'wait_room' are only housed there temporarily. In order to archive these raw data files a 'raw_room' directory must be provided in the 'pipe_house' object (_see_ `ipayipi::ipip_house()`). Files will be archived in structured directories in the 'raw_room' named by the last year and month in their respective date time records. Original  file names are maintained, and have a suffix with a unique integer plus the date and time of which they were archived. N.B. Files in the source directory (`source_dir`) are only deleted when `wipe_source` is set to `TRUE`.
 #' @keywords meteorological data; automatic weather station; batch process; raw data standardisation; data pipeline
 #' @author Paul J. Gordijn
 #' @export
@@ -44,9 +44,11 @@ imbibe_raw_batch <- function(
     "ymd HMOS", "ymd HMS",
     "ymd IMOSp", "ymd IMSp",
     "mdY HMOS", "mdY HMS",
+    "mdy HMOS",  "mdy HMS",
     "mdy IMOSp",  "mdy IMSp",
     "dmY HMOS", "dmY HMS",
-    "dmy IMOSp", "dmy IMSp"),
+    "dmy IMOSp", "dmy IMSp"
+  ),
   dt_tz = "Africa/Johannesburg",
   record_interval_type = "continuous",
   remove_prompt = FALSE,
@@ -58,40 +60,45 @@ imbibe_raw_batch <- function(
   unwanted = NULL,
   recurr = FALSE,
   verbose = FALSE,
+  xtra_v = FALSE,
   cores = getOption("mc.cores", 2L),
   ...
 ) {
   "err" <- NULL
   # get list of data to be imported
   unwanted <- paste(".ipr|.ipi|.iph|.xls|.rps|.rns|.ods|.doc|.md", unwanted,
-    sep = "|")
+    sep = "|"
+  )
   unwanted <- gsub(pattern = "\\|$", replacement = "", x = unwanted)
   slist <- ipayipi::dta_list(input_dir = pipe_house$wait_room, file_ext =
-    file_ext_in, prompt = prompt, recurr = recurr, unwanted = unwanted,
-    wanted = wanted)
+      file_ext_in, prompt = prompt, recurr = recurr, unwanted = unwanted,
+    wanted = wanted
+  )
   if (length(slist) == 0) {
     msg <- "No files to imbibe. Check 'wait_room'."
     return(message(msg))
   }
-  cr_msg <- padr(core_message =
-    paste0(" Reading ", length(slist),
-      " logger files and converting ", collapes = ""),
-    wdth = 80, pad_char = "=", pad_extras = c("|", "", "", "|"),
-    force_extras = FALSE, justf = c(0, 0))
+  cr_msg <- padr(core_message = paste0(" Reading ", length(slist),
+      " logger files and converting ", collapes = ""
+    ), wdth = 80, pad_char = "=", pad_extras = c("|", "", "", "|"),
+    force_extras = FALSE, justf = c(0, 0)
+  )
   ipayipi::msg(cr_msg, verbose = verbose)
 
-  file_name_dt <- parallel::mclapply(seq_along(slist), function(i) {
+  file_name_dt <- lapply(seq_along(slist), function(i) {
     cr_msg <- padr(core_message = paste0(" +> ", slist[i], collapes = ""),
       wdth = 80, pad_char = " ", pad_extras = c("|", "", "", "|"),
-      force_extras = FALSE, justf = c(1, 1))
+      force_extras = FALSE, justf = c(1, 1)
+    )
     ipayipi::msg(cr_msg, verbose)
     if (is.null(file_ext_in)) {
       file_ext_in <- tools::file_ext(slist[i])
       file_ext_in <- paste0(".",
-        sub(pattern = "\\.", replacement = "", file_ext_in))
+        sub(pattern = "\\.", replacement = "", file_ext_in)
+      )
     }
     fp <- file.path(pipe_house$wait_room, slist[i])
-    fl <- ipayipi::imbibe_raw_logger_dt(
+    fl <- attempt::attempt(ipayipi::imbibe_raw_logger_dt(
       pipe_house = pipe_house,
       file_path = fp,
       file_ext = file_ext_in,
@@ -100,16 +107,19 @@ imbibe_raw_batch <- function(
       dt_tz = dt_tz,
       record_interval_type = record_interval_type,
       data_setup = data_setup,
-      verbose = verbose,
       remove_prompt = remove_prompt,
       max_rows = max_rows,
       logg_interfere_type = logg_interfere_type,
+      verbose = verbose,
+      xtra_v = xtra_v,
       cores = cores
-    )
+    ))
+    if (attempt::is_try_error(fl)) {
+      fl$err <- TRUE
+    }
     # save as tmp rds if no error
     if (!fl$err) {
-      fn_htmp <- tempfile(pattern = ".tmp_raw_",
-        tmpdir = pipe_house$wait_room)
+      fn_htmp <- tempfile(pattern = ".tmp_raw_", tmpdir = pipe_house$wait_room)
       st_dt <- min(fl$ipayipi_data_raw$raw_data$date_time)
       ed_dt <- max(fl$ipayipi_data_raw$raw_data$date_time)
       dttm_rng <- paste0(
@@ -120,8 +130,7 @@ imbibe_raw_batch <- function(
         as.character(format(ed_dt, "%m")),
         as.character(format(ed_dt, "%d"))
       )
-      fn <- paste0(
-        fl$ipayipi_data_raw$data_summary$uz_station[1], "_",
+      fn <- paste0(fl$ipayipi_data_raw$data_summary$uz_station[1], "_",
         fl$ipayipi_data_raw$data_summary$uz_table_name[1], "_",
         gsub(pattern = "_", replacement = "-", x = dttm_rng)
       )
@@ -141,7 +150,7 @@ imbibe_raw_batch <- function(
       file_ext_in = file_ext_in
     )
     return(fn_resolve)
-  }, mc.cores = cores)
+  })
   file_name_dt <- data.table::rbindlist(file_name_dt)
 
   # archive input raw files ----
@@ -155,22 +164,22 @@ imbibe_raw_batch <- function(
       arc_dir <- file.path(pipe_house$raw_room, fn_dt_arc$yr_mon_end[i])
       if (!dir.exists(arc_dir)) dir.create(arc_dir)
       file.copy(from = file.path(fn_dt_arc$fp[i]),
-        to = file.path(arc_dir, paste0(
-          gsub(pattern = fn_dt_arc$file_ext_in[i], replacement = "",
-            x = fn_dt_arc$ofn[i]),
-          "_arcdttm_", as.character(format(Sys.time(), "%Y%m%d_%Hh%Mm%Ss")),
-          fn_dt_arc$file_ext_in[i], collapse = "")))
-    }, mc.cores = cores)
+        to = file.path(arc_dir, paste0(gsub(pattern = fn_dt_arc$file_ext_in[i],
+            replacement = "", x = fn_dt_arc$ofn[i]
+          ), "_arcdttm_", as.character(format(Sys.time(), "%Y%m%d_%Hh%Mm%Ss")
+          ), fn_dt_arc$file_ext_in[i], collapse = ""
+        ))
+      )
+    }, mc.cores = cores, mc.cleanup = TRUE)
   }
 
   # check for duplicates and make unique integers
   if (!anyNA.data.frame(fn_dt_arc)) {
-    split_fn_dt_arc <- split(
-      fn_dt_arc, f = factor(fn_dt_arc$fn))
+    split_fn_dt_arc <- split(fn_dt_arc, f = factor(fn_dt_arc$fn))
     split_fn_dt_arc <- parallel::mclapply(split_fn_dt_arc, function(x) {
       x$rep <- seq_len(nrow(x))
       return(x)
-    }, mc.cores = cores)
+    }, mc.cores = cores, mc.cleanup = TRUE)
     fn_dt_arc <- data.table::rbindlist(split_fn_dt_arc)
     if (substr(file_ext_out, 1, 1) != ".") {
       file_ext_out <- paste0(".", file_ext_out)
@@ -181,7 +190,9 @@ imbibe_raw_batch <- function(
       if (file.exists(fn_dt_arc$fn_htmp[i])) {
         file.rename(from = fn_dt_arc$fn_htmp[i],
           to = file.path(dirname(fn_dt_arc$fn_htmp[i]),
-            paste0(fn_dt_arc$fn[i], "__", fn_dt_arc$rep[i], file_ext_out)))
+            paste0(fn_dt_arc$fn[i], "__", fn_dt_arc$rep[i], file_ext_out)
+          )
+        )
       }
 
       # remove dat file in wait room
@@ -190,14 +201,16 @@ imbibe_raw_batch <- function(
       # remove dat file in source
       if (wipe_source) {
         fr <- gsub(paste0("__*.", fn_dt_arc$file_ext_in[i], "$"),
-          fn_dt_arc$file_ext_in[i], fn_dt_arc$ofn[i])
+          fn_dt_arc$file_ext_in[i], fn_dt_arc$ofn[i]
+        )
         if (file.exists(fr))  file.remove(fr)
       }
-    }, mc.cores = cores)
+    }, mc.cores = cores, mc.cleanup = TRUE)
   }
   cr_msg <- padr(core_message = paste0(" imbibed  ", collapes = ""),
     wdth = 80, pad_char = "=", pad_extras = c("|", "", "", "|"),
-    force_extras = FALSE, justf = c(0, 0))
+    force_extras = FALSE, justf = c(0, 0)
+  )
   ipayipi::msg(cr_msg, verbose)
   if (nrow(file_name_dt[err == TRUE]) > 0) {
     message("Files could not be processed")

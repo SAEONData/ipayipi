@@ -26,16 +26,18 @@ ipayipi_data_log <- function(
   log_dir = NULL,
   file_ext = ".ipi",
   cores = getOption("mc.cores", 2L),
-  ...) {
+  ...
+) {
   # merge data sets into a station for given time periods
   slist <- ipayipi::dta_list(input_dir = log_dir, file_ext = file_ext,
-    prompt = FALSE, recurr = FALSE, unwanted = NULL)
+    prompt = FALSE, recurr = FALSE, unwanted = NULL
+  )
   # make table to guide merging by record interval, date_time, and station
   methdr <- parallel::mclapply(slist, function(x) {
     m <- readRDS(file.path(log_dir, x))
     methdr <- m$data_summary
     invisible(methdr)
-  }, mc.cores = cores)
+  }, mc.cores = cores, mc.cleanup = TRUE)
   methdr <- data.table::rbindlist(methdr)
   methdr$input_file <- slist
   if (nrow(methdr) == 0) {
@@ -58,6 +60,8 @@ ipayipi_data_log <- function(
       uz_record_interval = NA_character_,
       record_interval_type = NA_character_,
       record_interval = NA_character_,
+      dttm_inc_exc = NA,
+      dttm_ie_chng = NA,
       uz_table_name = NA_character_,
       table_name = NA_character_,
       nomvet_name = NA_character_,

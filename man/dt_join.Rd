@@ -2,55 +2,93 @@
 % Please edit documentation in R/z_h1_station_dt_join.r
 \name{dt_join}
 \alias{dt_join}
-\title{Perform data processing calculations}
+\title{Joins or merges 'x' and 'y' tables.}
 \usage{
 dt_join(
   join = "full_join",
   x_tbl = NULL,
   y_tbl = NULL,
-  y_phen_names = NULL,
   x_key = "date_time",
   y_key = "date_time",
+  fuzzy = NULL,
+  inq = NULL,
+  y_phen_names = NULL,
   nomatch = NA,
   mult = "all",
   roll = FALSE,
   rollends = FALSE,
   allow.cartesian = FALSE,
   time_seq = NULL,
-  fuzzy = NULL,
-  inq = NULL,
-  station_file = NULL,
-  dta_in = NULL,
-  input_dt = NULL,
-  output_dt = NULL,
-  output_dt_preffix = "dt_",
-  output_dt_suffix = NULL,
+  ri = NULL,
   f_params = NULL,
-  sfc = NULL,
   ppsij = NULL,
+  sfc = NULL,
+  verbose = FALSE,
+  xtra_v = FALSE,
+  cores = getOption("mc.cores", 2L),
   ...
 )
 }
 \arguments{
-\item{station_file}{Name of the station being processed.}
+\item{join}{One of the following join types:
+\enumerate{
+\item \emph{full_join}. Joins the 'x' and 'y' tables using keyed column. Retains all the matching and unmatching rows of 'x' and 'y' tables.
+\item \emph{left_join}. Adds the matching rows of 'x' to 'y' by keyed columns.
+\item \emph{right_join}. Adds the matching rows of 'y' to 'x' by keyed columns.
+\item \emph{inner_join}. Retains only rows of 'x' and 'y' that match by keyed columns.
+Keys are the columns of the 'x' (left) and 'y' (right) tables used for finding matches for a join. Because \code{ipayipi} is based on date-time data the default keys are assumed to be "date_time" if not provided. Unlike conventional joins where rows are only matched if there is an exact match, for 'fuzzy' or 'non-equi' joins are flexible. When using a 'fuzzy' join an inequality sign must be provided in the key list. \emph{See below}_.
+}}
 
-\item{dta_in}{Arugment for pipeline processing. Instead of providing the 'x' and 'y' tables to \code{x_tbl} and \code{y_tbl} The pipeline feeds data to this argument. A list of data to be processed.
-param input_dt
-param output_dt
-param f_params}
+\item{x_key}{Name(s) of the column(s) to key by the 'x' table. Vector of length one or two for conventional or fuzzy or non-equi joins, respectively. Defaults to \code{date_time}.}
 
-\item{f_summary}{A summary table of function parameters. This
-summary table is stored in the station file object. If there
-is a summary table for the function, differences between the
-\code{f_params} and table are checked and the 'f_summary' table
-is updated---triggering a re-calculation of the whole time series instead
-of for a slice of the series.}
+\item{y_key}{Same as above but for the 'y' or right table. Defaults to \code{date_time}.}
+
+\item{fuzzy}{A numeric (seconds) vector of length one or two.
+Fuzzy time-series joins require four keys in total: two keys for the 'x', and two for the 'y' table'. The nature of how these keys are join are controlled by arguments such as \code{inq} below.
+Both keys can be provided using the \code{x_key} and \code{y_key} arguments. But, if only one key is specified in the \code{x_key} and \code{y_key} arguments, the second key for each table can be generated based on the values provided here. For each 'x' and 'y' table, given the \code{fuzzy} argument is provided, the first and second keys for a table are calculated as:
+
+\eqn{x_key[1] = x_key[1] - fuzzy[1]}
+\eqn{x_key[2] = x_key[2] + fuzzy[1]}
+\eqn{y_key[1] = y_key[1] - fuzzy[2]}
+\eqn{y_key[2] = y_key[2] + fuzzy[2]}
+
+Note that if only one key is provided in the \code{x_key} and \code{y_key} arguments then the first value will be recycled for the second.
+
+Internally, the default names for these are xd1 and xd2, and yd1 and yd2, for 'x' and 'y' tables, respectively.
+
+For 'fuzzy' joins where two keys are provided for each 'x' and 'y' table the join syntax is compiled like this:
+'1st x key' 'x inequality' '1st y key', '2nd y key' 'x inequality' '2nd x key'.}
+
+\item{inq}{Inequality signs, vector of two (i.e., ">", ">=", "<", "<=") for fuzzy (non-equi) joins. Defaults to NULL.}
+
+\item{y_phen_names}{Names of phenomena (columns) to retain post the join.
+
+\emph{Custom data.table arguments}
+\code{data.table} has great documentation for these arguments.}
+
+\item{nomatch}{In outer joins the rows for which no match was found can be retained by setting this argument to NA. If this is set to NULL 'no match' rows are not retained. By default an inner_join has this argument set to NULL. For other joins this is set to NA. Setting the value here will override the default.}
+
+\item{mult}{Where multiple rows of the right table match the left, this argument controls how more than one match is handled. If specified as "all" (default), all matching rows are returned. Otherwise the "first" or "last" matching rows will be returned.}
+
+\item{roll}{Can't get better than the \code{data.table} documentation here.}
+
+\item{rollends}{Can't get better than the \code{data.table} documentation here.}
+
+\item{allow.cartesian}{Can't get better than the \code{data.table} documentation here.}
+
+\item{time_seq}{If data is continuous this can be set to TRUE to run time-series sensitive joining of data. Time-series sensitive joining on ensures the date-time series is continuous, i.e., the record intervals kept constant, and unique (no duplicate time stamps).}
+
+\item{ri}{Record interval of the 'y' or 'x' for left and right joins, respectively, or for both in a time-sensitive full join (\emph{see} \code{time_seq}). Single character string of a standardised time-series/record interval. Record intervals can be standardised using \code{ipayipi::sts_interval_name()}.}
+
+\item{phen_dt}{If a phenomena table is provided frokm the 'ipayipi' data processing pipeline, columns with listed standardised data types will be standardised accordingly using \code{ipayipi::phen_vars_sts()}.}
+
+\item{over_right}{Controls whether 'x' or 'y' table data are overwritten during a full, time-sensitive join (when \strong{seq_time == TRUE}). When TRUE the 'y' table is overwritten by overlapping (by time-series index) data in the 'x' table.}
 }
 \value{
 A list containing the processed data sets 'dts_dt'.
 }
 \description{
-Calculations are parsed to data.table.
+Joins two data tables based on a set of criteria.
 }
 \author{
 Paul J. Gordijn

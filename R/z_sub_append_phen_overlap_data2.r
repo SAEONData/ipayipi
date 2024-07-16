@@ -15,7 +15,7 @@
 #' @param rit Record interval type. One of the following options for time-series data: 'continuous', 'event_based', or 'mixed'.
 #' @param tn The name of the phenomena data tables. Argument only required for processing phenomena summary data.
 #' @param overwrite_sf Logical. If TRUE the station file or 'x' table values, if not NA, will be overwritten by values from the 'y' or new data table.
-#' @param cores Integer representing the number of cores available for processing data.
+#' @param cores Integer representing the number of cores available for processing data. Multiple core usage only supported on linux systems.
 #' @keywords append phenomena data, overwrite data, join tables,
 #' @author Paul J Gordijn
 #' @return List of useful items for internal use. Overap data.
@@ -108,7 +108,7 @@ append_phen_overlap_data2 <- function(
       )
       data.table::setkey(dtp, d1_old, d2_old)
       return(dtp)
-    }, mc.cores = cores)
+    }, mc.cores = cores, mc.cleanup = TRUE)
     names(dold_l) <- phens
     dold_l <- parallel::mclapply(dold_l, function(x) { # standardise variables
       ptab <- phen_dt
@@ -116,7 +116,7 @@ append_phen_overlap_data2 <- function(
       ptab[var_type %ilike% "fac|factor"]$var_type <- "chr"
       dta <- ipayipi::phen_vars_sts(phen_table = ptab, dta_in = x)
       return(dta)
-    }, mc.cores = cores)
+    }, mc.cores = cores, mc.cleanup = TRUE)
 
     dnew_l <- parallel::mclapply(seq_along(phens), function(i) {
       if (phens[i] %in% names(ndo)) {
@@ -144,7 +144,7 @@ append_phen_overlap_data2 <- function(
       )
       data.table::setkey(dtp, d1_new, d2_new)
       return(dtp)
-    }, mc.cores = cores)
+    }, mc.cores = cores, mc.cleanup = TRUE)
     names(dnew_l) <- phens
     dnew_l <- parallel::mclapply(dnew_l, function(x) { # standardise variable
       ptab <- phen_dt
@@ -152,7 +152,7 @@ append_phen_overlap_data2 <- function(
       ptab[var_type %ilike% "fac|factor"]$var_type <- "chr"
       dta <- ipayipi::phen_vars_sts(phen_table = ptab, dta_in = x)
       return(dta)
-    }, mc.cores = cores)
+    }, mc.cores = cores, mc.cleanup = TRUE)
   }
   # if phen_id is FALSE ----
   if (!phen_id) {
@@ -163,7 +163,7 @@ append_phen_overlap_data2 <- function(
       data.table::setnames(
         dtp, old = old_names, new = paste0(old_names, "_new"))
       return(dtp)
-    }, mc.cores = cores)
+    }, mc.cores = cores, mc.cleanup = TRUE)
     names(dnew_l) <- phens
     if (!is.null(phen_dt)) {
       dnew_l <- parallel::mclapply(dnew_l, function(x) { # standardise variable
@@ -172,7 +172,7 @@ append_phen_overlap_data2 <- function(
         ptab[var_type %ilike% "fac|factor"]$var_type <- "chr"
         dta <- ipayipi::phen_vars_sts(phen_table = ptab, dta_in = x)
         return(dta)
-      }, mc.cores = cores)
+      }, mc.cores = cores, mc.cleanup = TRUE)
     }
 
     sfo <- rbind(sfo, ndo[0, ], fill = TRUE)
@@ -182,7 +182,7 @@ append_phen_overlap_data2 <- function(
       data.table::setnames(
         dtp, old = old_names, new = paste0(old_names, "_old"))
       return(dtp)
-    }, mc.cores = cores)
+    }, mc.cores = cores, mc.cleanup = TRUE)
     names(dold_l) <- phens
     if (!is.null(phen_dt)) {
       dold_l <- parallel::mclapply(dold_l, function(x) { # standardise variables
@@ -191,7 +191,7 @@ append_phen_overlap_data2 <- function(
         ptab[var_type %ilike% "fac|factor"]$var_type <- "chr"
         dta <- ipayipi::phen_vars_sts(phen_table = ptab, dta_in = x)
         return(dta)
-      }, mc.cores = cores)
+      }, mc.cores = cores, mc.cleanup = TRUE)
     }
   }
 
@@ -254,7 +254,7 @@ append_phen_overlap_data2 <- function(
       is.na(dto[[i]][["id"]][]) == TRUE]
     naj <- length(naj)
     return(naj)
-  }, mc.cores = cores)
+  }, mc.cores = cores, mc.cleanup = TRUE)
   naj <- unlist(naj)
   naj <- which(naj == min(naj))[1]
   raw_dto <- lapply(dto, function(x) {
