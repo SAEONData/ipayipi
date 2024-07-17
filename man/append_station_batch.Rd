@@ -38,6 +38,10 @@ and where there are NA values, a replacement, if available, will be used to repl
 
 \item{verbose}{Print some details on the files being processed? Logical.}
 
+\item{xtra_v}{Logical. Whether or not to report xtra messages, progess, plus print data tables.}
+
+\item{keep_open}{Logical. If TRUE the station file connection is kept in the temporary directory after the function is finished processing.}
+
 \item{cores}{Number of CPU's to use for processing in parallel. Only applies when working on Linux.}
 }
 \description{

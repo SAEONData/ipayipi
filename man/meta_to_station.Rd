@@ -14,6 +14,10 @@ meta_to_station(
   stnd_title_col_name = "stnd_title",
   wanted = NULL,
   unwanted = NULL,
+  verbose = FALSE,
+  xtra_v = FALSE,
+  cores = getOption("mc.cores", 2L),
+  keep_open = FALSE,
   ...
 )
 }

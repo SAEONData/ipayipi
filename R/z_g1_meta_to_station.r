@@ -25,6 +25,10 @@ meta_to_station <- function(
   stnd_title_col_name = "stnd_title",
   wanted = NULL,
   unwanted = NULL,
+  verbose = FALSE,
+  xtra_v = FALSE,
+  cores = getOption("mc.cores", 2L),
+  keep_open = FALSE,
   ...
 ) {
   if (is.null(input_dir)) input_dir <- pipe_house$ipip_room
@@ -48,15 +52,25 @@ meta_to_station <- function(
   )
   message(cr_msg)
   r <- lapply(slist, function(x) {
-    sf <- readRDS(file.path(input_dir, x))
+    sfc <- open_sf_con2(pipe_house = pipe_house, station_file = x,
+      tmp = TRUE, verbose = verbose, cores = cores, xtra_v = xtra_v
+    )
     sfn <- gsub(pattern = station_ext, replacement = "", x = x)
-    sf[[in_station_meta_name]] <- edb[
-      eval(parse(text = paste0(stnd_title_col_name,
-        " == \"", sfn, "\"", collapse = ""
+    sfn <- basename(sfn)
+    mdta <- edb[which(edb[[stnd_title_col_name]] %in% sfn[1])]
+    # write event metadata to temporary station file
+    unlink(sfc[in_station_meta_name], recursive = TRUE)
+    ipayipi::msg("Chunking logger event data", xtra_v)
+    ipayipi::sf_dta_wr(
+      dta_room = file.path(dirname((sfc[1])), in_station_meta_name),
+      dta = mdta, overwrite = TRUE, tn = in_station_meta_name,
+      cores = cores, verbose = verbose, xtra_v = xtra_v
+    )
+    if (!keep_open) {
+      write_station(pipe_house = pipe_house, station_file = x,
+        overwrite = TRUE, append = FALSE, keep_open = keep_open
       )
-      ))
-    ]
-    saveRDS(sf, file = file.path(input_dir, x))
+    }
     cr_msg <- padr(core_message = paste0(
       basename(x), " done ...", collapes = ""
     ), wdth = 80, pad_char = " ", pad_extras = c("|", "", "", "|"),
