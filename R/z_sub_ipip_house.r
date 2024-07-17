@@ -35,19 +35,22 @@
 #' @author Paul J. Gordijn
 #' @export
 ipip_house <- function(
-    work_dir = ".",
-    source_room = NULL,
-    wait_room = NULL,
-    nomvet_room = NULL,
-    ipip_room = NULL,
-    raw_room = NULL,
-    ...
+  work_dir = ".",
+  source_room = NULL,
+  wait_room = NULL,
+  nomvet_room = NULL,
+  ipip_room = NULL,
+  raw_room = NULL,
+  ...
 ) {
   # dir 'names'
   dirs <- list("wait_room", "nomvet_room", "ipip_room", "raw_room")
   dirs <- lapply(dirs, function(x) {
     z <- get(x)
+    # lean and trailing forward and backward slashes
+    if (!is.null(z)) z <- gsub("^[/]|^[//]|^[\\]|[/]$|[\\]$", "", z)
     if (is.null(z)) z <- file.path(work_dir, x)
+    z <- gsub("^[/]|^[//]|^[\\]|[/]$|[\\]$", "", z)
     names(z) <- x
     return(z)
   })

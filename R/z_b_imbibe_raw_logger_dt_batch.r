@@ -94,7 +94,7 @@ imbibe_raw_batch <- function(
     if (is.null(file_ext_in)) {
       file_ext_in <- tools::file_ext(slist[i])
       file_ext_in <- paste0(".",
-        sub(pattern = "\\.", replacement = "", file_ext_in)
+        sub(pattern = "[.]", replacement = "", file_ext_in)
       )
     }
     fp <- file.path(pipe_house$wait_room, slist[i])
@@ -119,7 +119,9 @@ imbibe_raw_batch <- function(
     }
     # save as tmp rds if no error
     if (!fl$err) {
-      fn_htmp <- tempfile(pattern = ".tmp_raw_", tmpdir = pipe_house$wait_room)
+      fn_htmp <- tempfile(pattern = ".tmp_raw_", tmpdir = "")
+      fn_htmp <- gsub("^[/]|^[//]|^[\\]|[/]$|[\\]$", "", fn_htmp)
+      fn_htmp <- file.path(pipe_house$wait_room, fn_htmp)
       st_dt <- min(fl$ipayipi_data_raw$raw_data$date_time)
       ed_dt <- max(fl$ipayipi_data_raw$raw_data$date_time)
       dttm_rng <- paste0(
