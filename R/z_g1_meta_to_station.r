@@ -66,11 +66,9 @@ meta_to_station <- function(
       dta = mdta, overwrite = TRUE, tn = in_station_meta_name,
       cores = cores, verbose = verbose, xtra_v = xtra_v
     )
-    if (!keep_open) {
-      write_station(pipe_house = pipe_house, station_file = x,
-        overwrite = TRUE, append = FALSE, keep_open = keep_open
-      )
-    }
+    write_station(pipe_house = pipe_house, station_file = x,
+      overwrite = TRUE, append = FALSE, keep_open = keep_open
+    )
     cr_msg <- padr(core_message = paste0(
       basename(x), " done ...", collapes = ""
     ), wdth = 80, pad_char = " ", pad_extras = c("|", "", "", "|"),
