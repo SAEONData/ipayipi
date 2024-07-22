@@ -98,6 +98,7 @@ dta_availability2 <- function(
   names(run_gap_gaps) <- run_gaps
 
   gaps <- c(gaps[!sapply(gaps, is.null)], run_gap_gaps)
+  gaps_null <- gaps[[length(gaps)]][0]
   gs <- lapply(seq_along(gaps), function(i) {
     gaps[[i]]$station <- sub("\\.ipip", "", names(gaps[i]))
     g <- split.data.frame(gaps[[i]][problem_gap == TRUE],
@@ -150,10 +151,13 @@ dta_availability2 <- function(
     return(x)
   })
 
-  gs <- data.table::rbindlist(gs)
+  gs <- data.table::rbindlist(c(gs, list(gaps_null)), fill = TRUE,
+    use.names = TRUE
+  )
   gs <- gs[, ":="(start_dttm = gap_start, end_dttm = gap_end)]
   gs$table_wrd <- paste0(gs$station, ": ", gs$data_yes)
   sedta <- sedta[, station := stnd_title][, gid := ""]
+  gs <- rbind(gs, sedta, use.names = TRUE, fill = TRUE)
   p <- suppressWarnings(ggplot2::ggplot(gs[phen %in% "logger"], ggplot2::aes(
     y = data_yes, yend = data_yes, x = start_dttm, xend = end_dttm,
     group = data_yes, colour = station,
@@ -169,7 +173,7 @@ dta_availability2 <- function(
       )
     )) +
     ggplot2::geom_segment(colour = "#801b1b", linewidth = 6) +
-    ggplot2::geom_segment(data = gs[!phen %in% "logger"],
+    ggplot2::geom_segment(data = gs[!phen %in% "logger" & !is.na(phen)],
       colour = "#271a1195", linewidth = 4, ggplot2::aes(
         text = paste("<b>Start--end: </b>", start_dttm, "--", end_dttm,
           "<br>", "<b>Station: </b>", station, "<br>", "<b>Table name: </b>",

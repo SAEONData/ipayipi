@@ -39,7 +39,7 @@ open_sf_con2 <- function(
   }
 
   if (!file.exists(station_file) && !is.null(pipe_house)) {
-    message("Error: no station file detected!")
+    ipayipi::msg("Error: no station file detected!", verbose = xtra_v)
     return(NULL)
   }
 
