@@ -44,7 +44,7 @@ append_phen_data3 <- function(
   # get station/main data table ----
   if (is.character(station_file)) {
     sfc <- ipayipi::open_sf_con2(pipe_house = pipe_house, station_file =
-        station_file, verbose = verbose, xtra_v = xtra_v
+        station_file, verbose = verbose, xtra_v = xtra_v, cores = cores
     )
     # read_dta
     sf_eindx <- ipayipi::sf_dta_read(sfc = sfc, station_file = station_file,
@@ -150,7 +150,7 @@ append_phen_data3 <- function(
   # write in new data no overlap
   ipayipi::sf_dta_chunkr(dta_room = sfc[tn], dta_sets = list(ndno1, ndno2),
     tn = tn, ri = ri, rit = rit, rechunk = FALSE, verbose = verbose,
-    xtra_v = xtra_v
+    xtra_v = xtra_v, cores = cores
   ) # chunkr performs intra time series integrity check
   # add in overlap data
   fs <- dta_list(input_dir = ovlap$dta_room, unwanted = "aindxr")
@@ -158,7 +158,7 @@ append_phen_data3 <- function(
     dta_sets <- list(readRDS(file.path(ovlap$dta_room, x)))
     ipayipi::sf_dta_chunkr(dta_room = sfc[tn], dta_sets = dta_sets,
       tn = tn, ri = ri, rit = rit, rechunk = FALSE, verbose = verbose,
-      xtra_v = xtra_v
+      xtra_v = xtra_v, cores = cores
     )
   })
   unlink(ovlap$dta_room, recursive = TRUE)

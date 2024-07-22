@@ -165,7 +165,7 @@ append_station3 <- function(
     ri <- new_data$data_summary[table_name == tn]$record_interval[1]
     ri <- gsub("_", " ", ri)
     ipayipi::sf_dta_chunkr(dta_room = file.path(dirname(sfc[1]), tn),
-      tn = tn, ri = ri, rit = rit, dta_sets = list(ndt)
+      tn = tn, ri = ri, rit = rit, dta_sets = list(ndt), cores = cores
     )
   }
 
