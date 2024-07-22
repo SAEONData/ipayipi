@@ -11,7 +11,7 @@ write_station(
   overwrite = FALSE,
   append = TRUE,
   keep_open = FALSE,
-  con_f = "open_sf_con2",
+  con_f = "open_sf_con",
   verbose = FALSE,
   xtra_v = FALSE,
   ...

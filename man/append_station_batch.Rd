@@ -18,7 +18,6 @@ append_station_batch(
   xtra_v = FALSE,
   keep_open = FALSE,
   cores = getOption("mc.cores", 2L),
-  big_data = TRUE,
   ...
 )
 }

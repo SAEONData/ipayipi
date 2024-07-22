@@ -56,7 +56,7 @@ The first part of the processing stage of the \code{ipayipi} data pipeline is to
 \item \code{dt_calc_chain}: running \code{data.table} chained calculations on harvested data.
 \item \code{dt_agg}: Aggregate phenomena/variables by custom or default functions.
 Defaults are based on the phenomena descriptions in \code{phens} tables, i.e., their measure, variable type, and units. Default aggregation functions are housed in the \code{ipayipi::sts_agg_functions} table.
-\item \code{dt_join}: Used to merge harvested data sets via simple or comlex 'fuzzy' type joins based on time intervals using \code{data.table}s join syntax, and ipayipi's own time-series sensitive data joining \code{ipayipi::append_phen_data2()}, implemented through \code{ipayipi::mhlanga()}.
+\item \code{dt_join}: Used to merge harvested data sets via simple or comlex 'fuzzy' type joins based on time intervals using \code{data.table}s join syntax, and ipayipi's own time-series sensitive data joining \code{ipayipi::append_phen_data()}, implemented through \code{ipayipi::mhlanga()}.
 }
 
 The above functions can be specified in the \code{pipe_seq} function. \code{pipe_seq} runs partial to fuller evaluation of pipeline structure to promote seemless processing. Fuller evaluation by \code{ipayipi::pipe_seq()} is performed within \code{ipayipi::dt_process()}; during this process, station data (both internally and externally harvested data) are read so new-phenomena metadata can be generated. All this to minimise potential error during data processing.

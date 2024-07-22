@@ -25,7 +25,7 @@ dt_clean(
 )
 }
 \arguments{
-\item{sfc}{List of file paths to the temporary station file directory. Generated using \code{ipayipi::open_sf_con2()}.}
+\item{sfc}{List of file paths to the temporary station file directory. Generated using \code{ipayipi::open_sf_con()}.}
 
 \item{station_file}{Name of the station being processed.}
 

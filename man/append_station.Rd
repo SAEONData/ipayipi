@@ -2,7 +2,7 @@
 % Please edit documentation in R/z_e_append_station.r
 \name{append_station}
 \alias{append_station}
-\title{Append meteorological station data}
+\title{Append meteorological station data using chunck reads---version 3}
 \usage{
 append_station(
   pipe_house = NULL,
@@ -11,6 +11,8 @@ append_station(
   overwrite_sf = TRUE,
   by_station_table = FALSE,
   phen_id = TRUE,
+  verbose = FALSE,
+  xtra_v = FALSE,
   cores = getOption("mc.cores", 2L),
   ...
 )
