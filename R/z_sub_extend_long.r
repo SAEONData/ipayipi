@@ -33,7 +33,8 @@ dttm_extend_long <- function(
       dt_seq <- dt_seq[order(dttm)]
       x$date_time <- lubridate::round_date(x$date_time, unit = ri)
       x <- merge(x = dt_seq, y = x, by.x = "dttm", by.y = "date_time",
-        all.x = TRUE, all.y = FALSE)
+        all.x = TRUE, all.y = FALSE
+      )
       x <- x[, !names(x)[names(x) %in% "date_time"], with = FALSE]
       data.table::setnames(x, old = "dttm", new = "date_time")
       data.table::setcolorder(x, neworder = col_order)
