@@ -119,9 +119,11 @@ imbibe_raw_batch <- function(
     }
     # save as tmp rds if no error
     if (!fl$err) {
-      fn_htmp <- tempfile(pattern = ".tmp_raw_", tmpdir = "")
-      fn_htmp <- gsub("^[/]|^[//]|^[\\]|[/]$|[\\]$", "", fn_htmp)
-      fn_htmp <- file.path(pipe_house$wait_room, fn_htmp)
+      fn_htmp <- tempfile(pattern = "raw_",
+        tmpdir = file.path(tempdir(), "wait_room_tmp")
+      )
+      #fn_htmp <- gsub("^[/]|^[//]|^[\\]|[/]$|[\\]$", "", fn_htmp)
+      #fn_htmp <- file.path(pipe_house$wait_room, fn_htmp)
       st_dt <- min(fl$ipayipi_data_raw$raw_data$date_time)
       ed_dt <- max(fl$ipayipi_data_raw$raw_data$date_time)
       dttm_rng <- paste0(
@@ -137,6 +139,7 @@ imbibe_raw_batch <- function(
         gsub(pattern = "_", replacement = "-", x = dttm_rng)
       )
       class(fl$ipayipi_data_raw) <- "ipayipi_raw"
+      if (!file.exists(dirname(fn_htmp))) dir.create(dirname(fn_htmp))
       saveRDS(fl$ipayipi_data_raw, fn_htmp)
     } else {
       fn_htmp <- NA_character_
@@ -190,14 +193,15 @@ imbibe_raw_batch <- function(
     parallel::mclapply(seq_along(fn_dt_arc$fn), function(i) {
       # rename temp file
       if (file.exists(fn_dt_arc$fn_htmp[i])) {
-        file.rename(from = fn_dt_arc$fn_htmp[i],
-          to = file.path(dirname(fn_dt_arc$fn_htmp[i]),
+        file.copy(from = fn_dt_arc$fn_htmp[i],
+          to = file.path(pipe_house$wait_room,
             paste0(fn_dt_arc$fn[i], "__", fn_dt_arc$rep[i], file_ext_out)
           )
         )
+        unlink(fn_dt_arc$fn_htmp[i], recursive = TRUE)
       }
 
-      # remove dat file in wait room
+      # remove raw file in wait room
       if (file.exists(fn_dt_arc$fp[i])) file.remove(fn_dt_arc$fp[i])
 
       # remove dat file in source
