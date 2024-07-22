@@ -49,7 +49,7 @@ sf_dta_read <- function(
     class(dta) <- c(class(dta), "ipip-sf_rds")
   } else {
     # from tmp station file ----
-    sfc <- ipayipi::open_sf_con2(sfc = sfc, pipe_house = pipe_house,
+    sfc <- ipayipi::open_sf_con(sfc = sfc, pipe_house = pipe_house,
       station_file = file.path(sf_dir, station_file), tmp = TRUE,
       xtra_v = xtra_v
     )

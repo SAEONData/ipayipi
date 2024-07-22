@@ -14,7 +14,7 @@
 #' @author Paul J Gordijn
 #' @return Station file connection file paths. To be used in the pipeline.
 #' @details This function will not overwrite temporary station tables/data. If there is no chunked versino of the station file available, the station file ("ipip" file) will be chunked, and the connection established.
-open_sf_con2 <- function(
+open_sf_con <- function(
     pipe_house = NULL,
     station_file = NULL,
     tmp = FALSE,

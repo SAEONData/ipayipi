@@ -72,7 +72,7 @@ gap_eval <- function(
     "gid" <- "odd" <- NULL
 
   # open station connection
-  sfc <- ipayipi::open_sf_con2(pipe_house = pipe_house,
+  sfc <- ipayipi::open_sf_con(pipe_house = pipe_house,
     station_file = station_file, tmp = TRUE, cores = cores,
     verbose = verbose, xtra_v = xtra_v
   )
@@ -192,7 +192,7 @@ gap_eval <- function(
     cores = cores, verbose = verbose, xtra_v = xtra_v
   )
   # refresh station connection
-  sfc <- ipayipi::open_sf_con2(pipe_house = pipe_house, station_file =
+  sfc <- ipayipi::open_sf_con(pipe_house = pipe_house, station_file =
       station_file, tmp = TRUE, cores = cores, verbose = verbose,
     xtra_v = xtra_v
   )

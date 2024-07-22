@@ -19,7 +19,7 @@
 #' @return List of useful items for internal use. Overap data.
 #' @export
 #' @details This function is an internal function called by `ipayipi::append_phen_data()`.
-append_phen_overlap_data3 <- function(
+append_phen_overlap_data <- function(
   ndt = NULL,
   nd_min = NULL,
   nd_max = NULL,

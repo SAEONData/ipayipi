@@ -58,7 +58,7 @@ phen_gaps <- function(
   if (!phen_eval) return(NULL)
 
   # read station data of relevance
-  sfc <- open_sf_con2(pipe_house = pipe_house, station_file = station_file,
+  sfc <- open_sf_con(pipe_house = pipe_house, station_file = station_file,
     verbose = verbose, xtra_v = xtra_v, cores = cores, tmp = TRUE
   )
   tbl_n <- sfc[names(sfc) %ilike% tbl_n]

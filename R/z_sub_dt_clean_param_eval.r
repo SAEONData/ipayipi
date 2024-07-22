@@ -1,6 +1,6 @@
 #' @title Evaluate and prepare tables for joins
 #' @description Flexible and fast joining of `ipayipi` data.
-#' @param sfc  List of file paths to the temporary station file directory. Generated using `ipayipi::open_sf_con2()`.
+#' @param sfc  List of file paths to the temporary station file directory. Generated using `ipayipi::open_sf_con()`.
 #' @param station_file Name of the station being processed.
 #' @param clean_f Algorithm name. Only "hampel" supported.
 #' @param phen_names Vector of the phenomena names that will be evaluated by the hampel filter. If NULL the function will not run.

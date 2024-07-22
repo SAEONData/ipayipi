@@ -52,7 +52,7 @@ meta_to_station <- function(
   )
   message(cr_msg)
   r <- lapply(slist, function(x) {
-    sfc <- open_sf_con2(pipe_house = pipe_house, station_file = x,
+    sfc <- open_sf_con(pipe_house = pipe_house, station_file = x,
       tmp = TRUE, verbose = verbose, cores = cores, xtra_v = xtra_v
     )
     sfn <- gsub(pattern = station_ext, replacement = "", x = x)

@@ -4,7 +4,7 @@
 #' @param hsf_table The path of the directory in which to search for the external data and/or data table.
 #' @param ppsij The desirsed time_interval associated with the extracted data. If this is `NULL` then the table is extracted as is.
 #' @param f_params Function parameters parsed by `ipayipi::dt_process()`.
-#' @param sfc Station file connection; see `ipayipi::open_sf_con2()`.
+#' @param sfc Station file connection; see `ipayipi::open_sf_con()`.
 #' @author Paul J. Gordijn
 #' details
 #' @export
@@ -22,7 +22,7 @@ dt_harvest <- function(
     hsfc <- sfc
   } else {
     hsfc <- attempt::try_catch(
-      expr = ipayipi::open_sf_con2(
+      expr = ipayipi::open_sf_con(
         station_file = unique(f_params$hsf_station)[1], verbose = verbose,
         xtra_v = xtra_v
       ), .w = ~stop

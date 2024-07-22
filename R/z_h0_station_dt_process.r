@@ -21,7 +21,7 @@
 #'  - `dt_calc_chain`: running `data.table` chained calculations on harvested data.
 #'  - `dt_agg`: Aggregate phenomena/variables by custom or default functions.
 #'    Defaults are based on the phenomena descriptions in `phens` tables, i.e., their measure, variable type, and units. Default aggregation functions are housed in the `ipayipi::sts_agg_functions` table.
-#'  - `dt_join`: Used to merge harvested data sets via simple or comlex 'fuzzy' type joins based on time intervals using `data.table`s join syntax, and ipayipi's own time-series sensitive data joining `ipayipi::append_phen_data2()`, implemented through `ipayipi::mhlanga()`.
+#'  - `dt_join`: Used to merge harvested data sets via simple or comlex 'fuzzy' type joins based on time intervals using `data.table`s join syntax, and ipayipi's own time-series sensitive data joining `ipayipi::append_phen_data()`, implemented through `ipayipi::mhlanga()`.
 #'
 #'  The above functions can be specified in the `pipe_seq` function. `pipe_seq` runs partial to fuller evaluation of pipeline structure to promote seemless processing. Fuller evaluation by `ipayipi::pipe_seq()` is performed within `ipayipi::dt_process()`; during this process, station data (both internally and externally harvested data) are read so new-phenomena metadata can be generated. All this to minimise potential error during data processing. 
 #' Processed data, function parameters, and new phenomena summaries are returned and appended to station files for future use.
@@ -56,7 +56,7 @@ dt_process <- function(
   "%ilike%" <- "dt_n" <- "dtp_n" <- "ppsid" <- "phen_name" <- "n" <- NULL
 
   # open station file connection
-  sfc <- ipayipi::open_sf_con2(pipe_house = pipe_house, station_file =
+  sfc <- ipayipi::open_sf_con(pipe_house = pipe_house, station_file =
       station_file, tmp = TRUE, verbose = verbose, xtra_v = xtra_v
   )
   if (!is.null(pipe_seq) && any(!"pipe_seq" %in% names(sfc),
@@ -78,7 +78,7 @@ dt_process <- function(
       names(sfc) %ilike% "^dt_|_hsf_table_"
     ])
     unlink(sfc[mfiles[mfiles %in% names(sfc)]], recursive = TRUE)
-    sfc <- ipayipi::open_sf_con2(pipe_house = pipe_house, station_file =
+    sfc <- ipayipi::open_sf_con(pipe_house = pipe_house, station_file =
         station_file, tmp = TRUE, verbose = verbose, xtra_v = xtra_v
     )
   }
@@ -123,7 +123,7 @@ dt_process <- function(
   lapply(seq_along(pps), function(i) {
     ppsi <- pps[[i]]
     lapply(unique(ppsi$dtp_n), function(j) {
-      sfc <- open_sf_con2(pipe_house = pipe_house, station_file = station_file,
+      sfc <- open_sf_con(pipe_house = pipe_house, station_file = station_file,
         tmp = TRUE, verbose = verbose, xtra_v = xtra_v
       )
       # get function and prepare arguments
@@ -208,7 +208,7 @@ dt_process <- function(
       return(o)
     })
   })
-  sfc <- open_sf_con2(pipe_house = pipe_house, station_file = station_file,
+  sfc <- open_sf_con(pipe_house = pipe_house, station_file = station_file,
     tmp = TRUE, verbose = verbose, xtra_v = xtra_v
   )
   pps <- ipayipi::sf_dta_read(pipe_house = pipe_house, sfc = sfc, tmp = TRUE,
@@ -223,7 +223,7 @@ dt_process <- function(
   piit <- lapply(seq_along(pps), function(i) {
     ppsi <- pps[[i]]
     pit <- lapply(unique(ppsi$dtp_n), function(j) {
-      sfc <- open_sf_con2(pipe_house = pipe_house, station_file = station_file,
+      sfc <- open_sf_con(pipe_house = pipe_house, station_file = station_file,
         tmp = TRUE, verbose = verbose, xtra_v = xtra_v
       )
       # get function and prepare arguments
@@ -254,7 +254,7 @@ dt_process <- function(
     })
     pit <- data.table::rbindlist(pit)
 
-    sfc <- open_sf_con2(pipe_house = pipe_house, station_file = station_file,
+    sfc <- open_sf_con(pipe_house = pipe_house, station_file = station_file,
       tmp = TRUE, verbose = verbose, xtra_v = xtra_v
     )
     # convert dt_working to output_dt
@@ -288,7 +288,7 @@ dt_process <- function(
   piit <- rbind(opiit[!dt_n %in% piit$dt_n], piit)
   piit <- piit[order(dt_n, dtp_n, n)]
   saveRDS(piit, file.path(dirname(sfc[1]), "pipe_seq"))
-  sfc <- open_sf_con2(pipe_house = pipe_house, station_file = station_file,
+  sfc <- open_sf_con(pipe_house = pipe_house, station_file = station_file,
     tmp = TRUE, verbose = verbose, xtra_v = xtra_v
   )
   unwanted_tbls <- paste0(c(unwanted_tbls, "_hsf_table_"), collapse = "|")

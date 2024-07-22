@@ -20,28 +20,37 @@
 #' @export
 #' @details This function is an internal function called by others in the
 #'  pipeline.
-append_phen_data2 <- function(
-  pipe_house = NULL,
-  station_file = NULL,
-  sf_phen_ds = NULL,
-  ndt = NULL,
-  new_phen_ds = NULL,
-  phen_id = FALSE,
-  phen_dt = NULL,
-  overwrite_sf = FALSE,
-  tn = NULL,
-  ri = NULL,
-  rit = NULL,
-  cores = getOption("mc.cores", 2L),
-  ...) {
+append_phen_data <- function(
+    pipe_house = NULL,
+    station_file = NULL,
+    sf_phen_ds = NULL,
+    ndt = NULL,
+    new_phen_ds = NULL,
+    phen_id = FALSE,
+    phen_dt = NULL,
+    overwrite_sf = FALSE,
+    tn = NULL,
+    ri = NULL,
+    rit = NULL,
+    cores = getOption("mc.cores", 2L),
+    verbose = verbose,
+    xtra_v = xtra_v,
+    ...) {
   ":=" <- "phid" <- "start_dttm" <- "table_name" <- "date_time" <-
     "end_dttm" <- NULL
+  # prep data tables date-time for chunk extraction
+  nd_min <- min(ndt$date_time)
+  nd_max <- max(ndt$date_time)
   # get station/main data table ----
   if (is.character(station_file)) {
     sfc <- ipayipi::open_sf_con(pipe_house = pipe_house, station_file =
-      station_file)
-    sf <- ipayipi::sf_read(sfc = sfc, station_file = station_file, tv = tn,
-      tmp = TRUE, pipe_house = pipe_house)[[tn]]
+        station_file, verbose = verbose, xtra_v = xtra_v, cores = cores
+    )
+    # read_dta
+    sf_eindx <- ipayipi::sf_dta_read(sfc = sfc, station_file = station_file,
+      tv = tn, tmp = TRUE, pipe_house = pipe_house, start_dttm = nd_min,
+      end_dttm = nd_max, return_dta = FALSE
+    )[[tn]]
   } else if (data.table::is.data.table(station_file)) {
     sf <- station_file
   }
@@ -51,55 +60,52 @@ append_phen_data2 <- function(
     phens <- unique(phen_dt[table_name == tn]$phen_name)
   }
 
-  # prep data tables by time
-  nd_min <- min(ndt$date_time)
-  nd_max <- max(ndt$date_time)
-  sfo <- sf[date_time >= nd_min][date_time <= nd_max] # overlap data
-  if (overwrite_sf) {
-    sfo <- sfo[date_time > nd_max][date_time < nd_min]
-  }
-  sfo <- sfo[!duplicated(sfo$date_time)]
-
-  # non-overlap data
-  sfno1 <- sf[date_time < nd_min]
-  sfno2 <- sf[date_time > nd_max]
-  sf_min <- min(sf$date_time)
-  sf_max <- min(sf$date_time)
-
-  ovlap <- ipayipi::append_phen_overlap_data2(
-    sfo = sfo, sf_max = sf_max, sf_min = sf_min,
+  ovlap <- ipayipi::append_phen_overlap_data(
     ndt = ndt, nd_min = nd_min, nd_max = nd_max,
     phen_id = phen_id, phens = phens, phen_dt = phen_dt,
     sf_phen_ds = sf_phen_ds, new_phen_ds = new_phen_ds,
-    ri = ri, tn = tn, overwrite_sf = overwrite_sf, cores = cores)
+    ri = ri, rit = rit, tn = tn, overwrite_sf = overwrite_sf,
+    cores = cores, sf_eindx = sf_eindx,
+    verbose = verbose, xtra_v = xtra_v
+  )
   phen_dtos <- ovlap$phen_dtos
-  raw_dto <- ovlap$raw_dto
+  phen_dtos <- unique(data.table::rbindlist(phen_dtos))
   sfo_max <- ovlap$sfo_max
   sfo_min <- ovlap$sfo_min
-  rm(ovlap)
+
+  # get station file table aindxr
+  ai <- readRDS(file.path(sfc[tn], "aindxr"))
+  # add in min and max for each chunk in the aindxr file for use below
+  # so that the actual min and max dttm of data can be queried easily
 
   ### deal with non-overlap data
-  sfno1 <- sf[date_time < nd_min]
-  sfno2 <- sf[date_time > nd_max]
   if (is.null(sfo_min)) {
-    sfo_min <- min(sf$date_time)
-    sfo_max <- max(sf$date_time)
+    sfo_min <- min(ai$mn)
+    sfo_max <- max(ai$mx)
   }
   ndno1 <- ndt[date_time < sfo_min]
   ndno2 <- ndt[date_time > sfo_max]
 
   ## only do this section if phen_id is TRUE ---------------------
   if (phen_id) {
-    if (nrow(sfno1) < 1 && nrow(sfno2) < 1) {
+    si <- sf_eindx$indx$indx_tbl
+    #if (nrow(sfno1) < 1 && nrow(sfno2) < 1) {
+    simn <- min(si$dta_mn, na.rm = TRUE)
+    simx <- max(si$dta_mx, na.rm = TRUE)
+    if (all(min(simn > nd_min, simx < nd_max))) {
       sfno_pdt <- sf_phen_ds[0, ]
     } else {
-      sfno_dttm_min <- min(rbind(sfno1, sfno2)$date_time)
-      sfno_dttm_max <- max(rbind(sfno1, sfno2)$date_time)
+      sfno_dttm_min <- simn
+      sfno_dttm_max <- simx
       sfno_pdt <- sf_phen_ds
       sfno_pdt$start_dttm <- data.table::fifelse(
-        sfno_pdt$start_dttm < sfno_dttm_min, sfno_dttm_min, sfno_pdt$start_dttm)
+        sfno_pdt$start_dttm < sfno_dttm_min,
+        sfno_dttm_min, sfno_pdt$start_dttm
+      )
       sfno_pdt$end_dttm <- data.table::fifelse(
-        sfno_pdt$end_dttm > sfno_dttm_max, sfno_dttm_max, sfno_pdt$end_dttm)
+        sfno_pdt$end_dttm > sfno_dttm_max,
+        sfno_dttm_max, sfno_pdt$end_dttm
+      )
     }
     if (nrow(ndno1) < 1 && nrow(ndno2) < 1) {
       ndno_pdt <- new_phen_ds[0, ]
@@ -108,11 +114,14 @@ append_phen_data2 <- function(
       ndno_dttm_max <- max(rbind(ndno1, ndno2)$date_time)
       ndno_pdt <- new_phen_ds[table_name == tn]
       ndno_pdt$start_dttm <- data.table::fifelse(
-        ndno_pdt$start_dttm < ndno_dttm_min, ndno_dttm_min, ndno_pdt$start_dttm)
+        ndno_pdt$start_dttm < ndno_dttm_min,
+        ndno_dttm_min, ndno_pdt$start_dttm
+      )
       ndno_pdt$end_dttm <- data.table::fifelse(
-        ndno_pdt$end_dttm > ndno_dttm_max, ndno_dttm_max, ndno_pdt$end_dttm)
+        ndno_pdt$end_dttm > ndno_dttm_max,
+        ndno_dttm_max, ndno_pdt$end_dttm
+      )
     }
-    #sfno <- rbind(sfno, ndno, fill = TRUE)
     sfno_pdt <- rbind(sfno_pdt, ndno_pdt, fill = TRUE)
 
     # join overlap data and non-overlap data
@@ -124,27 +133,34 @@ append_phen_data2 <- function(
     }
     phen_ds <- phen_ds[!is.na(phid)][order(phid, start_dttm, end_dttm)]
     split_phen_ds <- split.data.frame(phen_ds,
-      f = factor(paste(phen_ds$phid)))
+      f = factor(paste(phen_ds$phid))
+    )
     split_phen_ds <- lapply(split_phen_ds, function(z) {
       z <- data.table::data.table(start_dttm = min(z$start_dttm),
-        end_dttm = max(z$end_dttm), phid = z$phid[1])
+        end_dttm = max(z$end_dttm), phid = z$phid[1]
+      )
       return(z)
     })
     phen_ds <- data.table::rbindlist(split_phen_ds)[order(phid, start_dttm)][,
-      table_name := tn]
+      table_name := tn
+    ]
     phen_ds <- unique(phen_ds)
   }
 
-  # join data and ensure continuous time series
-  data_sets <- list(sfno1, sfno2, ndno1, ndno2, raw_dto)
-  data_sets <- data_sets[sapply(data_sets, function(x) !is.null(x))]
-  data_sets <- parallel::mclapply(data_sets, function(x) {
-    data.table::setcolorder(x, c("id", "date_time",
-      names(x)[!names(x) %in% c("id", "date_time")]))
-  }, mc.cores = cores, mc.cleanup = TRUE)
-  app_dta <- ipayipi::dttm_extend_long(data_sets = data_sets, ri = ri,
-    intra_check = TRUE)
-  # message(paste0(min(app_dta$date_time), "--", max(app_dta$date_time)))
-  # message(nrow(app_dta))
-  return(list(app_dta = app_dta, phen_ds = phen_ds))
+  # write in new data no overlap
+  ipayipi::sf_dta_chunkr(dta_room = sfc[tn], dta_sets = list(ndno1, ndno2),
+    tn = tn, ri = ri, rit = rit, rechunk = FALSE, verbose = verbose,
+    xtra_v = xtra_v, cores = cores
+  ) # chunkr performs intra time series integrity check
+  # add in overlap data
+  fs <- dta_list(input_dir = ovlap$dta_room, unwanted = "aindxr")
+  lapply(fs, function(x) {
+    dta_sets <- list(readRDS(file.path(ovlap$dta_room, x)))
+    ipayipi::sf_dta_chunkr(dta_room = sfc[tn], dta_sets = dta_sets,
+      tn = tn, ri = ri, rit = rit, rechunk = FALSE, verbose = verbose,
+      xtra_v = xtra_v, cores = cores
+    )
+  })
+  unlink(ovlap$dta_room, recursive = TRUE)
+  return(list(phen_ds = phen_ds))
 }

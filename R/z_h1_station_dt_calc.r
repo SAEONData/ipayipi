@@ -1,6 +1,6 @@
 #' @title Perform data processing calculations
 #' @description Calculations are parsed to data.table.
-#' @param sfc List of file paths to the temporary station file directory. Generated using `ipayipi::open_sf_con2()`.
+#' @param sfc List of file paths to the temporary station file directory. Generated using `ipayipi::open_sf_con()`.
 #' @param station_file Name of the station being processed.
 #' @param f_params Function parameters evaluated by `ipayipi::calc_param_eval()`. These are parsed to `dt_calc()` from `dt_process()`.
 #' @param ppsij Data processing `pipe_seq` table from which function parameters and data are extracted/evaluated. This is parsed to this function automatically by `ipayipi::dt_process()`.

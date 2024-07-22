@@ -79,7 +79,7 @@ dta_availability2 <- function(
   # produce gap tables where they are missing
   run_gaps <- names(gaps[sapply(gaps, is.null)])
   lapply(run_gaps, function(x) {
-    ipayipi::open_sf_con2(pipe_house = pipe_house, station_file = x,
+    ipayipi::open_sf_con(pipe_house = pipe_house, station_file = x,
       tmp = TRUE, cores = cores, keep_open = TRUE
     )
   })

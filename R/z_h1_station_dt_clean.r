@@ -1,6 +1,6 @@
 #' @title Flag outliers and impute missing values.
 #' @description Uses the non-parametric hampel filter to detect anomalies and impute values in a univariate series of numeric data.
-#' @param sfc  List of file paths to the temporary station file directory. Generated using `ipayipi::open_sf_con2()`.
+#' @param sfc  List of file paths to the temporary station file directory. Generated using `ipayipi::open_sf_con()`.
 #' @param station_file Name of the station being processed.
 #' @param clean_f Algorithm name. Only "hampel" supported.
 #' @param phen_names Vector of the phenomena names that will be evaluated by the hampel filter. If NULL the function will not run.

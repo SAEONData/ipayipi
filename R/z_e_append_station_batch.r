@@ -36,7 +36,6 @@ append_station_batch <- function(
   xtra_v = FALSE,
   keep_open = FALSE,
   cores = getOption("mc.cores", 2L),
-  big_data = TRUE,
   ...
 ) {
   # overwrite_sf = FALSE
@@ -50,7 +49,7 @@ append_station_batch <- function(
   # verbose = TRUE
   # keep_open = FALSE
   # cores = getOption("mc.cores", 2L)
-  # con_f = "open_sf_con2"
+  # con_f = "open_sf_con"
   # big_data <- TRUE
   # get list of station names in the ipip directory
   station_files <- ipayipi::dta_list(
@@ -78,7 +77,7 @@ append_station_batch <- function(
   station_files <- gsub(station_ext, "", station_files)
   ## statread
   all_station_files <- unlist(lapply(station_files, function(x) {
-    sfc <- ipayipi::open_sf_con2(pipe_house = pipe_house,
+    sfc <- ipayipi::open_sf_con(pipe_house = pipe_house,
       station_file = paste0(x, station_ext), tmp = TRUE, cores = cores,
       xtra_v = xtra_v, verbose = verbose
     )
@@ -130,13 +129,11 @@ append_station_batch <- function(
       # append data
       station_file <- paste0(new_station_files[i], station_ext)
       # append function, then save output as new station
-      args <- list(pipe_house = pipe_house,
-        station_file = station_file, new_data = new_data,
-        overwrite_sf = overwrite_sf, by_station_table = by_station_table,
-        phen_id = phen_id, verbose = verbose, xtra_v = xtra_v, cores = cores
+      ipayipi::append_station(pipe_house = pipe_house, station_file =
+          station_file, new_data = new_data, overwrite_sf = overwrite_sf,
+        by_station_table = by_station_table, phen_id = phen_id,
+        verbose = verbose, xtra_v = xtra_v, cores = cores
       )
-      if (big_data) f <- "append_station3"
-      do.call(f, args)
     }
     # close station file connection if finished with the station
     j <- i + 1
