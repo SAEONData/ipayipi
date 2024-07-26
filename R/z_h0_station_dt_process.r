@@ -57,7 +57,8 @@ dt_process <- function(
 
   # open station file connection
   sfc <- ipayipi::open_sf_con(pipe_house = pipe_house, station_file =
-      station_file, tmp = TRUE, verbose = verbose, xtra_v = xtra_v
+      station_file, tmp = TRUE, verbose = verbose, xtra_v = xtra_v,
+      cores = cores
   )
   if (!is.null(pipe_seq) && any(!"pipe_seq" %in% names(sfc),
         overwrite_pipe_memory
@@ -80,7 +81,8 @@ dt_process <- function(
     unlink(sfc[mfiles[mfiles %in% names(sfc)]], recursive = TRUE)
   }
   sfc <- ipayipi::open_sf_con(pipe_house = pipe_house, station_file =
-      station_file, tmp = TRUE, verbose = verbose, xtra_v = xtra_v
+      station_file, tmp = TRUE, verbose = verbose, xtra_v = xtra_v,
+    cores = cores
   )
   # read function summary tables
   # open output_dt and associate table summary
@@ -123,7 +125,7 @@ dt_process <- function(
     ppsi <- pps[[i]]
     lapply(unique(ppsi$dtp_n), function(j) {
       sfc <- open_sf_con(pipe_house = pipe_house, station_file = station_file,
-        tmp = TRUE, verbose = verbose, xtra_v = xtra_v
+        tmp = TRUE, verbose = verbose, xtra_v = xtra_v, cores = cores
       )
       # get function and prepare arguments
       ppsij <- ppsi[dtp_n == j]
@@ -208,10 +210,10 @@ dt_process <- function(
     })
   })
   sfc <- open_sf_con(pipe_house = pipe_house, station_file = station_file,
-    tmp = TRUE, verbose = verbose, xtra_v = xtra_v
+    tmp = TRUE, verbose = verbose, xtra_v = xtra_v, cores = cores
   )
-  pps <- ipayipi::sf_dta_read(pipe_house = pipe_house, sfc = sfc, tmp = TRUE,
-    tv = "pipe_seq", verbose = FALSE
+  pps <- ipayipi::sf_dta_read(sfc = sfc, tmp = TRUE, tv = "pipe_seq",
+    verbose = FALSE
   )[["pipe_seq"]]
   if (!is.null(stages)) {
     pps <- pps[dt_n >= min(stages)][dt_n <= max(stages)]
@@ -223,7 +225,7 @@ dt_process <- function(
     ppsi <- pps[[i]]
     pit <- lapply(unique(ppsi$dtp_n), function(j) {
       sfc <- open_sf_con(pipe_house = pipe_house, station_file = station_file,
-        tmp = TRUE, verbose = verbose, xtra_v = xtra_v
+        tmp = TRUE, verbose = verbose, xtra_v = xtra_v, cores = cores
       )
       # get function and prepare arguments
       ppsij <- ppsi[dtp_n == j]
@@ -254,7 +256,7 @@ dt_process <- function(
     pit <- data.table::rbindlist(pit)
 
     sfc <- open_sf_con(pipe_house = pipe_house, station_file = station_file,
-      tmp = TRUE, verbose = verbose, xtra_v = xtra_v
+      tmp = TRUE, verbose = verbose, xtra_v = xtra_v, cores = cores
     )
     # convert dt_working to output_dt
     odtn <- unique(ppsi$output_dt)[1]
@@ -288,7 +290,7 @@ dt_process <- function(
   piit <- piit[order(dt_n, dtp_n, n)]
   saveRDS(piit, file.path(dirname(sfc[1]), "pipe_seq"))
   sfc <- open_sf_con(pipe_house = pipe_house, station_file = station_file,
-    tmp = TRUE, verbose = verbose, xtra_v = xtra_v
+    tmp = TRUE, verbose = verbose, xtra_v = xtra_v, cores = cores
   )
   unwanted_tbls <- paste0(c(unwanted_tbls, "_hsf_table_"), collapse = "|")
   unwanted_tbls <- names(sfc)[names(sfc) %ilike% unwanted_tbls]
