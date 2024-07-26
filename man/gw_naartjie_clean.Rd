@@ -15,6 +15,8 @@ gw_naartjie_clean(
   wanted = NULL,
   unwanted = NULL,
   prompt = TRUE,
+  verbose = FALSE,
+  cores = getOption("mc.cores", 2L),
   ...
 )
 }

@@ -36,7 +36,7 @@ dt_process_batch <- function(
   verbose = FALSE,
   xtra_v = FALSE,
   cores = getOption("mc.cores", 2L),
-  keep_open = FALSE,
+  keep_open = TRUE,
   ...
 ) {
   # overwrite_pipe_memory = FALSE

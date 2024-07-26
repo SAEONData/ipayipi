@@ -3,7 +3,7 @@
 #' @param pipe_house List of pipeline directories. __See__ `ipayipi::ipip_house()` __for details__.
 #' @param overwrite_sf If `TRUE` then original data (station data) is disgarded in favour of new data. If TRUE both data sets will be evaluated
 #'  and where there are NA values, a replacement, if available, will be used to replace the NA value. Defaults to FALSE.
-#' @param by_station_table If TRUE then multiple station tables will not be kept in the same station file. Defaults to FALSE.
+#' @param by_station_table If TRUE then multiple station tables will not be kept in the same station file. Defaults to `FALSE.`
 #' @param station_ext The extension of the station file. Defaults to 'ipip'.
 #' @param sts_file_ext Extension of standardised files in the 'nomvet_room'.
 #' @param prompt Prompt logical passed for selection of 'nomvet' files.
@@ -34,7 +34,7 @@ append_station_batch <- function(
   phen_id = TRUE,
   verbose = FALSE,
   xtra_v = FALSE,
-  keep_open = FALSE,
+  keep_open = TRUE,
   cores = getOption("mc.cores", 2L),
   ...
 ) {

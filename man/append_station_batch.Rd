@@ -16,7 +16,7 @@ append_station_batch(
   phen_id = TRUE,
   verbose = FALSE,
   xtra_v = FALSE,
-  keep_open = FALSE,
+  keep_open = TRUE,
   cores = getOption("mc.cores", 2L),
   ...
 )
@@ -27,7 +27,7 @@ append_station_batch(
 \item{overwrite_sf}{If \code{TRUE} then original data (station data) is disgarded in favour of new data. If TRUE both data sets will be evaluated
 and where there are NA values, a replacement, if available, will be used to replace the NA value. Defaults to FALSE.}
 
-\item{by_station_table}{If TRUE then multiple station tables will not be kept in the same station file. Defaults to FALSE.}
+\item{by_station_table}{If TRUE then multiple station tables will not be kept in the same station file. Defaults to \code{FALSE.}}
 
 \item{station_ext}{The extension of the station file. Defaults to 'ipip'.}
 

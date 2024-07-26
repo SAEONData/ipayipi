@@ -14,7 +14,7 @@
 #' @param prompt Should the function use an interactive file selection function otherwise all files are returned. TRUE or FALSE.
 #' @param recurr Should the function search recursively into sub directories for hobo rainfall csv export files? TRUE or FALSE.
 #' @param cores  Number of CPU's to use for processing in parallel. Only applies when working on Linux.
-#' @param keep_open Logical. Keep _hidden_ 'station_file' open for ease of access. Defaults to `FALSE`.
+#' @param keep_open Logical. Keep _hidden_ 'station_file' open for ease of access. Defaults to `TRUE`.
 #' @author Paul J. Gordijn
 #' @details Gap data for each station and respective tables are extracted from the station, using `ipayipi::gap_eval()`. Gap tables are combined with the full record of data in a data summary table and plotted using ggplot2. Note that 'gaps' can be edited by imbibing metadata into a stations record, _see_ `ipayipi::gap_eval()` for details.
 #' @return A list containing a plot, which shows the availability of data, the gap data as formatted for plotting. The plot is produced using `ggplot2::ggplot()`.
@@ -36,7 +36,7 @@ dta_availability <- function(
   recurr = FALSE,
   prompt = FALSE,
   cores = getOption("mc.cores", 2L),
-  keep_open = FALSE,
+  keep_open = TRUE,
   ...
 ) {
   ".SD" <- ":=" <- "." <- NULL

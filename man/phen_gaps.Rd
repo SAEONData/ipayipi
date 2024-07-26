@@ -47,8 +47,6 @@ phen_gaps(
 \item{prompt}{Should the function use an interactive file selection function otherwise all files are returned. TRUE or FALSE.}
 
 \item{recurr}{Should the function search recursively into sub directories for hobo rainfall csv export files? TRUE or FALSE.}
-
-\item{keep_open}{Logical. Keep \emph{hidden} 'station_file' open for ease of access. Defaults to \code{FALSE}.}
 }
 \value{
 A list containing a plot, which shows the availability of data, the gap data as formatted for plotting. The plot is produced using \code{ggplot2::ggplot()}.

@@ -36,7 +36,7 @@ dta_availability2 <- function(
   recurr = FALSE,
   prompt = FALSE,
   cores = getOption("mc.cores", 2L),
-  keep_open = FALSE,
+  keep_open = TRUE,
   xtra_v = FALSE,
   ...
 ) {

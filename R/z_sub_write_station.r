@@ -35,7 +35,7 @@ write_station <- function(
     station_file = NULL,
     overwrite = FALSE,
     append = TRUE,
-    keep_open = FALSE,
+    keep_open = TRUE,
     con_f = "open_sf_con",
     verbose = FALSE,
     xtra_v = FALSE,

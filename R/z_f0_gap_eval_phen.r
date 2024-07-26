@@ -14,7 +14,6 @@
 #' @param prompt Should the function use an interactive file selection function otherwise all files are returned. TRUE or FALSE.
 #' @param recurr Should the function search recursively into sub directories for hobo rainfall csv export files? TRUE or FALSE.
 #' @param cores  Number of CPU's to use for processing in parallel. Only applies when working on Linux.
-#' @param keep_open Logical. Keep _hidden_ 'station_file' open for ease of access. Defaults to `FALSE`.
 #' @author Paul J. Gordijn
 #' @details 
 #'  - function assumes date_time column

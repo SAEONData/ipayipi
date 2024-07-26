@@ -19,7 +19,7 @@ dta_availability(
   recurr = FALSE,
   prompt = FALSE,
   cores = getOption("mc.cores", 2L),
-  keep_open = FALSE,
+  keep_open = TRUE,
   ...
 )
 }
@@ -52,7 +52,7 @@ dta_availability(
 
 \item{cores}{Number of CPU's to use for processing in parallel. Only applies when working on Linux.}
 
-\item{keep_open}{Logical. Keep \emph{hidden} 'station_file' open for ease of access. Defaults to \code{FALSE}.}
+\item{keep_open}{Logical. Keep \emph{hidden} 'station_file' open for ease of access. Defaults to \code{TRUE}.}
 }
 \value{
 A list containing a plot, which shows the availability of data, the gap data as formatted for plotting. The plot is produced using \code{ggplot2::ggplot()}.

@@ -17,7 +17,7 @@ meta_to_station(
   verbose = FALSE,
   xtra_v = FALSE,
   cores = getOption("mc.cores", 2L),
-  keep_open = FALSE,
+  keep_open = TRUE,
   ...
 )
 }
@@ -37,6 +37,8 @@ meta_to_station(
 \item{wanted}{A strong containing keywords to use to filter which stations are selected for processing. Multiple search kewords should be seperated with a bar ('|'), and spaces avoided unless part of the keyword.}
 
 \item{unwanted}{Similar to wanted, but keywords for filtering out unwanted stations.}
+
+\item{keep_open}{Logical. Keep \emph{hidden} 'station_file' open for ease of access. Defaults to \code{TRUE}.}
 
 \item{...}{Additional arguments passed to \code{ipayipi::dta_list()}.}
 }

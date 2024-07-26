@@ -16,7 +16,7 @@ dt_process(
   unwanted_tbls = "_tmp",
   cores = getOption("mc.cores", 2L),
   xtra_v = FALSE,
-  keep_open = FALSE,
+  keep_open = TRUE,
   ...
 )
 }

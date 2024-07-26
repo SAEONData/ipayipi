@@ -36,6 +36,7 @@ open_sf_con <- function(
       paste0("*", sf_dir, "$"), "", pipe_house$ipip_room
     )
     station_file <- file.path(pipe_house$ipip_room, sf_dir, station_file)
+    station_file <- gsub("^[/]|^[//]|^[\\]|[/]$|[\\]$", "", station_file)
   }
 
   if (!file.exists(station_file) && !is.null(pipe_house)) {

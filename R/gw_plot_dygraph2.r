@@ -1,33 +1,15 @@
-#' @title Visualisation of ground water corrections with interactive widgets.
-#' @description This function uses the html based `dygraphs' package to
-#'  generate interactive graphs that can be included in markdown documents.
-#'  There are several options provided for plotting transformed groundwater
-#'  data.
-#' @details Plotting is optimized for evaluating transformed groundwater data
-#'  processed using `ipayipi`. The transformed data should be compared to the
-#'  `drift-neutral` data to visually assess the effectiveness of data
-#'  processing. Drift-netral data has not been drift corrected, and therefore,
-#'  indicates the effectiveness of barometric compensation.
-#' @param file A level file object read into R.
-#' @param vis_type Integer options 1, 2, 3, or 4. 1 - plots only the drift
-#'  corrected water level; 2 - plots only drift neutral time series with
-#'  outliers; 3 - combination of 1 and 2. 4 - plots barologger data alongside
-#'  drift neutral series; cannot include rainfall (`rain_data` must be set to
-#'  NULL, and conduct to FALSE).
-#' @param dippr If TRUE this add dipper readings to the graphs.
-#' @param conduct Logical. If `TRUE` conductivity data (if present) will be
-#'  plotted on the secondary axis.
-#' @param group use a common string to syncronize the a-axes of separate graphs.
-#' @param show_events Show when logger data was downloaded.
-#' @param rain_data A list with three elements. If provided the
-#'  value will be passed to `ipayipi::rain_aggs()` --- see documentation
-#'  --- and the rainfall data  will be included on the graphs secondary axis.
-#'  If this argument is provided it will override display of elecroconductivity
-#'  on the secondary axis. The first element must contain the aggregation period
-#'  and the second a search keyword that will be used to select a rainfall
-#'  station.
+#' @title Visualisation of multiple groundwater level series.
+#' @description Plots interactive graph for visualising trends in water level and daily rainfall patterns.
+#' @details Plotting is optimized for evaluating transformed groundwater data processed using `ipayipi`. Daily rainfall data must have no missing values within the data set (i.e., leading and training NA values are fine, but NAs between the start and end date-times will be problematic). Plotting is done via `dygraphs`.
+#' @param input_dir Defaults to the current working directory. Only used if the `pipe_house` object is `NULL`.
+#' @param wanted Regex string used to filter stations when searching for groundwater data to plot.
+#' @param unwanted Regex string to filter off unwanted stations when searching for groundwater stations from which to extract data.
+#' @param rain_data A data.table with daily rainfall data. The rainfall column must be headed 'rain_tot', and the 'date-time' column must be named 'date_time'.
+#' @param recurr Whether to search recursively within the `input_dir` or `pipe_house$ipip_room`. Logical. Defaults to FALSE.
+#' @param prompt Logical. Use a prompt to select stations for plotting? Defaults to FALSE.
+#' @param pipe_house If the `pipe_house` is provided stationse will be searched for in the `pipe_house$ipip_room` directory.
 #' @author Paul J. Gordijn
-#' @keywords Ground water visualisation, graph,
+#' @keywords Ground water visualisation, graph, grouped series
 #' @export
 gw_vis_dy2 <- function(
   input_dir = ".",
@@ -36,71 +18,60 @@ gw_vis_dy2 <- function(
   rain_data = NULL,
   recurr = FALSE,
   prompt = FALSE,
+  pipe_house = NULL,
   ...
-  ) {
+) {
+  ":=" <- NULL
+  "date_time" <- NULL
 
+  if (!is.null(pipe_house)) input_dir <- pipe_house$ipip_room
   # summarise station data
-  dta <- ipayipi::dta_flat_pull(input_dir = input_dir, file_ext = ".rds",
+  dta <- ipayipi::dta_flat_pull(pipe_house = pipe_house, file_ext = ".rds",
     tab_name = "log_t", phen_name = "t_level_m", prompt = prompt,
-    recurr = recurr, wanted = wanted, unwanted = unwanted)
+    recurr = recurr, wanted = wanted, unwanted = unwanted
+  )
 
   if (!is.null(rain_data)) {
-    rn  <- ipayipi::rain_plot_aggs(agg = rain_data$agg,
-      input_dir = rain_data$rain_dir, wanted =
-      rain_data$search_patterns, ignore_nas = TRUE)
-    rn <- rn$plot_data
+    rn <- rain_data[, c("date_time", "rain_tot"), with = FALSE]
     rn$date_time <- as.POSIXct(rn$date_time, tz =
-      attr(dta$dta$date_time, "tzone"))
+        attr(dta$dta$date_time, "tzone")
+    )
     rn <- rn[date_time >= max(dta$dta$date_time) |
-      date_time <= max(dta$dta$date_time)]
-    rn$dt2 <- rn$date_time
-    data.table::setkey(rn, date_time, dt2)
-    dta$dta$dtt2 <- dta$dta$date_time
-    data.table::setkey(dta$dta, date_time, dtt2)
-    dta1 <- data.table::foverlaps(dta$dta, rn, mult = "first",
-      nomatch = NA)
-    dta1$int <- ifelse(!is.na(dta1$rain_mm), 1, NA)
-    l <- nrow(dta1[int == 1])
-    dta1[int == 1]$int <- seq_len(l)
-    dta1[nrow(dta1), "int"] <- l + 1
-    dta1[1, "int"] <- 0
-    int_seq <- dta1[!is.na(int)]$int
-    rs <- lapply(seq_along(int_seq), function(x) {
-      if (x > 1) {
-        r1 <- which(dta1$int == (int_seq[x] - 1))
-        r2 <- which(dta1$int == (int_seq[x])) - 1
-        rs <- dta1[r1:r2, ]
-        rs$rain_mm <- sum(rs$rain_mm, na.rm = TRUE)
-      } else {
-        rs <- dta1[0, ]
-      }
-      invisible(rs)
-    })
-    dta1 <- data.table::rbindlist(rs)
+        date_time <= max(dta$dta$date_time)
+    ]
+    rn <- rn[, ":="(dtr1 = date_time, dtr2 = date_time)]
+    dta1 <- dta$dta
+    dta1 <- dta1[, ":="(dt1 = date_time, dt2 = date_time)]
+    dta1 <- rn[dta1, on = "date_time", roll = TRUE]
 
-    dta$dta <- dta1[, c("dtt2", "rain_mm", gsub(".rds", "", dta$stations)),
-      with = FALSE]
-    data.table::setnames(dta$dta, old = "dtt2", new = "date_time")
+    dta$dta <- dta1[,
+      c("date_time", "rain_tot", gsub(".rds", "", dta$stations)),
+      with = FALSE
+    ]
   } else {
-    dta$dta$rain_mm  <- NA
+    dta$dta$rain_tot  <- NA
   }
 
   ## convert d_main to xts format
   x <- xts::xts(dta$dta[, -"date_time", with = FALSE],
-    order.by = dta$dta$date_time)
+    order.by = dta$dta$date_time
+  )
 
   p <- dygraphs::dyRangeSelector(dygraphs::dygraph(x,
-      xlab = "Time", ylab = "Water level (m a.s.l.)"))
-  p <- dygraphs::dySeries(p, name = names(x)[!names(x) %in% "rain_mm"])
-  p <- dygraphs::dySeries(p, name = "rain_mm",
-    color = "#5d5a50ab", axis = "y2", stepPlot = TRUE,
-      fillGraph = TRUE)
+    xlab = "Time", ylab = "Water level (m a.s.l.)"
+  ))
+  p <- dygraphs::dyGroup(p, name = names(x)[!names(x) %in% "rain_tot"],
+    color = viridisLite::mako((ncol(x) - 1), begin = 0.2, end = 0.8)
+  )
+  c("#0B0405FF", "#357BA2FF", "#60CEACFF")
+  p <- dygraphs::dySeries(p, name = "rain_tot", color = "#5d5a50ab",
+    axis = "y2", stepPlot = TRUE, fillGraph = TRUE
+  )
   p <- dygraphs::dyAxis(p, "y2", label = paste0("Rainfall (mm)"))
   p <- dygraphs::dyOptions(p, fillAlpha = 0.4)
   p <- dygraphs::dyOptions(p, connectSeparatedPoints = FALSE,
-    drawGapEdgePoints = FALSE)
-  cols <- viridisLite::mako((ncol(x) - 1))
-  p <- dygraphs::dyOptions(p, colors = cols)
+    drawGapEdgePoints = FALSE
+  )
 
-  return(list(p = p, dta = dta$dta, cols = cols))
+  return(list(p = p, dta = dta$dta))
 }

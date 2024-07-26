@@ -122,8 +122,8 @@ imbibe_raw_batch <- function(
       fn_htmp <- tempfile(pattern = "raw_",
         tmpdir = file.path(tempdir(), "wait_room_tmp")
       )
-      #fn_htmp <- gsub("^[/]|^[//]|^[\\]|[/]$|[\\]$", "", fn_htmp)
-      #fn_htmp <- file.path(pipe_house$wait_room, fn_htmp)
+      # fn_htmp <- gsub("^[/]|^[//]|^[\\]|[/]$|[\\]$", "", fn_htmp)
+      # fn_htmp <- file.path(pipe_house$wait_room, fn_htmp)
       st_dt <- min(fl$ipayipi_data_raw$raw_data$date_time)
       ed_dt <- max(fl$ipayipi_data_raw$raw_data$date_time)
       dttm_rng <- paste0(

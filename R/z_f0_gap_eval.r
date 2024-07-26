@@ -7,7 +7,7 @@
 #' @param phens Vector of phenomena names used for the 'phen' gap evaluation. Phenomena gap evaluation checks for 'NA' values in each phenomena column of a data table. Phenomena gaps result from sensor errors, whilst logger downtime result in 'logger' data gaps.
 #' @param phen_eval Logical. If TRUE phenomena will be evaluate for 'NA' values. Note this is not appropriate from some loggers where gaps have to be determined from logger data input summaries, e.g., hobo logger event data---rainfall.
 #' @param meta_events Optional. The name of the data.table in the station file with event metadata. Defaults to "meta_events".
-#' @param keep_open Logical. Keep _hidden_ 'station_file' open for ease of access. Defaults to `FALSE`.
+#' @param keep_open Logical. Keep _hidden_ 'station_file' open for ease of access. Defaults to `TRUE`.
 #' @param verbose Logical. Whether or not to report messages and progress.
 #' @param cores  Number of CPU's to use for processing in parallel. Only applies when working on Linux.
 #' @details There are a number of different data problems that arise in time-series data. One of the simplest issues are data gaps, that is, periods where no data were recorded by a logger, or an individual sensor attached to a logger. Moreover, data can be declared 'missing' if it is erraneous. This function helps users identify gaps in continuous and discontinuous data types. Below is an overview of this function.
@@ -45,7 +45,7 @@ gap_eval <- function(
   event_thresh_s = 10 * 60,
   phen_eval = TRUE,
   phens = NULL,
-  keep_open = FALSE,
+  keep_open = TRUE,
   meta_events = "meta_events",
   verbose = FALSE,
   cores = getOption("mc.cores", 2L),

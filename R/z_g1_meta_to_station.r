@@ -8,6 +8,7 @@
 #' @param in_station_meta_name The file name (without extension) of the metadata file that will be filtered and appended to a station file.
 #' @param wanted A strong containing keywords to use to filter which stations are selected for processing. Multiple search kewords should be seperated with a bar ('|'), and spaces avoided unless part of the keyword.
 #' @param unwanted Similar to wanted, but keywords for filtering out unwanted stations.
+#' @param keep_open Logical. Keep _hidden_ 'station_file' open for ease of access. Defaults to `TRUE`.
 #' @param ... Additional arguments passed to `ipayipi::dta_list()`.
 #' @keywords logger data processing; field metadata; data pipeline; supplementary data; field notes
 #' @author Paul J. Gordijn
@@ -28,7 +29,7 @@ meta_to_station <- function(
   verbose = FALSE,
   xtra_v = FALSE,
   cores = getOption("mc.cores", 2L),
-  keep_open = FALSE,
+  keep_open = TRUE,
   ...
 ) {
   if (is.null(input_dir)) input_dir <- pipe_house$ipip_room

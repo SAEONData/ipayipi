@@ -39,13 +39,13 @@ dt_process <- function(
   unwanted_tbls = "_tmp",
   cores = getOption("mc.cores", 2L),
   xtra_v = FALSE,
-  keep_open = FALSE,
+  keep_open = TRUE,
   ...
 ) {
   # pipe_seq = pipe_seq
   # output_dt_preffix = "dt_"
   # output_dt_suffix = NULL
-  # overwrite_pipe_memory = T
+  # overwrite_pipe_memory = F
   # verbose = TRUE
   # unwanted_tbls = "_tmp"
   # cores = getOption("mc.cores", 2L)
@@ -78,11 +78,10 @@ dt_process <- function(
       names(sfc) %ilike% "^dt_|_hsf_table_"
     ])
     unlink(sfc[mfiles[mfiles %in% names(sfc)]], recursive = TRUE)
-    sfc <- ipayipi::open_sf_con(pipe_house = pipe_house, station_file =
-        station_file, tmp = TRUE, verbose = verbose, xtra_v = xtra_v
-    )
   }
-
+  sfc <- ipayipi::open_sf_con(pipe_house = pipe_house, station_file =
+      station_file, tmp = TRUE, verbose = verbose, xtra_v = xtra_v
+  )
   # read function summary tables
   # open output_dt and associate table summary
   sf_names <- names(sfc)
@@ -98,12 +97,12 @@ dt_process <- function(
     overwrite_pipe_memory = overwrite_pipe_memory
   )
 
-  if (pp$update_pipe_data) {
+  if (pp$update_pipe_data || !"f_params" %in% names(sfc)) {
     # prep pps for partial evaluation
     pps <- pp$pipe_seq
     pps <- split(pps, f = factor(pps$dt_n))
     saveRDS(pp$pipe_seq, file.path(dirname(sfc[1]), "pipe_seq"))
-  } else {# no eval if NULL --- sf already has pps
+  } else {# no eval if NULL --- sf already has pps and f_params
     pps <- NULL
   }
 

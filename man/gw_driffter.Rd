@@ -13,6 +13,7 @@ gw_driffter(
   wanted = NULL,
   unwanted = NULL,
   prompt = TRUE,
+  cores = getOption("mc.cores", 2L),
   ...
 )
 }
