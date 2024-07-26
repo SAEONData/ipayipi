@@ -87,10 +87,10 @@ dta_availability2 <- function(
     g <- ipayipi::gap_eval(pipe_house = pipe_house, station_file = x,
       gap_problem_thresh_s = gap_problem_thresh_s, event_thresh_s =
         event_thresh_s, keep_open = keep_open, meta_events = meta_events,
-      verbose = verbose
+      verbose = verbose, cores = cores, xtra_v = xtra_v
     )
     ipayipi::write_station(pipe_house = pipe_house, sf = g, station_file = x,
-      overwrite = TRUE, append = TRUE, keep_open = keep_open
+      overwrite = TRUE, append = TRUE, keep_open = keep_open, cores = cores
     )
     g$gaps <- g$gaps[problem_gap == TRUE]
     invisible(g$gaps)

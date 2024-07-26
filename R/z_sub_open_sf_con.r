@@ -17,7 +17,7 @@
 open_sf_con <- function(
     pipe_house = NULL,
     station_file = NULL,
-    tmp = FALSE,
+    tmp = TRUE,
     chunk_i = NULL,
     i_zeros = 5,
     rit = NULL,

@@ -30,16 +30,17 @@
 #' Arguments `append` and `overwrite` control how different station files (i.e., hidden, R environment, or on disk) are merged.
 #'
 write_station <- function(
-    pipe_house = NULL,
-    sf = NULL,
-    station_file = NULL,
-    overwrite = FALSE,
-    append = TRUE,
-    keep_open = TRUE,
-    con_f = "open_sf_con",
-    verbose = FALSE,
-    xtra_v = FALSE,
-    ...) {
+  pipe_house = NULL,
+  sf = NULL,
+  station_file = NULL,
+  overwrite = FALSE,
+  append = TRUE,
+  keep_open = TRUE,
+  verbose = FALSE,
+  xtra_v = FALSE,
+  cores = getOption("mc.cores", 2L),
+  ...
+) {
   "%ilike%" <- NULL
 
   ipayipi::msg(paste0("Writing station: ", station_file), xtra_v)
@@ -130,10 +131,9 @@ write_station <- function(
   }
   if (all(!keep_open, extmp)) unlink(sf_tmp, recursive = TRUE)
   if (all(keep_open, !extmp)) {
-    args <- list(pipe_house = pipe_house, station_file = station_file,
-      verbose = verbose, xtra_v = xtra_v
+    sfc <- ipayipi::open_sf_con(pipe_house = pipe_house, station_file =
+        station_file, verbose = verbose, xtra_v = xtra_v, cores = cores
     )
-    sfc <- do.call(con_f, args)
   } else {
     sfc <- NULL
   }

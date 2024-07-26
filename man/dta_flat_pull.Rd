@@ -5,6 +5,7 @@
 \title{Pulls multiple station data into a 'flat' file}
 \usage{
 dta_flat_pull(
+  input_dir = ".",
   pipe_house = NULL,
   tab_names = NULL,
   phen_name = NULL,
@@ -16,16 +17,20 @@ dta_flat_pull(
   out_csv = FALSE,
   out_tab_name = NULL,
   out_csv_preffix = "",
-  recurr = FALSE,
+  recurr = TRUE,
   cores = getOption("mc.cores", 2L),
   file_ext = ".ipip",
+  verbose = FALSE,
+  xtra_v = FALSE,
   ...
 )
 }
 \arguments{
-\item{pipe_house}{The directory in which to search for stations form which to extract time-series data. If working across different 'pipe_house' directories a 'pseudo' pipehouse object can be created, e.g., pipe_house <- list(ipip_room = "."); only the 'ipip_room' is listed here as this is the standard folder where stations are kept.}
+\item{input_dir}{The directory in which to search for stations form which to extract time-series data.}
 
-\item{tab_names}{Vector of table names in a station files from which to extract data. Add items to the vector such that only one table per station is selected. Table names are selected via the \code{\%in\%} argument.}
+\item{pipe_house}{If the \code{pipe_house} argument is provided the \code{pipe_house$ipip_room} will be used instead of the \code{input_dir}.}
+
+\item{tab_names}{Vector of table names in a station files from which to extract data. Add items to the vector such that only the first matching table from a station is selected. Table names are selected via the \code{\%in\%} argument.}
 
 \item{phen_name}{The field/column/name of the phenomena which to join into a single data table.}
 
@@ -43,9 +48,15 @@ dta_flat_pull(
 
 \item{out_csv_preffix}{Preffix for the output csv file. The phenomena name and then time interval by which the data are summarised are used as a suffix.}
 
+\item{recurr}{Whether to search recursively through folders. Defaults to TRUE.}
+
 \item{cores}{Number of CPU's to use for processing in parallel. Only applies when working on Linux systems.}
 
 \item{file_ext}{The extension of the stations from where data will be extracted. Defaults to ".ipip".}
+
+\item{verbose}{Whether to report on progress.}
+
+\item{xtra_v}{Extra verbose. Logical.}
 }
 \value{
 A list containing 1) the summarised data in a single data.table, 2) a character string representing the time interval by which the data has been summarised, 3) the list of stations used for the summary, 4) the name of the table and the name of the field for which data was summarised.
@@ -55,7 +66,7 @@ Summarises data by the longest time interval for a particular phenomena wihtin t
 The function can be used to summarise time-series data from a number of stations and the output saved to a csv file.
 }
 \details{
-Notethis function only extracts data from compressed station files. Development is required to modify this function to extract from 'temporary station files' to spped up data extraction from large files.
+Note this function only extracts data from decompressed station files. If a station has not be decompressed the function will take time decompressing.
 }
 \author{
 Paul J. Gordijn

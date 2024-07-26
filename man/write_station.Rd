@@ -11,9 +11,9 @@ write_station(
   overwrite = FALSE,
   append = TRUE,
   keep_open = TRUE,
-  con_f = "open_sf_con",
   verbose = FALSE,
   xtra_v = FALSE,
+  cores = getOption("mc.cores", 2L),
   ...
 )
 }

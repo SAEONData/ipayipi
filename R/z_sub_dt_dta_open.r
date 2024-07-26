@@ -38,7 +38,9 @@ dt_dta_open <- function(
           if ("date_time" %in% names(dx)) {
             dx <- dx[date_time >= sdtmx_xz_r] #[date_time <= end_dttm]
           }
-          dx <- dx[, names(dx)[names(dx) %in% dta_phens], with = FALSE]
+          dx <- dx[, names(dx)[names(dx) %in% c("date_time", dta_phens)],
+            with = FALSE
+          ]
           return(dx)
         }), fill = TRUE
       )

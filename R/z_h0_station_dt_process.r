@@ -295,7 +295,7 @@ dt_process <- function(
   if (length(unwanted_tbls) == 0) unwanted_tbls <- NULL
   sapply(unwanted_tbls, function(x) unlink(sfc[x], recursive = TRUE))
   ipayipi::write_station(pipe_house = pipe_house, station_file = station_file,
-    overwrite = TRUE, keep_open = keep_open
+    overwrite = TRUE, keep_open = keep_open, cores = cores
   )
   return(station_file)
 }

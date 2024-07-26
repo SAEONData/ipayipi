@@ -123,7 +123,7 @@ append_station_batch <- function(
       # create new station file
       ipayipi::write_station(pipe_house = pipe_house, sf = new_data,
         station_file = paste0(new_station_files[i], station_ext),
-        overwrite = TRUE, append = FALSE, keep_open = TRUE
+        overwrite = TRUE, append = FALSE, keep_open = TRUE, cores = cores
       )
     } else {
       # append data
@@ -144,7 +144,7 @@ append_station_batch <- function(
     if (any(length(sfl) == 0, i == j)) {
       ipayipi::write_station(pipe_house = pipe_house, station_file =
           paste0(new_station_files[i], station_ext), append = TRUE,
-        overwrite = TRUE, keep_open = keep_open
+        overwrite = TRUE, keep_open = keep_open, cores = cores
       )
     }
     invisible(new_station_files[i])

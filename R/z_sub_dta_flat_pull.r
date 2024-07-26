@@ -1,8 +1,9 @@
 #' @title Pulls multiple station data into a 'flat' file
 #' @description Summarises data by the longest time interval for a particular phenomena wihtin the specified data table in an `ipayipi` station object.
 #'  The function can be used to summarise time-series data from a number of stations and the output saved to a csv file.
-#' @param pipe_house The directory in which to search for stations form which to extract time-series data. If working across different 'pipe_house' directories a 'pseudo' pipehouse object can be created, e.g., pipe_house <- list(ipip_room = "."); only the 'ipip_room' is listed here as this is the standard folder where stations are kept.
-#' @param tab_names Vector of table names in a station files from which to extract data. Add items to the vector such that only one table per station is selected. Table names are selected via the `%in%` argument.
+#' @param input_dir The directory in which to search for stations form which to extract time-series data.
+#' @param pipe_house If the `pipe_house` argument is provided the `pipe_house$ipip_room` will be used instead of the `input_dir`.
+#' @param tab_names Vector of table names in a station files from which to extract data. Add items to the vector such that only the first matching table from a station is selected. Table names are selected via the `%in%` argument.
 #' @param phen_name The field/column/name of the phenomena which to join into a single data table.
 #' @param ri Record-interval string. This function will guess the record interval used to generate a flat table. However, the guess may not be possible if there is insufficient data.
 #' @param output_dir The output directory where an output csv file is saved.
@@ -10,15 +11,19 @@
 #' @param unwanted Similar to wanted, but keywords for filtering out unwanted stations.
 #' @param out_csv Logical. If TRUE a csv file is exported to the output directory.
 #' @param out_csv_preffix Preffix for the output csv file. The phenomena name and then time interval by which the data are summarised are used as a suffix.
+#' @param recurr Whether to search recursively through folders. Defaults to TRUE.
 #' @param cores  Number of CPU's to use for processing in parallel. Only applies when working on Linux systems.
 #' @param file_ext The extension of the stations from where data will be extracted. Defaults to ".ipip".
 #' @param prompt Logical. If `TRUE` a prompt will be called so that the user can interactively select station files.
-#' @details Notethis function only extracts data from compressed station files. Development is required to modify this function to extract from 'temporary station files' to spped up data extraction from large files.
+#' @param verbose Whether to report on progress.
+#' @param xtra_v Extra verbose. Logical.
+#' @details Note this function only extracts data from decompressed station files. If a station has not be decompressed the function will take time decompressing.
 #' @keywords data pipeline; summarise time-series data; long-format data.
 #' @return A list containing 1) the summarised data in a single data.table, 2) a character string representing the time interval by which the data has been summarised, 3) the list of stations used for the summary, 4) the name of the table and the name of the field for which data was summarised.
 #' @author Paul J. Gordijn
 #' @export
 dta_flat_pull <- function(
+  input_dir = ".",
   pipe_house = NULL,
   tab_names = NULL,
   phen_name = NULL,
@@ -30,84 +35,102 @@ dta_flat_pull <- function(
   out_csv = FALSE,
   out_tab_name = NULL,
   out_csv_preffix = "",
-  recurr = FALSE,
+  recurr = TRUE,
   cores = getOption("mc.cores", 2L),
   file_ext = ".ipip",
+  verbose = FALSE,
+  xtra_v = FALSE,
   ...
 ) {
-  "%like%" <- NULL
-  "dt1" <- "dt2" <- "dt3" <- "dt4" <- NULL
+  ":=" <- NULL
+  "stnd_title" <- NULL
+
+  # orgainise directories
+  if (!is.null(pipe_house)) input_dir <- pipe_house$ipip_room
+
   # merge data sets into a station for given time periods
-  slist <- ipayipi::dta_list(input_dir = pipe_house$ipip_room,
-    file_ext = file_ext, prompt = prompt, recurr = recurr,
-    unwanted = unwanted, wanted = wanted
+  slist <- ipayipi::dta_list(input_dir = input_dir, file_ext = file_ext,
+    prompt = prompt, recurr = recurr, unwanted = unwanted, wanted = wanted
   )
+  sn <- gsub(paste0(file_ext, "$"), "", basename(slist))
+  if (anyDuplicated(sn) > 0) {
+    message("Reading duplicated stations ('stnd_title') not allowed!")
+    message("Refine search keywords using the 'un\\wanted arguments")
+    print(slist[order(sn)])
+    return(NULL)
+  }
   if (length(slist) == 0) return(NULL)
   # extract all relevant tables from the data
   t <- lapply(slist, function(x) {
-    m <- readRDS(file.path(pipe_house$ipip_room, x))
-    tab_name <- names(m)[names(m) %in% tab_names][1]
-    t <- m[[tab_name]]
-    cols_inc <- names(t)[names(t) %like% "date_time|Date_time"]
-    cols_inc <- c(cols_inc, names(t)[names(t) %in% phen_name])
-    t <- t[, c(cols_inc), with = FALSE]
+    # open station file connections
+    sfc <- ipayipi::open_sf_con(station_file = file.path(input_dir, x),
+      verbose = verbose, xtra_v = xtra_v, cores = cores, tmp = TRUE
+    )
+    tab_name <- names(sfc)[names(sfc) %in% tab_names]
+    if (length(tab_name) > 0) {
+      tn <- basename(sfc[[tab_name[1]]])
+    } else {
+      tn <- NULL
+    }
+    t <- sf_dta_read(sfc = sfc, tv = tn, tmp = TRUE)
     invisible(t)
   })
-  names(t) <- gsub(pattern = paste0(file_ext, "$"), replacement = "", x = slist)
+  names(t) <- slist
   t <- t[!sapply(t, is.null)]
+  t <- t[sapply(t, function(x) phen_name %in% names(x[[1]]$indx$dta_n))]
+
+  # prep to join datasets together
+  # check dataset ri's
+  if (!is.null(ri)) ri <- ipayipi::sts_interval_name(ri)[["sts_intv"]]
+  if (is.null(ri)) ri <- t[[1]][[1]]$indx$ri
+  ri_chk <- sapply(t, function(x) x[[1]]$indx$ri) %in% ri
+  if (any(!ri_chk)) {
+    ipayipi::msg("Record-interval mismatch", xtra_v)
+    print(sapply(t, function(x) x[[1]]$indx$ri))
+  }
+  t <- t[ri_chk]
+  mn <- data.table::rbindlist(
+    lapply(t, function(x) data.table::data.table(mn = x[[1]]$indx$mn))
+  )
+  # check that all starting points are equal
+  mn$dur <- lubridate::as.duration(mn$mn - lubridate::round_date(mn$mn))
+  d <- mn$dur[1]
+  mn$dur_chk <- mn$dur == mn$dur[1]
+  mn[, stnd_title := gsub(paste0(file_ext, "$"), "", basename(names(t)))]
+  if (!all(mn$dur_chk)) {
+    ipayipi::msg("Unequal date-time starting points. Removing station tables: ")
+    names(mn)[1] <- "Start_dttm"
+    print(mn)
+    t <- t[mn$dur_chk]
+  }
+  mn <- data.table::rbindlist(
+    lapply(t, function(x) data.table::data.table(mn = x[[1]]$indx$mn))
+  )
+  mx <- data.table::rbindlist(
+    lapply(t, function(x) data.table::data.table(mx = x[[1]]$indx$mx))
+  )
+  dt <- data.table::data.table(
+    date_time = seq(min(mn$mn), max(mx$mx), by = ri) + d
+  )
+
+  dti <- parallel::mclapply(seq_along(t), function(i) {
+    # add hsf_phens to the dta_link
+    t[[i]][[names(t[[i]])[1]]]$hsf_phens <- phen_name
+    dti <- dt_dta_open(t[[i]])
+    dti <- dti[dt, on = "date_time"][, phen_name, with = FALSE]
+    data.table::setnames(dti, phen_name,
+      gsub(paste0(file_ext, "$"), "", basename(names(t[i])))
+    )
+    return(dti)
+  }, mc.cores = cores)
+  dti <- do.call(cbind, args = c(list(dt), dti))
+  data.table::setcolorder(
+    dti, c("date_time", names(dti)[!names(dti) %in% "date_time"])
+  )
   slist <- names(t)
-  # check the time intervals of each station
-  ti <- lapply(t, function(x) {
-    dt_name <- names(x)[names(x) %like% "date_time|Date_time"]
-    ti <- ipayipi::record_interval_eval(dt = x[][[dt_name]],
-      dta_in = x, remove_prompt = FALSE
-    )
-    if (!is.null(ri)) ti$record_interval <- ri
-    dt_x <- data.table::data.table(
-      ti = ti$record_interval_difftime,
-      ti_chr = ti$record_interval,
-      dt_min = min(x[][[dt_name]], na.rm = TRUE),
-      dt_max = max(x[][[dt_name]], na.rm = TRUE)
-    )
-    if (dt_x$ti %in% "discnt") dt_x$ti <- lubridate::as.difftime(ri)
-    invisible(dt_x)
-  })
-  ti <- data.table::rbindlist(ti)
-  tii <- max(ti$ti, na.rm = TRUE)
-  ti_chr <- ti[ti == tii]$ti_chr[1]
-  tii <- lubridate::as.period(ti_chr)
-  dt_min <- min(ti$dt_min, na.rm = TRUE)
-  dt_max <- max(ti$dt_max, na.rm = TRUE)
-  seq_dt <- seq(from = dt_min, to = dt_max, by = gsub("_", " ", ti_chr))
-  dt_seq <- data.table::data.table(
-    dt = seq_dt,
-    dt1 = seq_dt - 0.499 * lubridate::as.duration(tii),
-    dt2 = seq_dt + 0.499 * lubridate::as.duration(tii)
-  )
-  # join the data to the date sequence
-  tx <- lapply(seq_along(t), function(i) {
-    data.table::setkey(dt_seq, dt1, dt2)
-    dt_name <- names(t[[i]])[names(t[[i]]) %like% "date_time|Date_time"]
-    data.table::setnames(t[[i]], old = dt_name, new = "dt3")
-    t[[i]][, "dt4"] <- t[[i]][, "dt3"]
-    data.table::setkey(t[[i]], dt3, dt4)
-    tseq <- data.table::foverlaps(x = dt_seq, y = t[[i]], mult = "first",
-      type = "any"
-    )
-    tseq <- subset(tseq, select = phen_name)
-    data.table::setnames(tseq, old = phen_name, new = basename(names(t[i])))
-    return(tseq)
-  })
-  # make a 'flat file'
-  tflat <- do.call("cbind", tx)
-  dta <- cbind(dt_seq[, c("dt")], tflat)
-  data.table::setnames(dta, old = "dt", new = "date_time")
-  tii <- ipayipi::record_interval_eval(dt = dta$date_time,
-    dta_in = dta
-  )
-  tii <- tii$record_interval
-  if (is.null(out_tab_name)) out_tab_name <- ti_chr
-  dta <- list(dta = dta, time_interval = ti_chr, stations = slist,
+
+  if (is.null(out_tab_name)) out_tab_name <- gsub(" ", "_", ri)
+  dta <- list(dta = dti, time_interval = gsub(" ", "_", ri), stations = slist,
     tab_names = tab_names, phen_name = phen_name, file_ext = file_ext
   )
   if (out_csv) {# save the csv file

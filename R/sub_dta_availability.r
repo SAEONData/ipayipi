@@ -75,7 +75,7 @@ dta_availability <- function(
       verbose = verbose
     )
     ipayipi::write_station(pipe_house = pipe_house, sf = g, station_file = x,
-      overwrite = TRUE, append = TRUE, keep_open = keep_open
+      overwrite = TRUE, append = TRUE, keep_open = keep_open, cores = cores
     )
     g$gaps <- g$gaps[problem_gap == TRUE]
     invisible(g$gaps)

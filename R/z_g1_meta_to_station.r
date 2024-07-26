@@ -68,7 +68,7 @@ meta_to_station <- function(
       cores = cores, verbose = verbose, xtra_v = xtra_v
     )
     write_station(pipe_house = pipe_house, station_file = x,
-      overwrite = TRUE, append = FALSE, keep_open = keep_open
+      overwrite = TRUE, append = FALSE, keep_open = keep_open, cores = cores
     )
     cr_msg <- padr(core_message = paste0(
       basename(x), " done ...", collapes = ""
