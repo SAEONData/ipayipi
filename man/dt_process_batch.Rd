@@ -18,7 +18,6 @@ dt_process_batch(
   unwanted_tbls = "_tmp",
   verbose = FALSE,
   xtra_v = FALSE,
-  cores = getOption("mc.cores", 2L),
   keep_open = TRUE,
   ...
 )
@@ -51,11 +50,11 @@ If this argument is not provided then the \code{pipe_seq} stored in the station 
 
 \item{xtra_v}{Extra verbose? Logical.}
 
-\item{cores}{Number of CPU's to use for processing in parallel. Only applies when working on Linux systems.}
-
 \item{keep_open}{Logical. If TRUE the station file connection is kept in the temporary directory after the function is finished processing.}
 
 \item{recurr}{Should the function search recursively into sub directories for station files? \code{TRUE} or \code{FALSE}.}
+
+\item{cores}{Number of CPU's to use for processing in parallel. Only applies when working on Linux systems.}
 }
 \description{
 Batch process ipayipi station data data in sequential steps.

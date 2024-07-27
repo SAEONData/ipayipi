@@ -29,7 +29,6 @@ gap_eval_batch <- function(
   unwanted = NULL,
   verbose = FALSE,
   keep_open = TRUE,
-  cores = getOption("mc.cores", 2L),
   xtra_v = FALSE,
   ...
 ) {
@@ -54,7 +53,7 @@ gap_eval_batch <- function(
   # open connections to station files
   lapply(station_files, function(x) {
     ipayipi::open_sf_con(pipe_house = pipe_house, station_file = x,
-      tmp = TRUE, cores = cores, verbose = verbose
+      tmp = TRUE, verbose = verbose
     )
   })
 
@@ -78,7 +77,7 @@ gap_eval_batch <- function(
     g <- ipayipi::gap_eval(pipe_house = pipe_house, station_file = x,
       gap_problem_thresh_s = gap_problem_thresh_s, event_thresh_s =
         event_thresh_s, keep_open = keep_open, meta_events = meta_events,
-      verbose = verbose, cores = cores, phens = phens, phen_eval = phen_eval
+      verbose = verbose, phens = phens, phen_eval = phen_eval
     )
     ipayipi::write_station(pipe_house = pipe_house, sf = g, station_file = x,
       overwrite = TRUE, append = TRUE, keep_open = keep_open

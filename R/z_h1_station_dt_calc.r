@@ -21,7 +21,6 @@ dt_calc <- function(
   ppsij = NULL,
   verbose = FALSE,
   xtra_v = FALSE,
-  cores = getOption("mc.cores", 2L),
   ...
 ) {
   "%ilike%" <- NULL
@@ -111,7 +110,7 @@ dt_calc <- function(
     ipayipi::msg("Chunking data", xtra_v)
     ipayipi::sf_dta_wr(dta_room = file.path(dirname((sfc[1])), n[1]),
       dta = d, overwrite = TRUE, tn = n[1], ri = ppsij[1]$time_interval,
-      cores = cores, verbose = verbose, xtra_v = xtra_v
+      verbose = verbose, xtra_v = xtra_v
     )
   })
   # remove harvest data from this step

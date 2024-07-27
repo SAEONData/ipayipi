@@ -16,7 +16,6 @@ meta_to_station(
   unwanted = NULL,
   verbose = FALSE,
   xtra_v = FALSE,
-  cores = getOption("mc.cores", 2L),
   keep_open = TRUE,
   ...
 )

@@ -14,17 +14,17 @@
 #' @author Paul J Gordijn
 #' @return The `wrtie_tbl` with updated minimum and maximum date times for each row/chunk index.
 chunkr_sub_wr <- function(
-    dta_room = NULL,
-    write_tbl = FALSE,
-    dta_sets = NULL,
-    i_zeros = 5,
-    ri = NULL,
-    rit = NULL,
-    overwrite = TRUE,
-    verbose = FALSE,
-    xtra_v = FALSE,
-    cores = getOption("mc.cores", 2L),
-    ...) {
+  dta_room = NULL,
+  write_tbl = FALSE,
+  dta_sets = NULL,
+  i_zeros = 5,
+  ri = NULL,
+  rit = NULL,
+  overwrite = TRUE,
+  verbose = FALSE,
+  xtra_v = FALSE,
+  ...
+) {
   "%ilike%" <- "date_time" <- "indx" <- NULL
   ipayipi::msg("chunkr_sub_wr()", xtra_v)
   dir.create(dta_room, showWarnings = FALSE, recursive = TRUE)
@@ -46,7 +46,7 @@ chunkr_sub_wr <- function(
     })
   })
   # write chunked data to directory
-  wri <- parallel::mclapply(write_tbl$indx, function(x) {
+  wri <- lapply(write_tbl$indx, function(x) {
     wi <- write_tbl[indx %in% x]
     if (nrow(wi) != 1) warning("Corrupt chunk index file!")
     # read + merge all files with same chunk index
@@ -90,10 +90,10 @@ chunkr_sub_wr <- function(
       d <- rbind(d, dsq, fill = TRUE)
       if (rit %in% "continuous" && n != nrow(dtsq)) {
         ipayipi::msg(paste0(
-          "Missing chunk data --- time-series integrity questioned!"
+          " Missing chunk data --- time-series integrity questioned!"
         ), verbose)
         ipayipi::msg(paste0(
-          "Filled with NAs ..."
+          " Results from gaps in continuous data ... filled with NA\'s"
         ), verbose)
         ipayipi::msg(dta_room, xtra_v)
       }
@@ -105,7 +105,7 @@ chunkr_sub_wr <- function(
     wi$n <- nrow(d)
     saveRDS(d, file.path(dta_room, paste0("i_", sprintf(fmf, x))))
     return(wi)
-  }, mc.cores = cores, mc.cleanup = TRUE)
+  })
   wri <- data.table::rbindlist(wri, fill = TRUE, use.names = TRUE)
   wri <- wri[, names(wri)[!names(wri) %ilike% "2$|1$"], with = FALSE]
   # clean up temporary directory

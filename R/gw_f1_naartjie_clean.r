@@ -43,7 +43,6 @@ gw_naartjie_clean <- function(
   unwanted = NULL,
   prompt = TRUE,
   verbose = FALSE,
-  cores = getOption("mc.cores", 2L),
   ...
 ) {
 
@@ -180,7 +179,7 @@ gw_naartjie_clean <- function(
       segs_n <- max(drifting_tt$iN, na.rm = TRUE)
 
       # Work through each of the naartjie segments and check for outliers
-      naarbs <- parallel::mclapply(seq_len(segs_n), function(z) {
+      naarbs <- future.apply::future_lapply(seq_len(segs_n), function(z) {
         if (z == 1) {
           r1 <- which(drifting_tt$iN == 0)
           r2 <- which(drifting_tt$iN == 1)
@@ -260,7 +259,7 @@ gw_naartjie_clean <- function(
           message("------------------------------FUNKY")
         }
         return(tab_ts_cleen)
-      }, mc.cores = cores)
+      })
 
       naarbs <- data.table::rbindlist(naarbs)
 

@@ -13,7 +13,6 @@ transfer_sts_files(
   file_ext_in = ".ipi",
   file_ext_out = ".ipi",
   verbose = FALSE,
-  cores = getOption("mc.cores", 2L),
   ...
 )
 }

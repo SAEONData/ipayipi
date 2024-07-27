@@ -13,7 +13,6 @@ write_station(
   keep_open = TRUE,
   verbose = FALSE,
   xtra_v = FALSE,
-  cores = getOption("mc.cores", 2L),
   ...
 )
 }

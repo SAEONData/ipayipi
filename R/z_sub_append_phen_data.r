@@ -32,7 +32,6 @@ append_phen_data <- function(
     tn = NULL,
     ri = NULL,
     rit = NULL,
-    cores = getOption("mc.cores", 2L),
     verbose = verbose,
     xtra_v = xtra_v,
     ...) {
@@ -44,7 +43,7 @@ append_phen_data <- function(
   # get station/main data table ----
   if (is.character(station_file)) {
     sfc <- ipayipi::open_sf_con(pipe_house = pipe_house, station_file =
-        station_file, verbose = verbose, xtra_v = xtra_v, cores = cores
+        station_file, verbose = verbose, xtra_v = xtra_v
     )
     # read_dta
     sf_eindx <- ipayipi::sf_dta_read(sfc = sfc, station_file = station_file,
@@ -65,7 +64,7 @@ append_phen_data <- function(
     phen_id = phen_id, phens = phens, phen_dt = phen_dt,
     sf_phen_ds = sf_phen_ds, new_phen_ds = new_phen_ds,
     ri = ri, rit = rit, tn = tn, overwrite_sf = overwrite_sf,
-    cores = cores, sf_eindx = sf_eindx,
+    sf_eindx = sf_eindx,
     verbose = verbose, xtra_v = xtra_v
   )
   phen_dtos <- ovlap$phen_dtos
@@ -150,7 +149,7 @@ append_phen_data <- function(
   # write in new data no overlap
   ipayipi::sf_dta_chunkr(dta_room = sfc[tn], dta_sets = list(ndno1, ndno2),
     tn = tn, ri = ri, rit = rit, rechunk = FALSE, verbose = verbose,
-    xtra_v = xtra_v, cores = cores
+    xtra_v = xtra_v
   ) # chunkr performs intra time series integrity check
   # add in overlap data
   fs <- dta_list(input_dir = ovlap$dta_room, unwanted = "aindxr")
@@ -158,7 +157,7 @@ append_phen_data <- function(
     dta_sets <- list(readRDS(file.path(ovlap$dta_room, x)))
     ipayipi::sf_dta_chunkr(dta_room = sfc[tn], dta_sets = dta_sets,
       tn = tn, ri = ri, rit = rit, rechunk = FALSE, verbose = verbose,
-      xtra_v = xtra_v, cores = cores
+      xtra_v = xtra_v
     )
   })
   unlink(ovlap$dta_room, recursive = TRUE)

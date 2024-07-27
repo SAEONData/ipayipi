@@ -28,7 +28,6 @@ meta_to_station <- function(
   unwanted = NULL,
   verbose = FALSE,
   xtra_v = FALSE,
-  cores = getOption("mc.cores", 2L),
   keep_open = TRUE,
   ...
 ) {
@@ -54,7 +53,7 @@ meta_to_station <- function(
   message(cr_msg)
   r <- lapply(slist, function(x) {
     sfc <- open_sf_con(pipe_house = pipe_house, station_file = x,
-      tmp = TRUE, verbose = verbose, cores = cores, xtra_v = xtra_v
+      tmp = TRUE, verbose = verbose, xtra_v = xtra_v
     )
     sfn <- gsub(pattern = station_ext, replacement = "", x = x)
     sfn <- basename(sfn)
@@ -65,10 +64,10 @@ meta_to_station <- function(
     ipayipi::sf_dta_wr(
       dta_room = file.path(dirname((sfc[1])), in_station_meta_name),
       dta = mdta, overwrite = TRUE, tn = in_station_meta_name,
-      cores = cores, verbose = verbose, xtra_v = xtra_v
+      verbose = verbose, xtra_v = xtra_v
     )
     write_station(pipe_house = pipe_house, station_file = x,
-      overwrite = TRUE, append = FALSE, keep_open = keep_open, cores = cores
+      overwrite = TRUE, append = FALSE, keep_open = keep_open
     )
     cr_msg <- padr(core_message = paste0(
       basename(x), " done ...", collapes = ""

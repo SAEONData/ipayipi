@@ -54,7 +54,6 @@ phenomena_sts <- function(
   file_ext_in = ".iph",
   file_ext_out = ".ipi",
   verbose = FALSE,
-  cores = getOption("mc.cores", 2L),
   ...
 ) {
   "uz_phen_name" <- "uz_units" <- "uz_measure" <- "phen_name_full" <-
@@ -78,7 +77,7 @@ phenomena_sts <- function(
 
   phentab <- ipayipi::phenomena_chk(pipe_house = pipe_house,
     check_phenomena = TRUE, csv_out = TRUE, wanted = wanted,
-    unwanted = unwanted, cores = cores, external_phentab = external_phentab
+    unwanted = unwanted, external_phentab = external_phentab
   )
 
   if (!is.na(phentab$output_csv_name)) message("Update phenomena")
@@ -295,7 +294,7 @@ phenomena_sts <- function(
   }
   no_update <- fupdates[update == TRUE]
   tbl_update <- fupdates[update == FALSE]
-  parallel::mclapply(seq_len(nrow(tbl_update)), function(i) {
+  future.apply::future_lapply(seq_len(nrow(tbl_update)), function(i) {
     fn <- file.path(pipe_house$wait_room, basename(tbl_update$fn[i]))
     old_fn <- file.path(pipe_house$wait_room, basename(tbl_update$old_fn[i]))
     if (file.exists(old_fn)) {
@@ -304,7 +303,7 @@ phenomena_sts <- function(
       s <- FALSE
     }
     invisible(s)
-  }, mc.cores = cores, mc.cleanup = TRUE)
+  })
   data.table::setnames(tbl_update, old = c("fn", "old_fn", "orig_fn"),
     new = c("file_name", "old_file_name", "original_file_name")
   )

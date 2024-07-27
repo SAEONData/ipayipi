@@ -16,7 +16,6 @@ append_phen_data(
   tn = NULL,
   ri = NULL,
   rit = NULL,
-  cores = getOption("mc.cores", 2L),
   verbose = verbose,
   xtra_v = xtra_v,
   ...

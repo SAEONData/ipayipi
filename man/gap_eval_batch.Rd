@@ -17,7 +17,6 @@ gap_eval_batch(
   unwanted = NULL,
   verbose = FALSE,
   keep_open = TRUE,
-  cores = getOption("mc.cores", 2L),
   xtra_v = FALSE,
   ...
 )

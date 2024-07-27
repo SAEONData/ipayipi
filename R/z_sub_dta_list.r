@@ -28,7 +28,8 @@ dta_list <- function(
   baros = FALSE,
   unwanted = NULL,
   single_out = FALSE,
-  ...) {
+  ...
+) {
   "%ilike%" <- NULL
   slist <- list.files(path = input_dir, pattern = file_ext, recursive = recurr)
 
@@ -37,11 +38,13 @@ dta_list <- function(
     bbs <- slist[bbs]
     # add in unwanted file names here
     unwanted <- c("rdta_log.rds", "transfer_log.rds", "nomtab",
-      "data_handle.rdhs", "datum_log", "phentab", unwanted, bbs)
+      "data_handle.rdhs", "datum_log", "phentab", unwanted, bbs
+    )
     unwanted <- unwanted[!unwanted %in% wanted]
   } else {
     unwanted <- c("rdta_log.rds", "transfer_log.rds", "nomtab",
-      "data_handle.rdhs", "datum_log", "phentab", unwanted)
+      "data_handle.rdhs", "datum_log", "phentab", unwanted
+    )
     unwanted <- unwanted[!unwanted %in% wanted]
   }
   slist <- slist[!slist %ilike% paste0(unwanted, collapse = "|")]
@@ -53,7 +56,7 @@ dta_list <- function(
     n <- readline(
       prompt =
         "Enter row names (e.g. c(1:5,9,12) or c(-12)). quit with <q> : "
-      )
+    )
     if (n != "q") {
       np <- eval(parse(text = n))
       if (!is.vector(np, mode = "integer")) {
@@ -65,9 +68,9 @@ dta_list <- function(
         print("Incorrect vector size")
         chosen()
       } else {
-      df <- data.frame(Sites = slist[np], stringsAsFactors = FALSE)
-      print(df)
-      answer <- readline(prompt = "Confirm chosen stations Y/n : ")
+        df <- data.frame(Sites = slist[np], stringsAsFactors = FALSE)
+        print(df)
+        answer <- readline(prompt = "Confirm chosen stations Y/n : ")
         if (answer == "Y") {
           return(slist[np])
         } else {

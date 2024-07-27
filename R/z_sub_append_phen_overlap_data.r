@@ -32,7 +32,6 @@ append_phen_overlap_data <- function(
   rit = NULL,
   tn = NULL,
   overwrite_sf = FALSE,
-  cores = getOption("mc.cores", 2L),
   sf_eindx = NULL,
   verbose = FALSE,
   xtra_v = xtra_v,
@@ -71,8 +70,7 @@ append_phen_overlap_data <- function(
       nd_max > sf_eindx$indx$mn
     )) {
       ipayipi::sf_dta_chunkr(dta_room = dta_room, dta_sets = list(ndt), tn = tn,
-        tmp = TRUE, ri = ri, rit = rit, verbose = verbose, xtra_v = xtra_v,
-        cores = cores
+        tmp = TRUE, ri = ri, rit = rit, verbose = verbose, xtra_v = xtra_v
       )
       sfo_dttms <- data.table::data.table(
         sfo_min = NULL, sfo_max = NULL
@@ -111,7 +109,7 @@ append_phen_overlap_data <- function(
           "d1", "d2")
       )
 
-      dold_l <- parallel::mclapply(seq_along(phens), function(i) {
+      dold_l <- lapply(seq_along(phens), function(i) {
         if (phens[i] %in% names(sfo)) {
           dold <- sfo[, c("id", "date_time", phens[i], "d1", "d2"),
             with = FALSE
@@ -142,17 +140,18 @@ append_phen_overlap_data <- function(
         )
         data.table::setkey(dtp, d1_old, d2_old)
         return(dtp)
-      }, mc.cores = cores, mc.cleanup = TRUE)
+      })
       names(dold_l) <- phens
-      dold_l <- parallel::mclapply(dold_l, function(x) { # standardise variables
+      # standardise variables
+      dold_l <- lapply(dold_l, function(x) {
         ptab <- phen_dt
         ptab$phen_name <- paste0(ptab$phen_name, "_old")
         ptab[var_type %ilike% "fac|factor"]$var_type <- "chr"
         dta <- ipayipi::phen_vars_sts(phen_table = ptab, dta_in = x)
         return(dta)
-      }, mc.cores = cores, mc.cleanup = TRUE)
+      })
 
-      dnew_l <- parallel::mclapply(seq_along(phens), function(i) {
+      dnew_l <- lapply(seq_along(phens), function(i) {
         if (phens[i] %in% names(ndo)) {
           dnew <- ndo[, c("id", "date_time", phens[i], "d1", "d2"),
             with = FALSE
@@ -183,57 +182,58 @@ append_phen_overlap_data <- function(
         )
         data.table::setkey(dtp, d1_new, d2_new)
         return(dtp)
-      }, mc.cores = cores, mc.cleanup = TRUE)
+      })
       names(dnew_l) <- phens
-      dnew_l <- parallel::mclapply(dnew_l, function(x) { # standardise variable
+      # standardise variable
+      dnew_l <- lapply(dnew_l, function(x) {
         ptab <- phen_dt
         ptab$phen_name <- paste0(ptab$phen_name, "_new")
         ptab[var_type %ilike% "fac|factor"]$var_type <- "chr"
         dta <- ipayipi::phen_vars_sts(phen_table = ptab, dta_in = x)
         return(dta)
-      }, mc.cores = cores, mc.cleanup = TRUE)
+      })
     }
     # if phen_id is FALSE ----
     if (!phen_id) {
       ndo <- rbind(ndo, sfo[0, ], fill = TRUE)
-      dnew_l <- parallel::mclapply(seq_along(phens), function(i) {
+      dnew_l <- lapply(seq_along(phens), function(i) {
         old_names <- names(ndo)[names(ndo) %in% c("id", "date_time", phens[i])]
         dtp <- sfo[, old_names, with = FALSE][!is.na(date_time)]
         data.table::setnames(
           dtp, old = old_names, new = paste0(old_names, "_new")
         )
         return(dtp)
-      }, mc.cores = cores, mc.cleanup = TRUE)
+      })
       names(dnew_l) <- phens
       if (!is.null(phen_dt)) {
         # standardise variables
-        dnew_l <- parallel::mclapply(dnew_l, function(x) {
+        dnew_l <- lapply(dnew_l, function(x) {
           ptab <- phen_dt
           ptab$phen_name <- paste0(ptab$phen_name, "_new")
           ptab[var_type %ilike% "fac|factor"]$var_type <- "chr"
           dta <- ipayipi::phen_vars_sts(phen_table = ptab, dta_in = x)
           return(dta)
-        }, mc.cores = cores, mc.cleanup = TRUE)
+        })
       }
 
       sfo <- rbind(sfo, ndo[0, ], fill = TRUE)
-      dold_l <- parallel::mclapply(seq_along(phens), function(i) {
+      dold_l <- lapply(seq_along(phens), function(i) {
         old_names <- names(sfo)[names(sfo) %in% c("id", "date_time", phens[i])]
         dtp <- sfo[, old_names, with = FALSE][!is.na(date_time)]
         data.table::setnames(
           dtp, old = old_names, new = paste0(old_names, "_old")
         )
         return(dtp)
-      }, mc.cores = cores, mc.cleanup = TRUE)
+      })
       names(dold_l) <- phens
       if (!is.null(phen_dt)) {
-        dold_l <- parallel::lapply(dold_l, function(x) { # standardise variables
+        dold_l <- lapply(dold_l, function(x) { # standardise variables
           ptab <- phen_dt
           ptab$phen_name <- paste0(ptab$phen_name, "_old")
           ptab[var_type %ilike% "fac|factor"]$var_type <- "chr"
           dta <- ipayipi::phen_vars_sts(phen_table = ptab, dta_in = x)
           return(dta)
-        }, mc.cores = cores, mc.cleanup = TRUE)
+        })
       }
     }
     # bind these data to a common date-time series
@@ -249,7 +249,7 @@ append_phen_overlap_data <- function(
     dt_seq <- data.table::data.table(dttm = dt_seq)
     dt_seq <- dt_seq[order(dttm)]
     if (overwrite_sf) f <- c("_old", "_new") else f <- c("_new", "_old")
-    dto <- parallel::mclapply(seq_along(phens), function(i) {
+    dto <- future.apply::future_lapply(seq_along(phens), function(i) {
       # join old to dt_seq then new
       z <- dold_l[[i]]
       if (nrow(dold_l[[i]]) > 0) {
@@ -289,24 +289,24 @@ append_phen_overlap_data <- function(
         )
       }
       z <- z[, names(z)[names(z) %in% c(phens[i], "id", "phid")], with = FALSE]
-    }, mc.cores = cores, mc.cleanup = TRUE)
+    })
     names(dto) <- phens
     # put all phenomena in one table
-    naj <- parallel::mclapply(seq_along(dto), function(i) {
+    naj <- lapply(seq_along(dto), function(i) {
       naj <- is.na(dto[[i]][["id"]][])[
         is.na(dto[[i]][["id"]][]) == TRUE
       ]
       naj <- length(naj)
       return(naj)
-    }, mc.cores = cores, mc.cleanup = TRUE)
+    })
     naj <- unlist(naj)
     naj <- which(naj == min(naj))[1]
-    raw_dto <- parallel::mclapply(dto, function(x) {
+    raw_dto <- lapply(dto, function(x) {
       x <- x[, names(x)[!names(x) %in% c("id", "phid")], with = FALSE]
       x$date_time <- dt_seq$dttm
       data.table::setkey(x, date_time)
       return(x)
-    }, mc.cores = cores, mc.cleanup = TRUE)
+    })
     raw_dto <- Reduce(function(...) merge(..., all = TRUE), raw_dto)
     raw_dto$id <- dto[[naj]][["id"]]
     data.table::setcolorder(raw_dto, c("id", "date_time", names(dto)))
@@ -318,7 +318,7 @@ append_phen_overlap_data <- function(
     names(dta_sets) <- basename(fsi)
     oindxr <- ipayipi::sf_dta_chunkr(dta_room = dta_room, dta_sets = dta_sets,
       tn = tn, tmp = TRUE, ri = ri, rit = rit, verbose = verbose,
-      xtra_v = xtra_v, cores = cores
+      xtra_v = xtra_v
     )
     sfo_dttms <- data.table::data.table(
       sfo_min = oindxr$mn, sfo_max = oindxr$mx
@@ -331,7 +331,7 @@ append_phen_overlap_data <- function(
       })
       rm(zap)
       dto <- dto[unlist(lapply(dto, function(x) all(!is.na(x$id))))]
-      phen_dtos <- parallel::mclapply(dto, function(x) {
+      phen_dtos <- lapply(dto, function(x) {
         x$date_time <- raw_dto$date_time
         if (nrow(x[!is.na(phid)]) == 0) return(NULL)
         x$ph_int <- ipayipi::change_intervals(int_dta = x$phid)
@@ -349,7 +349,7 @@ append_phen_overlap_data <- function(
         x <- data.table::rbindlist(x)
         x <- x[!is.na(phid)]
         return(x)
-      }, mc.cores = cores, mc.cleanup = TRUE)
+      })
       phen_dtos <- data.table::rbindlist(phen_dtos)
     } else {
       phen_dtos <- NULL

@@ -19,14 +19,13 @@ append_station <- function(
   phen_id = TRUE,
   verbose = FALSE,
   xtra_v = FALSE,
-  cores = getOption("mc.cores", 2L),
   ...
 ) {
   "%ilike%" <- "phen_name" <- "table_name" <- "phen_name_full" <-
     "uz_phen_name" <- "origin" <- "date_time" <- NULL
 
   sfc <- ipayipi::open_sf_con(pipe_house = pipe_house, station_file =
-      station_file, tmp = TRUE, verbose = verbose, cores = cores
+      station_file, tmp = TRUE, verbose = verbose
   )
 
   ## read in data ----
@@ -155,7 +154,7 @@ append_station <- function(
       station_file = station_file, sf_phen_ds = sf_phen_ds, ndt = ndt,
       new_phen_ds = new_phen_ds, tn = tn, overwrite_sf = overwrite_sf,
       phen_dt = phen_dt, rit = rit, ri = ri, phen_id = phen_id,
-      cores = cores, verbose = verbose, xtra_v = xtra_v
+      verbose = verbose, xtra_v = xtra_v
     )
   } else {
     phd <- list(
@@ -165,7 +164,7 @@ append_station <- function(
     ri <- new_data$data_summary[table_name == tn]$record_interval[1]
     ri <- gsub("_", " ", ri)
     ipayipi::sf_dta_chunkr(dta_room = file.path(dirname(sfc[1]), tn),
-      tn = tn, ri = ri, rit = rit, dta_sets = list(ndt), cores = cores
+      tn = tn, ri = ri, rit = rit, dta_sets = list(ndt)
     )
   }
 
@@ -183,13 +182,13 @@ append_station <- function(
   nnew_tbl <- nnew_tbl[!nnew_tbl %ilike% "^raw_|^dt_"]
   new_tbl <- new_data[nnew_tbl]
   names(new_tbl) <- nnew_tbl
-  parallel::mclapply(seq_along(nnew_tbl), function(i) {
+  future.apply::future_lapply(seq_along(nnew_tbl), function(i) {
     # save table to temp dir
     ipayipi::sf_dta_wr(dta_room = file.path(dirname(sfc[1]), nnew_tbl[i]),
-      dta = new_tbl[[i]], overwrite = TRUE, cores = cores, verbose = verbose,
+      dta = new_tbl[[i]], overwrite = TRUE, verbose = verbose,
       tn = nnew_tbl[i]
     )
-  }, mc.cores = cores, mc.cleanup = TRUE)
+  })
 
   # add in the data_summary table
   sfds <- sf_ds[table_name != tn]

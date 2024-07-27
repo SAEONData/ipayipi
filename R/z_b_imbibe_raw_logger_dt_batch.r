@@ -61,7 +61,6 @@ imbibe_raw_batch <- function(
   recurr = FALSE,
   verbose = FALSE,
   xtra_v = FALSE,
-  cores = getOption("mc.cores", 2L),
   ...
 ) {
   "err" <- NULL
@@ -111,8 +110,7 @@ imbibe_raw_batch <- function(
       max_rows = max_rows,
       logg_interfere_type = logg_interfere_type,
       verbose = verbose,
-      xtra_v = xtra_v,
-      cores = cores
+      xtra_v = xtra_v
     ))
     if (attempt::is_try_error(fl)) {
       fl$err <- TRUE
@@ -165,7 +163,7 @@ imbibe_raw_batch <- function(
   fn_dt_arc <- file_name_dt[err != TRUE]
 
   if (!is.null(pipe_house$raw_room)) {
-    parallel::mclapply(seq_along(fn_dt_arc$yr_mon_end), function(i) {
+    future.apply::future_lapply(seq_along(fn_dt_arc$yr_mon_end), function(i) {
       arc_dir <- file.path(pipe_house$raw_room, fn_dt_arc$yr_mon_end[i])
       if (!dir.exists(arc_dir)) dir.create(arc_dir)
       file.copy(from = file.path(fn_dt_arc$fp[i]),
@@ -175,22 +173,23 @@ imbibe_raw_batch <- function(
           ), fn_dt_arc$file_ext_in[i], collapse = ""
         ))
       )
-    }, mc.cores = cores, mc.cleanup = TRUE)
+    })
   }
 
   # check for duplicates and make unique integers
   if (!anyNA.data.frame(fn_dt_arc)) {
     split_fn_dt_arc <- split(fn_dt_arc, f = factor(fn_dt_arc$fn))
-    split_fn_dt_arc <- parallel::mclapply(split_fn_dt_arc, function(x) {
-      x$rep <- seq_len(nrow(x))
-      return(x)
-    }, mc.cores = cores, mc.cleanup = TRUE)
+    split_fn_dt_arc <-
+      future.apply::future_lapply(split_fn_dt_arc, function(x) {
+        x$rep <- seq_len(nrow(x))
+        return(x)
+      })
     fn_dt_arc <- data.table::rbindlist(split_fn_dt_arc)
     if (substr(file_ext_out, 1, 1) != ".") {
       file_ext_out <- paste0(".", file_ext_out)
     }
     # rename the temp rds files and delete the raw dat files
-    parallel::mclapply(seq_along(fn_dt_arc$fn), function(i) {
+    future.apply::future_lapply(seq_along(fn_dt_arc$fn), function(i) {
       # rename temp file
       if (file.exists(fn_dt_arc$fn_htmp[i])) {
         file.copy(from = fn_dt_arc$fn_htmp[i],
@@ -211,7 +210,7 @@ imbibe_raw_batch <- function(
         )
         if (file.exists(fr))  file.remove(fr)
       }
-    }, mc.cores = cores, mc.cleanup = TRUE)
+    })
   }
   cr_msg <- padr(core_message = paste0(" imbibed  ", collapes = ""),
     wdth = 80, pad_char = "=", pad_extras = c("|", "", "", "|"),

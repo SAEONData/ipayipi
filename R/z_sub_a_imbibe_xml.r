@@ -21,9 +21,12 @@ imbibe_xml <- function(
     "mdy HMOS", "mdy HMS",
     "mdy IMOSp", "mdy IMSp",
     "dmY HMOS", "dmY HMS",
-    "dmy IMOSp", "dmy IMSp"),
+    "dmy IMOSp", "dmy IMSp"
+  ),
   dt_tz = "Africa/Johannesburg",
-  ...) {
+  ...
+) {
+  "%ilike%" <- ":=" <- ".SD" <- NULL
 
   # Parse xml data to R
   xm <- attempt::attempt(XML::xmlParse(file_path, trim = TRUE))
@@ -37,7 +40,9 @@ imbibe_xml <- function(
   #  File info
   xle_fi <- data.table::data.table(trim = TRUE,
     XML::xmlToDataFrame(
-      xm[data_setup$log_file_tree], stringsAsFactors = FALSE))
+      xm[data_setup$log_file_tree], stringsAsFactors = FALSE
+    )
+  )
   xle_fi[xle_fi == ""] <- NA
   fds <- c("company", "licence", "date", "time", "filename", "created")
   dtb <- lapply(fds, function(x) {
@@ -61,9 +66,11 @@ imbibe_xml <- function(
 
   # Logger info
   xle_li <- data.table::data.table(XML::xmlToDataFrame(
-    xm[data_setup$log_meta_tree], stringsAsFactors = FALSE))
+    xm[data_setup$log_meta_tree], stringsAsFactors = FALSE
+  ))
   fds <- c("instrument_type", "model", "state", "serial",
-    "battery_l|battery_c", "battery_v", "channel", "firmware")
+    "battery_l|battery_c", "battery_v", "channel", "firmware"
+  )
   dtb <- lapply(fds, function(x) {
     if (any(names(xle_li) %ilike% x)) {
       xi <- xle_li[[names(xle_li)[names(xle_li) %ilike% x][1]]]
@@ -73,7 +80,8 @@ imbibe_xml <- function(
     xi <- as.character(xi)
   })
   fds <- c("instrument_type", "model", "state", "serial", "battery_l",
-    "battery_v", "channel", "firmware")
+    "battery_v", "channel", "firmware"
+  )
   names(dtb) <- fds
   xle_li <- data.table::as.data.table(dtb)
 
@@ -103,9 +111,11 @@ imbibe_xml <- function(
     }), .SDcols = fds
   ]
   xle_hi$sample_rate <- as.character(
-    readr::parse_number(xle_hi$sample_rate) / 100)
+    readr::parse_number(xle_hi$sample_rate) / 100
+  )
   xle_hi$sample_rate <- ipayipi::sts_interval_name(
-    paste(xle_hi$sample_rate, "sec"))[["sts_intv"]]
+    paste(xle_hi$sample_rate, "sec")
+  )[["sts_intv"]]
 
   # Get the phenomena (channels) recorded by the logger
   phens <- xm[data_setup$phen_info_tree]
@@ -140,12 +150,14 @@ imbibe_xml <- function(
 
   # get xml time series data
   dttree <- data_setup$date_time_tree
-  dttm <- sapply(dttree, function(x) parallel::mclapply(xm[x], XML::xmlValue))
+  dttm <- sapply(
+    dttree, function(x) future.apply::future_lapply(xm[x], XML::xmlValue)
+  )
   dttm <- data.table::data.table(dttm)
   dttm <- paste0(dttm[[1]], dttm[[2]], sep = " ")
   dttm <- lubridate::parse_date_time(dttm, orders = dt_format, tz = dt_tz)
 
-  dta <- parallel::mclapply(seq_along(phens$phen_name), function(i) {
+  dta <- future.apply::future_lapply(seq_along(phens$phen_name), function(i) {
     tbl <- data.table::data.table(
       sapply(xm[paste0("//Body_xle/Data/Log/ch", i)], XML::xmlValue)
     )
@@ -185,6 +197,7 @@ imbibe_xml <- function(
     file_origin = NA_character_
   )
   ipayipi_data_raw <- list(data_summary = data_summary, raw_data = dta,
-    phens = phens)
+    phens = phens
+  )
   return(list(ipayipi_data_raw = ipayipi_data_raw, err = FALSE))
 }

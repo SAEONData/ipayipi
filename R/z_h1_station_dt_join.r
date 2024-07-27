@@ -67,7 +67,6 @@ dt_join <- function(
     sfc = NULL,
     verbose = FALSE,
     xtra_v = FALSE,
-    cores = getOption("mc.cores", 2L),
     ...) {
   # join = "full_join"
   # x_tbl = NULL
@@ -173,7 +172,7 @@ dt_join <- function(
   unlink(file.path(dirname(sfc)[1], "dt_working"), recursive = TRUE)
   ipayipi::sf_dta_chunkr(dta_room = file.path(dirname(sfc)[1], "dt_working"),
     chunk_i = NULL, rechunk = FALSE, dta_sets = list(dt_working),
-    tn = "dt_working", ri = ppsij$time_interval[1], cores = cores,
+    tn = "dt_working", ri = ppsij$time_interval[1],
     verbose = verbose
   )
   return(list(ppsij = ppsij))

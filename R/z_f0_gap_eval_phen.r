@@ -32,7 +32,6 @@ phen_gaps <- function(
   gap_problem_thresh_s = 6 * 60 * 60,
   tbl_n = "^raw_*",
   verbose = FALSE,
-  cores = getOption("mc.cores", 2L),
   xtra_v = FALSE,
   ...
 ) {
@@ -58,7 +57,7 @@ phen_gaps <- function(
 
   # read station data of relevance
   sfc <- open_sf_con(pipe_house = pipe_house, station_file = station_file,
-    verbose = verbose, xtra_v = xtra_v, cores = cores, tmp = TRUE
+    verbose = verbose, xtra_v = xtra_v, tmp = TRUE
   )
   tbl_n <- sfc[names(sfc) %ilike% tbl_n]
   if (length(sfc) == 0) {
@@ -85,7 +84,7 @@ phen_gaps <- function(
     tv = "phen_data_summary", tmp = TRUE
   )[["phen_data_summary"]]
   # read station data
-  phen_gaps <- parallel::mclapply(seq_along(names(dts)), function(i) {
+  phen_gaps <- future.apply::future_lapply(seq_along(names(dts)), function(i) {
     dta <- ipayipi::dt_dta_open(dta_link = dts[names(dts)[i]])
     sdcols <- names(dts[[names(dts)[i]]]$indx$dta_n)
     dta <- dta[, sdcols, with = FALSE]
@@ -145,7 +144,7 @@ phen_gaps <- function(
     phen_gaps <- phen_gaps[sapply(phen_gaps, function(gx) nrow(gx) > 0)]
     phen_gaps <- data.table::rbindlist(phen_gaps)
     return(phen_gaps)
-  }, mc.cores = cores)
+  })
   phen_gaps <- data.table::rbindlist(phen_gaps)
   return(phen_gaps)
 }

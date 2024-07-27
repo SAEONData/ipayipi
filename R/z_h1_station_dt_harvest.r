@@ -15,7 +15,6 @@ dt_harvest <- function(
     sfc = NULL,
     verbose = FALSE,
     xtra_v = FALSE,
-    cores = cores,
     ...) {
   "%ilike%" <- NULL
   # harvest data from tables
@@ -25,7 +24,7 @@ dt_harvest <- function(
     hsfc <- attempt::try_catch(
       expr = ipayipi::open_sf_con(
         station_file = unique(f_params$hsf_station)[1], verbose = verbose,
-        xtra_v = xtra_v, cores = cores
+        xtra_v = xtra_v
       ), .w = ~stop
     )
   }

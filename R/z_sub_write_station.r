@@ -38,7 +38,6 @@ write_station <- function(
   keep_open = TRUE,
   verbose = FALSE,
   xtra_v = FALSE,
-  cores = getOption("mc.cores", 2L),
   ...
 ) {
   "%ilike%" <- NULL
@@ -132,7 +131,7 @@ write_station <- function(
   if (all(!keep_open, extmp)) unlink(sf_tmp, recursive = TRUE)
   if (all(keep_open, !extmp)) {
     sfc <- ipayipi::open_sf_con(pipe_house = pipe_house, station_file =
-        station_file, verbose = verbose, xtra_v = xtra_v, cores = cores
+        station_file, verbose = verbose, xtra_v = xtra_v
     )
   } else {
     sfc <- NULL

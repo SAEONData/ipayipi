@@ -15,7 +15,6 @@ phenomena_sts(
   file_ext_in = ".iph",
   file_ext_out = ".ipi",
   verbose = FALSE,
-  cores = getOption("mc.cores", 2L),
   ...
 )
 }

@@ -14,7 +14,6 @@ phen_gaps(
   gap_problem_thresh_s = 6 * 60 * 60,
   tbl_n = "^raw_*",
   verbose = FALSE,
-  cores = getOption("mc.cores", 2L),
   xtra_v = FALSE,
   ...
 )
@@ -29,8 +28,6 @@ phen_gaps(
 \item{gap_problem_thresh_s}{\emph{Parsed to} \code{ipayipi::gap_eval()}.}
 
 \item{verbose}{Logical. Whether or not to report messages and progress.}
-
-\item{cores}{Number of CPU's to use for processing in parallel. Only applies when working on Linux.}
 
 \item{station_ext}{Required argument. File extension of the station files in the pipe_house directory 'ipip_room'.}
 
@@ -47,6 +44,8 @@ phen_gaps(
 \item{prompt}{Should the function use an interactive file selection function otherwise all files are returned. TRUE or FALSE.}
 
 \item{recurr}{Should the function search recursively into sub directories for hobo rainfall csv export files? TRUE or FALSE.}
+
+\item{cores}{Number of CPU's to use for processing in parallel. Only applies when working on Linux.}
 }
 \value{
 A list containing a plot, which shows the availability of data, the gap data as formatted for plotting. The plot is produced using \code{ggplot2::ggplot()}.

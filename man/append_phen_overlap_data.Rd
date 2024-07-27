@@ -17,7 +17,6 @@ append_phen_overlap_data(
   rit = NULL,
   tn = NULL,
   overwrite_sf = FALSE,
-  cores = getOption("mc.cores", 2L),
   sf_eindx = NULL,
   verbose = FALSE,
   xtra_v = xtra_v,
@@ -49,9 +48,9 @@ append_phen_overlap_data(
 
 \item{overwrite_sf}{Logical. If TRUE the station file or 'x' table values, if not NA, will be overwritten by values from the 'y' or new data table.}
 
-\item{cores}{Integer representing the number of cores available for processing data. Multiple core usage only supported on linux systems.}
-
 \item{sfo}{Overlapping phenomena data table from the 'x' (left) table or station file.}
+
+\item{cores}{Integer representing the number of cores available for processing data. Multiple core usage only supported on linux systems.}
 }
 \value{
 List of useful items for internal use. Overap data.

@@ -7,10 +7,12 @@
 #' @author Paul J. Gordijn
 #' @export
 circular_mean <- function(x, u = "degrees", ignore_nas = FALSE,
-  verbose = FALSE, ...) {
+  verbose = FALSE, ...
+) {
   x <- circular::circular(x, units = u, type = "angles",
     template = "geographics", rotation = "clock", modulo = "2pi",
-      names = NULL, zero = 0)
+    names = NULL, zero = 0
+  )
   if (verbose) {
     x <- as.numeric(mean(x, na.rm = ignore_nas))
   } else {

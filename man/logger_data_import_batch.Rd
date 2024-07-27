@@ -12,7 +12,6 @@ logger_data_import_batch(
   unwanted = NULL,
   file_ext = NULL,
   verbose = FALSE,
-  cores = getOption("mc.cores", 2L),
   ...
 )
 }

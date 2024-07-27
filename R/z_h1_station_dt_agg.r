@@ -29,7 +29,6 @@ dt_agg <- function(
   agg_offset = "0 sec",
   verbose = FALSE,
   xtra_v = FALSE,
-  cores = getOption("mc.cores", 2L),
   ...
 ) {
   "%ilike%" <- ".N" <- ":=" <- ".SD" <- "." <- NULL
@@ -129,7 +128,7 @@ dt_agg <- function(
           lubridate::as.duration(agg_offset)
       ]
       # by agg f ----
-      dtx <- parallel::mclapply(agg_fs, function(z) {
+      dtx <- future.apply::future_lapply(agg_fs, function(z) {
         cols <- c("date_time", "dttm_fl", px[agg_f %in% z]$phen_name)
         xz <- subset(d, select = cols)
         cols <- cols[!cols %ilike% "date_time|dttm_fl"]
@@ -154,7 +153,7 @@ dt_agg <- function(
         data.table::setnames(xzi, old = "dttm_fl", new = "date_time")
         data.table::setkey(xzi, "date_time")
         return(xzi)
-      }, mc.cores = cores)
+      })
       # merge agg f ----
       dtx <- Reduce(function(...) merge(..., all = TRUE), dtx)
       return(dtx)
@@ -207,8 +206,7 @@ dt_agg <- function(
     ipayipi::sf_dta_chunkr(rit = "continuous", ri = agg_intv[ri],
       dta_room = file.path(dirname(sfc)[1], names(agg_intv[ri])),
       chunk_i = NULL, rechunk = FALSE, dta_sets = list(dta),
-      tn = names(agg_intv[ri]), verbose = verbose, xtra_v = xtra_v,
-      cores = cores
+      tn = names(agg_intv[ri]), verbose = verbose, xtra_v = xtra_v
     )
     return(agg_intv[ri])
   })

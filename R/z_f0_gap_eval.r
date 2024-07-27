@@ -48,7 +48,6 @@ gap_eval <- function(
   keep_open = TRUE,
   meta_events = "meta_events",
   verbose = FALSE,
-  cores = getOption("mc.cores", 2L),
   xtra_v = FALSE,
   tbl_n = "^raw_*",
   ...
@@ -73,7 +72,7 @@ gap_eval <- function(
 
   # open station connection
   sfc <- ipayipi::open_sf_con(pipe_house = pipe_house,
-    station_file = station_file, tmp = TRUE, cores = cores,
+    station_file = station_file, tmp = TRUE,
     verbose = verbose, xtra_v = xtra_v
   )
 
@@ -189,18 +188,18 @@ gap_eval <- function(
   file.remove(sfc["gaps"], recursive = TRUE)
   ipayipi::sf_dta_wr(dta_room = file.path(dirname((sfc[1])), "gaps"),
     dta = gaps, overwrite = TRUE, tn = "gaps",
-    cores = cores, verbose = verbose, xtra_v = xtra_v
+    verbose = verbose, xtra_v = xtra_v
   )
   # refresh station connection
   sfc <- ipayipi::open_sf_con(pipe_house = pipe_house, station_file =
-      station_file, tmp = TRUE, cores = cores, verbose = verbose,
+      station_file, tmp = TRUE, verbose = verbose,
     xtra_v = xtra_v
   )
 
   # generate phen gaps summary ----
   # this gap summary should not overlap with the logger gap summary
   phen_gaps <- phen_gaps(pipe_house = pipe_house, station_file = station_file,
-    tbl_n = tbl_n, verbose = verbose, cores = cores, xtra_v = xtra_v,
+    tbl_n = tbl_n, verbose = verbose, xtra_v = xtra_v,
     gap_problem_thresh_s = gap_problem_thresh_s, phen_eval = phen_eval
   )
   gaps <- rbind(gaps, phen_gaps, use.names = TRUE, fill = TRUE)
@@ -211,7 +210,7 @@ gap_eval <- function(
   ipayipi::msg("Chunking logger phen gap data", xtra_v)
   ipayipi::sf_dta_wr(dta_room = file.path(dirname((sfc[1])), "gaps"),
     dta = gaps, overwrite = TRUE, tn = "gaps",
-    cores = cores, verbose = verbose, xtra_v = xtra_v
+    verbose = verbose, xtra_v = xtra_v
   )
   # event data ----
   e <- ipayipi::sf_dta_read(sfc = sfc, tv = meta_events[1], tmp = TRUE,
@@ -402,7 +401,7 @@ gap_eval <- function(
     ipayipi::msg("Chunking event gap data", xtra_v)
     ipayipi::sf_dta_wr(dta_room = file.path(dirname((sfc[1])), "gaps"),
       dta = gaps, overwrite = TRUE, tn = "gaps",
-      cores = cores, verbose = verbose, xtra_v = xtra_v
+      verbose = verbose, xtra_v = xtra_v
     )
   }
   if (!keep_open) {

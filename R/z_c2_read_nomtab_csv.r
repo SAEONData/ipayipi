@@ -34,10 +34,12 @@
 read_nomtab_csv <- function(
   pipe_house = NULL,
   file = NULL,
-  ...) {
+  ...
+) {
   if (is.null(file)) {
     nomlist <- ipayipi::dta_list(input_dir = pipe_house$wait_room, file_ext =
-      ".csv", wanted = "nomtab")
+      ".csv", wanted = "nomtab"
+    )
     if (length(nomlist) < 1) stop("There is no nomtab file in the wait_room!")
     nom_dts <- lapply(nomlist, function(x) {
       mtime <- file.info(file.path(pipe_house$wait_room, x))$mtime
@@ -53,7 +55,8 @@ read_nomtab_csv <- function(
     file <- names(nom_dts[which(nom_dts == max(nom_dts))])
   }
   nomtab <- data.table::fread(file.path(pipe_house$wait_room, file),
-    header = TRUE)
+    header = TRUE
+  )
   ck_cols <- c("location", "station", "stnd_title")
   cans <- sum(
     sapply(nomtab[, ck_cols, with = FALSE], function(x) sum(is.na(x)))

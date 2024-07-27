@@ -18,7 +18,6 @@ dta_availability(
   unwanted = NULL,
   recurr = FALSE,
   prompt = FALSE,
-  cores = getOption("mc.cores", 2L),
   keep_open = TRUE,
   ...
 )
@@ -50,9 +49,9 @@ dta_availability(
 
 \item{prompt}{Should the function use an interactive file selection function otherwise all files are returned. TRUE or FALSE.}
 
-\item{cores}{Number of CPU's to use for processing in parallel. Only applies when working on Linux.}
-
 \item{keep_open}{Logical. Keep \emph{hidden} 'station_file' open for ease of access. Defaults to \code{TRUE}.}
+
+\item{cores}{Number of CPU's to use for processing in parallel. Only applies when working on Linux.}
 }
 \value{
 A list containing a plot, which shows the availability of data, the gap data as formatted for plotting. The plot is produced using \code{ggplot2::ggplot()}.

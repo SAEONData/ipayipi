@@ -25,7 +25,6 @@ phenomena_chk <- function(
   verbose = FALSE,
   wanted = NULL,
   unwanted = NULL,
-  cores = getOption("mc.cores", 2L),
   ...
 ) {
   "uz_phen_name" <- "phen_name" <- "measure" <- "uz_units" <-
@@ -79,7 +78,7 @@ phenomena_chk <- function(
   slist <- ipayipi::dta_list(input_dir = pipe_house$wait_room, file_ext =
       file_ext_in, prompt = FALSE, recurr = TRUE, unwanted = NULL
   )
-  phen_import <- parallel::mclapply(slist, function(x) {
+  phen_import <- future.apply::future_lapply(slist, function(x) {
     m <- readRDS(file.path(pipe_house$wait_room, x))
     phentabo <- data.table::data.table(
       phid = as.integer(seq_along(m$phens$phen_name)),
@@ -98,7 +97,7 @@ phenomena_chk <- function(
       notes = NA_character_
     )
     invisible(phentabo)
-  }, mc.cores = cores, mc.cleanup = TRUE)
+  })
   phen_import <- data.table::rbindlist(phen_import)
   phentab <- rbind(phentab, phen_import)
 

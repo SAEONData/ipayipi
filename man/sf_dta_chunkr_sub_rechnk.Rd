@@ -15,7 +15,6 @@ sf_dta_chunkr_sub_rechnk(
   i_zeros = 5,
   verbose = TRUE,
   xtra_v = FALSE,
-  cores = getOption("mc.cores", 2L),
   ...
 )
 }
@@ -28,8 +27,6 @@ sf_dta_chunkr_sub_rechnk(
 
 \item{verbose}{Logical. Whether or not to report messages and progress.}
 
-\item{cores}{Number of cores to farm processing off to. This assists with increasing the speed of read-write capabilities dealing with chunks.}
-
 \item{dta_sets}{List of data sets, belonging to the same data series to chunk in the \code{dta_room}.}
 
 \item{tn}{Name of the data table to be chunked. The tables data time-series qualities must be consistent with ipayipi's 'continuous', 'event_based', or 'mixed' series qualities.}
@@ -37,6 +34,8 @@ sf_dta_chunkr_sub_rechnk(
 \item{rit}{The record interval type: 'continuous', 'mixed', or 'event_based'.}
 
 \item{ri}{The record interval of the data. A string that will be parsed to \code{ipayipi::sts_interval_name()}. This is used to evaluate the integrity of data chunks time-series consistency; missing date-time values will be filled in as NA values. This applies to mixed and continuous data streams, not event-based where there is no consistent record interval. If the record interval is not provided the function will attempt to define this. If this fails the function will use a default chunking index of two years.}
+
+\item{cores}{Number of cores to farm processing off to. This assists with increasing the speed of read-write capabilities dealing with chunks.}
 }
 \description{
 If the chunk interval of data needs to be changed. This is the function that handles it. Date are chunked

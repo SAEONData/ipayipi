@@ -10,7 +10,9 @@ Description: Functions that can be used to generate time series data
  and more.
 Depends:
     R (>= 4.1.2),
-    data.table (>= 1.12.8)
+    data.table (>= 1.12.8),
+    future,
+    future.apply,
 Imports:
     attempt,
     circular,
@@ -26,7 +28,7 @@ Imports:
     xts,
     mondate,
     readr
-globalVariables(c(": ="),
+globalVariables(c(":="),
     c("Location", "Borehole", "SN", "Start", "End",
         "Location_uz", "Borehole_uz",
         "Date_time", "Latitude", "Longtitude", "Event_threshold", "Schedule",

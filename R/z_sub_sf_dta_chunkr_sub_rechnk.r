@@ -23,7 +23,6 @@ sf_dta_chunkr_sub_rechnk <- function(
     i_zeros = 5,
     verbose = TRUE,
     xtra_v = FALSE,
-    cores = getOption("mc.cores", 2L),
     ...) {
   "chnk_fl" <- "chnk_cl" <- "dta" <- NULL
   ipayipi::msg("Rechuning: sf_dta_chunkr_sub_rechnk()", xtra_v)
@@ -52,7 +51,7 @@ sf_dta_chunkr_sub_rechnk <- function(
       ))
       w <- ipayipi::chunkr_sub_wr(dta_room = rechunk_room, write_tbl = wd,
         dta_sets = d, i_zeros = i_zeros, rit = indx$rit, ri = indx$ri,
-        overwrite = TRUE, cores = cores, xtra_v = xtra_v
+        overwrite = TRUE, xtra_v = xtra_v
       )
       itx <- readRDS(file.path(rechunk_room, "aindxr"))
       itx$indx_tbl <- itx$indx_tbl[!indx %in% w$indx]

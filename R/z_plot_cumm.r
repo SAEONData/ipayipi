@@ -33,7 +33,6 @@ plot_cumm <- function(
   file_ext = ".ipip",
   prompt = FALSE,
   recurr = TRUE,
-  cores = getOption("mc.cores", 2L),
   ...
 ) {
 
@@ -60,14 +59,14 @@ plot_cumm <- function(
     }
     return(list(stnd_title = stnd_title, dta = dta))
   }
-  dts <- parallel::mclapply(slist, function(x) {
+  dts <- future.apply::future_lapply(slist, function(x) {
     dta <- attempt::attempt(tbl_read(x))
     if (attempt::is_try_error(dta)) {
       dta <- NULL
       message(paste0("Could not read or extract data from: ", x))
     }
     return(dta)
-  }, mc.cores = cores, mc.cleanup = TRUE)
+  })
   dts <- dts[!sapply(dts, is.null)]
   if (length(dts) == 0) {
     stop("Refine search keys---no station files with matching data!")
@@ -76,11 +75,11 @@ plot_cumm <- function(
   dts <- lapply(dts, function(x) x[["dta"]])
   names(dts) <- dts_names
 
-  dts <- parallel::mclapply(seq_along(dts), function(i) {
+  dts <- future.apply::future_lapply(seq_along(dts), function(i) {
     dts[[i]][[paste0(phen_name, "_cumm")]] <- cumsum(dts[[i]][[phen_name]])
     dts[[i]][["stnd_title"]] <- dts_names[i]
     return(dts[[i]])
-  }, mc.cores = cores, mc.cleanup = TRUE)
+  })
   # append all data and prep for ggplot
   dts <- data.table::rbindlist(dts)
   y_var <- paste0(phen_name, "_cumm")

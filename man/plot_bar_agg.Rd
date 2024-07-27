@@ -16,7 +16,6 @@ plot_bar_agg(
   file_ext = ".ipip",
   prompt = FALSE,
   recurr = TRUE,
-  cores = getOption("mc.cores", 2L),
   ...
 )
 }

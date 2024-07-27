@@ -10,7 +10,6 @@ dttm_extend_long <- function(
   data_sets = NULL,
   intra_check = FALSE,
   ri = NULL,
-  cores = getOption("mc.cores", 2L),
   ...
 ) {
   "dttm" <- "date_time" <- NULL
@@ -22,7 +21,7 @@ dttm_extend_long <- function(
   dts <- dts[order(sapply(dts, function(x) max(x$date_time)))]
   # for continuous data make sure date sequence is continuous
   if (!"discnt" %in% ri && intra_check) {
-    dts <- parallel::mclapply(dts, function(x) {
+    dts <- future.apply::future_lapply(dts, function(x) {
       col_order <- names(x)
       start_dttm <- min(x$date_time)
       end_dttm <- max(x$date_time)
@@ -39,19 +38,19 @@ dttm_extend_long <- function(
       data.table::setnames(x, old = "dttm", new = "date_time")
       data.table::setcolorder(x, neworder = col_order)
       return(x)
-    }, mc.cores = cores, mc.cleanup = TRUE)
+    })
   }
   l <- length(dts)
   dtsnd <- lapply(seq_along(dts), function(i) {
-      if (all(i > 2, i > 1, i < l, !"discnt" %in% ri)) {
-        max_i1 <- min(dts[[i]]$date_time)
-        min_i2 <- min(dts[[i + 1]]$date_time)
-        dt_seq <- seq(from = max_i1, to = min_i2, by = ri)
-        dt_seq <- dt_seq[2:(l - 1)]
-        dt_seq <- data.table::data.table(date_time = dt_seq)
-      } else {
-        dt_seq <- NULL
-      }
+    if (all(i > 2, i > 1, i < l, !"discnt" %in% ri)) {
+      max_i1 <- min(dts[[i]]$date_time)
+      min_i2 <- min(dts[[i + 1]]$date_time)
+      dt_seq <- seq(from = max_i1, to = min_i2, by = ri)
+      dt_seq <- dt_seq[2:(l - 1)]
+      dt_seq <- data.table::data.table(date_time = dt_seq)
+    } else {
+      dt_seq <- NULL
+    }
     return(dt_seq)
   })
   dtsnd <- data.table::rbindlist(c(dtsnd, dts), use.names = TRUE, fill = TRUE)

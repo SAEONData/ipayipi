@@ -35,7 +35,6 @@ dta_availability2 <- function(
   unwanted = NULL,
   recurr = FALSE,
   prompt = FALSE,
-  cores = getOption("mc.cores", 2L),
   keep_open = TRUE,
   xtra_v = FALSE,
   ...
@@ -69,28 +68,28 @@ dta_availability2 <- function(
     stop("Refine search parameters---no station files detected.")
   }
   # extract data for gaps
-  gaps <- parallel::mclapply(slist, function(x) {
+  gaps <- future.apply::future_lapply(slist, function(x) {
     dta <- ipayipi::sf_dta_read(station_file = x, pipe_house = pipe_house,
       tv = "gaps", verbose = verbose, xtra_v = xtra_v, tmp = TRUE
     )
     return(dta$gaps)
-  }, mc.cores = cores, mc.cleanup = TRUE)
+  })
 
   # produce gap tables where they are missing
   run_gaps <- names(gaps[sapply(gaps, is.null)])
   lapply(run_gaps, function(x) {
     ipayipi::open_sf_con(pipe_house = pipe_house, station_file = x,
-      tmp = TRUE, cores = cores, keep_open = TRUE
+      tmp = TRUE, keep_open = TRUE
     )
   })
   run_gap_gaps <- lapply(run_gaps, function(x) {
     g <- ipayipi::gap_eval(pipe_house = pipe_house, station_file = x,
       gap_problem_thresh_s = gap_problem_thresh_s, event_thresh_s =
         event_thresh_s, keep_open = keep_open, meta_events = meta_events,
-      verbose = verbose, cores = cores, xtra_v = xtra_v
+      verbose = verbose, xtra_v = xtra_v
     )
     ipayipi::write_station(pipe_house = pipe_house, sf = g, station_file = x,
-      overwrite = TRUE, append = TRUE, keep_open = keep_open, cores = cores
+      overwrite = TRUE, append = TRUE, keep_open = keep_open
     )
     g$gaps <- g$gaps[problem_gap == TRUE]
     invisible(g$gaps)

@@ -18,7 +18,6 @@ dta_flat_pull(
   out_tab_name = NULL,
   out_csv_preffix = "",
   recurr = TRUE,
-  cores = getOption("mc.cores", 2L),
   file_ext = ".ipip",
   verbose = FALSE,
   xtra_v = FALSE,
@@ -50,13 +49,13 @@ dta_flat_pull(
 
 \item{recurr}{Whether to search recursively through folders. Defaults to TRUE.}
 
-\item{cores}{Number of CPU's to use for processing in parallel. Only applies when working on Linux systems.}
-
 \item{file_ext}{The extension of the stations from where data will be extracted. Defaults to ".ipip".}
 
 \item{verbose}{Whether to report on progress.}
 
 \item{xtra_v}{Extra verbose. Logical.}
+
+\item{cores}{Number of CPU's to use for processing in parallel. Only applies when working on Linux systems.}
 }
 \value{
 A list containing 1) the summarised data in a single data.table, 2) a character string representing the time interval by which the data has been summarised, 3) the list of stations used for the summary, 4) the name of the table and the name of the field for which data was summarised.

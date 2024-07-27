@@ -35,7 +35,6 @@ append_station_batch <- function(
   verbose = FALSE,
   xtra_v = FALSE,
   keep_open = TRUE,
-  cores = getOption("mc.cores", 2L),
   ...
 ) {
   # overwrite_sf = FALSE
@@ -62,7 +61,7 @@ append_station_batch <- function(
     prompt = prompt, recurr = FALSE, baros = FALSE, unwanted = unwanted,
     wanted = wanted
   )
-  nom_stations <- sapply(nom_files, function(x) {
+  nom_stations <- future.apply::future_sapply(nom_files, function(x) {
     z <- readRDS(file.path(pipe_house$nomvet_room, x))
     if (by_station_table) {
       nomvet_station <- paste(
@@ -76,17 +75,19 @@ append_station_batch <- function(
   })
   station_files <- gsub(station_ext, "", station_files)
   ## statread
-  all_station_files <- unlist(lapply(station_files, function(x) {
-    sfc <- ipayipi::open_sf_con(pipe_house = pipe_house,
-      station_file = paste0(x, station_ext), tmp = TRUE, cores = cores,
-      xtra_v = xtra_v, verbose = verbose
-    )
-    all_station_files <- readRDS(sfc[names(sfc) %in% "data_summary"])[[
-      "nomvet_name"
-    ]]
-    names(all_station_files) <- rep(x, length(all_station_files))
-    return(all_station_files)
-  }))
+  all_station_files <- unlist(lapply(
+    station_files, function(x) {
+      sfc <- ipayipi::open_sf_con(pipe_house = pipe_house,
+        station_file = paste0(x, station_ext), tmp = TRUE,
+        xtra_v = xtra_v, verbose = verbose
+      )
+      all_station_files <- readRDS(sfc[names(sfc) %in% "data_summary"])[[
+        "nomvet_name"
+      ]]
+      names(all_station_files) <- rep(x, length(all_station_files))
+      return(all_station_files)
+    }
+  ))
   new_station_files <- nom_stations[
     !names(nom_stations) %in% all_station_files
   ]
@@ -102,54 +103,57 @@ append_station_batch <- function(
 
   # update and/or create new stations
   # upgraded_stations <- lapply(seq_along(new_station_files), function(i) {
-  upgraded_stations <- lapply(seq_along(new_station_files), function(i) {
-    # write the table name onto the 'new_data'
-    new_data <- readRDS(file.path(pipe_house$nomvet_room,
-      names(new_station_files[i])
-    ))
-    new_data$phens$table_name <- new_data$data_summary$table_name[1]
-    cr_msg <- padr(
-      core_message = paste0(" +> ", i, ": ", names(new_station_files[i]),
-        collapes = ""
-      ), wdth = 80, pad_char = " ", pad_extras = c("|", "", "", "|"),
-      force_extras = FALSE, justf = c(1, 1)
-    )
-    ipayipi::msg(cr_msg, verbose)
-    # get/make station file
-    fp <- file.path(
-      pipe_house$ipip_room, paste0(new_station_files[i], station_ext)
-    )
-    if (!file.exists(fp)) {
-      # create new station file
-      ipayipi::write_station(pipe_house = pipe_house, sf = new_data,
-        station_file = paste0(new_station_files[i], station_ext),
-        overwrite = TRUE, append = FALSE, keep_open = TRUE, cores = cores
+  sf_dt <- data.table::data.table(sf = unlist(new_station_files),
+    sf_file = names(new_station_files)
+  )
+  sf_dtl <- split.data.frame(sf_dt, f = factor(sf_dt$sf))
+  ups <- future.apply::future_lapply(sf_dtl, function(x) {
+    upgraded_stations <- lapply(seq_len(nrow(x)), function(i) {
+      # write the table name onto the 'new_data'
+      new_data <- readRDS(file.path(pipe_house$nomvet_room,
+        x[i][["sf_file"]]
+      ))
+      new_data$phens$table_name <- new_data$data_summary$table_name[1]
+      cr_msg <- padr(
+        core_message = paste0(" +> ", i, ": ", x[i][["sf_file"]],
+          collapes = ""
+        ), wdth = 80, pad_char = " ", pad_extras = c("|", "", "", "|"),
+        force_extras = FALSE, justf = c(1, 1)
       )
-    } else {
-      # append data
-      station_file <- paste0(new_station_files[i], station_ext)
-      # append function, then save output as new station
-      ipayipi::append_station(pipe_house = pipe_house, station_file =
-          station_file, new_data = new_data, overwrite_sf = overwrite_sf,
-        by_station_table = by_station_table, phen_id = phen_id,
-        verbose = verbose, xtra_v = xtra_v, cores = cores
-      )
-    }
-    # close station file connection if finished with the station
-    j <- i + 1
-    if (j > length(new_station_files)) j <- length(new_station_files)
-    sfl <- new_station_files[j:length(new_station_files)]
-    sfl <- sfl[sfl %in% new_station_files[i]]
-    sfl <- sfl[!names(sfl) %in% names(new_station_files[i])]
-    if (any(length(sfl) == 0, i == j)) {
-      ipayipi::write_station(pipe_house = pipe_house, station_file =
-          paste0(new_station_files[i], station_ext), append = TRUE,
-        overwrite = TRUE, keep_open = keep_open, cores = cores
-      )
-    }
-    invisible(new_station_files[i])
+      ipayipi::msg(cr_msg, verbose)
+      # get/make station file
+      fp <- file.path(pipe_house$ipip_room, paste0(x[i][["sf"]], station_ext))
+      if (!file.exists(fp)) {
+        # create new station file
+        ipayipi::write_station(pipe_house = pipe_house, sf = new_data,
+          station_file = paste0(x[i][["sf"]], station_ext),
+          overwrite = TRUE, append = FALSE, keep_open = TRUE
+        )
+      } else {
+        # append data
+        station_file <- paste0(x[i][["sf"]], station_ext)
+        # append function, then save output as new station
+        ipayipi::append_station(pipe_house = pipe_house, station_file =
+            station_file, new_data = new_data, overwrite_sf = overwrite_sf,
+          by_station_table = by_station_table, phen_id = phen_id,
+          verbose = verbose, xtra_v = xtra_v
+        )
+      }
+      # close station file connection if finished with the station
+      j <- i + 1
+      if (j > nrow(x)) j <- nrow(x)
+      if (i == j) {
+        ipayipi::write_station(pipe_house = pipe_house, station_file =
+            paste0(x[i][["sf"]], station_ext), append = TRUE,
+          overwrite = TRUE, keep_open = keep_open
+        )
+      }
+      invisible(x[i][["sf"]])
+    })
+    invisible(unique(upgraded_stations))
   })
-  upgraded_stations <- unique(upgraded_stations)
+
+  upgraded_stations <- ups
   cr_msg <- padr(core_message = paste0("  stations appended  ", collapes = ""),
     wdth = 80, pad_char = "=", pad_extras = c("|", "", "", "|"),
     force_extras = FALSE, justf = c(0, 0)

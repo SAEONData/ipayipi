@@ -32,7 +32,6 @@ sf_dta_wr <- function(
     i_zeros = 5,
     verbose = TRUE,
     xtra_v = FALSE,
-    cores = getOption("mc.cores", 2L),
     ...) {
   "%ilike%" <- "table_name" <- NULL
 
@@ -96,7 +95,7 @@ sf_dta_wr <- function(
     # chunk data into file
     ipayipi::sf_dta_chunkr(dta_room = dta_room, chunk_i = NULL,
       rechunk = FALSE, i_zeros = i_zeros, dta_sets = list(dta), tn = tn,
-      rit = rit, ri = ri, overwrite = overwrite, cores = cores, verbose =
+      rit = rit, ri = ri, overwrite = overwrite, verbose =
         verbose, xtra_v = xtra_v
     )
     m <- paste0(tn, ": Data chunked")

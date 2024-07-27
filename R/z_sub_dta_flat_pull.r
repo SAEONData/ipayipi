@@ -36,7 +36,6 @@ dta_flat_pull <- function(
   out_tab_name = NULL,
   out_csv_preffix = "",
   recurr = TRUE,
-  cores = getOption("mc.cores", 2L),
   file_ext = ".ipip",
   verbose = FALSE,
   xtra_v = FALSE,
@@ -64,7 +63,7 @@ dta_flat_pull <- function(
   t <- lapply(slist, function(x) {
     # open station file connections
     sfc <- ipayipi::open_sf_con(station_file = file.path(input_dir, x),
-      verbose = verbose, xtra_v = xtra_v, cores = cores, tmp = TRUE
+      verbose = verbose, xtra_v = xtra_v, tmp = TRUE
     )
     tab_name <- names(sfc)[names(sfc) %in% tab_names]
     if (length(tab_name) > 0) {
@@ -113,7 +112,7 @@ dta_flat_pull <- function(
     date_time = seq(min(mn$mn), max(mx$mx), by = ri) + d
   )
 
-  dti <- parallel::mclapply(seq_along(t), function(i) {
+  dti <- future.apply::future_lapply(seq_along(t), function(i) {
     # add hsf_phens to the dta_link
     t[[i]][[names(t[[i]])[1]]]$hsf_phens <- phen_name
     dti <- dt_dta_open(t[[i]])
@@ -122,7 +121,7 @@ dta_flat_pull <- function(
       gsub(paste0(file_ext, "$"), "", basename(names(t[i])))
     )
     return(dti)
-  }, mc.cores = cores)
+  })
   dti <- do.call(cbind, args = c(list(dt), dti))
   data.table::setcolorder(
     dti, c("date_time", names(dti)[!names(dti) %in% "date_time"])

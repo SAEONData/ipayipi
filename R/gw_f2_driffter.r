@@ -69,7 +69,6 @@ gw_driffter <- function(
   wanted = NULL,
   unwanted = NULL,
   prompt = TRUE,
-  cores = getOption("mc.cores", 2L),
   ...) {
 
   slist <- ipayipi::dta_list(input_dir = input_dir, recurr = recurr,
@@ -148,7 +147,7 @@ gw_driffter <- function(
       #  values for the rows above and below the calibration values
       #  Cushions for the possibility of no rows above or below
       callbs <-
-        parallel::mclapply(seq_len(dippers),
+        future.apply::future_lapply(seq_len(dippers),
           function(z, d_tab=drifting_t, rng_side_in=rng_side,
             rng_max_in=rng_max) {
             c_row <- which(d_tab$dip_n == z)
@@ -258,7 +257,7 @@ gw_driffter <- function(
               cbind(row_ns, possi, dip_nz, row_ccs))
 
           return(cal_val_tab)
-      }, mc.cores = cores)
+      })
 
       callbs <- data.table::rbindlist(callbs)
       callbs <- transform(callbs,

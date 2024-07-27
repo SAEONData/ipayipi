@@ -9,7 +9,6 @@ chunkr_inter_chk(
   indx = FALSE,
   dta_sets = NULL,
   i_zeros = NULL,
-  cores = getOption("mc.cores", 2L),
   verbose = FALSE,
   xtra_v = FALSE,
   ...
@@ -24,9 +23,9 @@ chunkr_inter_chk(
 
 \item{i_zeros}{The number of leading zeros used to name files.}
 
-\item{cores}{Number of cores/cpus used to write data chunks.}
-
 \item{verbose}{Logical. Whether or not to report messages and progress.}
+
+\item{cores}{Number of cores/cpus used to write data chunks.}
 }
 \value{
 Updated chunk index table. This must be used to update a chunked folder's chunk index table.

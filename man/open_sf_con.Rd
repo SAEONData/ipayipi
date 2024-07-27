@@ -14,7 +14,6 @@ open_sf_con(
   ri = NULL,
   verbose = FALSE,
   tv = NULL,
-  cores = getOption("mc.cores", 2L),
   xtra_v = FALSE,
   ...
 )
@@ -34,9 +33,9 @@ open_sf_con(
 
 \item{tv}{String vector of the names of values or tables to read from the station file. The strings provided here are used to filter items in the \code{sfc} object. If left NULL (default) all tables will be opened into the 'tmp' folder. Table names are matched with data.tables \%ilike\% operator.}
 
-\item{cores}{Number of cores to farm processing off to. This assists with increasing the speed of read-write capabilities dealing with chunks.}
-
 \item{buff_period}{Time periods represented by a character string used to buffer the min and max date-times around index creation. Should ideally be at least 10 years. If new data extends before or beyond the index dates then data will be rechunked, and a new index generated.}
+
+\item{cores}{Number of cores to farm processing off to. This assists with increasing the speed of read-write capabilities dealing with chunks.}
 }
 \value{
 Station file connection file paths. To be used in the pipeline.

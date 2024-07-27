@@ -31,7 +31,6 @@ plot_bar_agg <- function(
   file_ext = ".ipip",
   prompt = FALSE,
   recurr = TRUE,
-  cores = getOption("mc.cores", 2L),
   ...
 ) {
 
@@ -57,22 +56,22 @@ plot_bar_agg <- function(
     if (!any(names(dta[[1]]) %in% "date_time")) dta <- NULL
     return(list(stnd_title = stnd_title, dta = dta))
   }
-  dts <- parallel::mclapply(slist, function(x) {
+  dts <- future.apply::future_lapply(slist, function(x) {
     dta <- attempt::attempt(tbl_read(x))
     if (attempt::is_try_error(dta)) {
       dta <- NULL
       message(paste0("Could not read or extract data from: ", x))
     }
     return(dta)
-  }, mc.cores = cores, mc.cleanup = TRUE)
+  })
   dts <- dts[!sapply(dts, is.null)]
   dts_names <- sapply(dts, function(x) x[["stnd_title"]])
   dts <- lapply(dts, function(x) x[["dta"]][[1]])
   names(dts) <- dts_names
-  dts <- parallel::mclapply(seq_along(dts), function(i) {
+  dts <- future.apply::future_lapply(seq_along(dts), function(i) {
     dts[[i]][["stnd_title"]] <- dts_names[i]
     return(dts[[i]])
-  }, mc.cores = cores, mc.cleanup = TRUE)
+  })
   # join to common date_time series
   dts <- data.table::rbindlist(dts)
   if ("gid" %in% names(dts)) {

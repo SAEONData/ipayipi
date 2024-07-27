@@ -12,7 +12,6 @@ dta_flat_push(
   ri = NULL,
   stations = NULL,
   recurr = FALSE,
-  cores = getOption("mc.cores", 2L),
   file_ext = ".ipip",
   ...
 )
@@ -26,8 +25,6 @@ dta_flat_push(
 
 \item{ri}{Record-interval string. This function will guess the record interval used to generate a flat table. However, the guess may not be possible if there is insufficient data.}
 
-\item{cores}{Number of CPU's to use for processing in parallel. Only applies when working on Linux systems.}
-
 \item{file_ext}{The extension of the stations from where data will be extracted. Defaults to ".ipip".}
 
 \item{output_dir}{The output directory where an output csv file is saved.}
@@ -39,6 +36,8 @@ dta_flat_push(
 \item{out_csv}{Logical. If TRUE a csv file is exported to the output directory.}
 
 \item{out_csv_preffix}{Preffix for the output csv file. The phenomena name and then time interval by which the data are summarised are used as a suffix.}
+
+\item{cores}{Number of CPU's to use for processing in parallel. Only applies when working on Linux systems.}
 
 \item{prompt}{Logical. If \code{TRUE} a prompt will be called so that the user can interactively select station files.}
 }

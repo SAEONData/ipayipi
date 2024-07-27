@@ -13,7 +13,6 @@ phenomena_chk(
   verbose = FALSE,
   wanted = NULL,
   unwanted = NULL,
-  cores = getOption("mc.cores", 2L),
   ...
 )
 }
@@ -28,11 +27,11 @@ phenomena_chk(
 
 \item{unwanted}{Similar to wanted, but keywords for filtering out unwanted stations.}
 
-\item{cores}{Number of CPU's to use for processing in parallel. Only applies when working on linux systems.}
-
 \item{nomtab_import}{Is there an update to the extant (or non-existant) phenomena table? This parameter can be used to input these updates.}
 
 \item{out_csv}{Logical. If \code{TRUE} a csv file is made in the working directory if there are files with unrecognised phenomena.}
+
+\item{cores}{Number of CPU's to use for processing in parallel. Only applies when working on linux systems.}
 }
 \value{
 returns a csv phenomena file. Screen output notes whether the phenomena table is complete.

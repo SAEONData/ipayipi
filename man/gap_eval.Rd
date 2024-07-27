@@ -14,7 +14,6 @@ gap_eval(
   keep_open = TRUE,
   meta_events = "meta_events",
   verbose = FALSE,
-  cores = getOption("mc.cores", 2L),
   xtra_v = FALSE,
   tbl_n = "^raw_*",
   ...

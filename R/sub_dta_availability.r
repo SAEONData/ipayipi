@@ -35,7 +35,6 @@ dta_availability <- function(
   unwanted = NULL,
   recurr = FALSE,
   prompt = FALSE,
-  cores = getOption("mc.cores", 2L),
   keep_open = TRUE,
   ...
 ) {
@@ -55,17 +54,17 @@ dta_availability <- function(
     stop("Refine search parameters---no station files detected.")
   }
   # extract data for gaps
-  gaps <- parallel::mclapply(slist, function(x) {
+  gaps <- future.apply::future_lapply(slist, function(x) {
     dta <- readRDS(file.path(pipe_house$ipip_room, x))["gaps"]
     return(dta$gaps)
-  }, mc.cores = cores, mc.cleanup = TRUE)
+  })
   names(gaps) <- slist
 
   # produce gap tables where they are missing
   run_gaps <- names(gaps[sapply(gaps, is.null)])
   lapply(run_gaps, function(x) {
     ipayipi::open_sf_con(pipe_house = pipe_house, station_file = x,
-      tmp = FALSE, cores = cores
+      tmp = FALSE
     )
   })
   run_gap_gaps <- lapply(run_gaps, function(x) {
@@ -75,7 +74,7 @@ dta_availability <- function(
       verbose = verbose
     )
     ipayipi::write_station(pipe_house = pipe_house, sf = g, station_file = x,
-      overwrite = TRUE, append = TRUE, keep_open = keep_open, cores = cores
+      overwrite = TRUE, append = TRUE, keep_open = keep_open
     )
     g$gaps <- g$gaps[problem_gap == TRUE]
     invisible(g$gaps)
@@ -264,7 +263,7 @@ dta_availability <- function(
   }))
   names(dtg) <- ntbl$table_wrd
   # generate dependancy matrices for imputation
-  dep <- parallel::mclapply(ntbl$station_tbl_n, function(i) {
+  dep <- future.apply::future_lapply(ntbl$station_tbl_n, function(i) {
     tbln <- ntbl$table_wrd[i]
     dtgx <- dtg[,
       ntbl$station_tbl_n[!ntbl$station_tbl_n %in% i],
@@ -283,7 +282,7 @@ dta_availability <- function(
       gap_pred = c(0, data.table::fifelse(g > 0, 1, 0)),
       tail_pred = c(0, data.table::fifelse(t > 0, 1, 0))
     )
-  }, mc.cores = cores)
+  })
   dep <- data.table:::rbindlist(dep)
   depl <- data.table::dcast(dep, depn ~ predn, value.var = "lead_pred")
   nord <- names(depl)[!names(depl) %in% "depn"]

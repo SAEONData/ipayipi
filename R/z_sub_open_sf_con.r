@@ -15,18 +15,18 @@
 #' @return Station file connection file paths. To be used in the pipeline.
 #' @details This function will not overwrite temporary station tables/data. If there is no chunked versino of the station file available, the station file ("ipip" file) will be chunked, and the connection established.
 open_sf_con <- function(
-    pipe_house = NULL,
-    station_file = NULL,
-    tmp = TRUE,
-    chunk_i = NULL,
-    i_zeros = 5,
-    rit = NULL,
-    ri = NULL,
-    verbose = FALSE,
-    tv = NULL,
-    cores = getOption("mc.cores", 2L),
-    xtra_v = FALSE,
-    ...) {
+  pipe_house = NULL,
+  station_file = NULL,
+  tmp = TRUE,
+  chunk_i = NULL,
+  i_zeros = 5,
+  rit = NULL,
+  ri = NULL,
+  verbose = FALSE,
+  tv = NULL,
+  xtra_v = FALSE,
+  ...
+) {
   "%ilike%" <- "table_name" <- NULL
   if (!is.null(pipe_house)) {
     sf_dir <- dirname(station_file)
@@ -76,7 +76,7 @@ open_sf_con <- function(
       }
       s <- ipayipi::sf_dta_wr(dta_room = file.path(sf_tmp, x),
         dta = sfx, tn = x, rit = rit, ri = ri, verbose = verbose,
-        cores = cores, overwrite = TRUE, xtra_v = xtra_v
+        overwrite = TRUE, xtra_v = xtra_v
       )
       invisible(file.path(sf_tmp, x))
     })

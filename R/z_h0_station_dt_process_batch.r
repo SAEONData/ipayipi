@@ -35,7 +35,6 @@ dt_process_batch <- function(
   unwanted_tbls = "_tmp",
   verbose = FALSE,
   xtra_v = FALSE,
-  cores = getOption("mc.cores", 2L),
   keep_open = TRUE,
   ...
 ) {
@@ -65,26 +64,27 @@ dt_process_batch <- function(
 
   # update and/or create new stations
   # upgraded_stations <- lapply(seq_along(new_station_files), function(i) {
-  station_files <- lapply(seq_along(station_files), function(i) {
-    cr_msg <- padr(core_message = paste0(" +> ", station_files[i],
-        collapes = ""
-      ), wdth = 80, pad_char = " ", pad_extras = c("|", "", "", "|"),
-      force_extras = FALSE, justf = c(1, 1)
-    )
-    ipayipi::msg(cr_msg, verbose)
-    # process data
-    dtp <- attempt::attempt(
-      ipayipi::dt_process(station_file = station_files[i],
-        pipe_house = pipe_house, pipe_seq = pipe_seq, stages = stages,
-        output_dt_preffix = output_dt_preffix,
-        output_dt_suffix = output_dt_suffix,
-        overwrite_pipe_memory = overwrite_pipe_memory,
-        verbose = verbose, xtra_v = xtra_v, cores = cores,
-        keep_open = keep_open
+  station_files <-
+    future.apply::future_lapply(seq_along(station_files), function(i) {
+      cr_msg <- padr(core_message = paste0(" +> ", station_files[i],
+          collapes = ""
+        ), wdth = 80, pad_char = " ", pad_extras = c("|", "", "", "|"),
+        force_extras = FALSE, justf = c(1, 1)
       )
-    )
-    invisible(station_files[i])
-  })
+      ipayipi::msg(cr_msg, verbose)
+      # process data
+      dtp <- attempt::attempt(
+        ipayipi::dt_process(station_file = station_files[i],
+          pipe_house = pipe_house, pipe_seq = pipe_seq, stages = stages,
+          output_dt_preffix = output_dt_preffix,
+          output_dt_suffix = output_dt_suffix,
+          overwrite_pipe_memory = overwrite_pipe_memory,
+          verbose = verbose, xtra_v = xtra_v,
+          keep_open = keep_open
+        )
+      )
+      invisible(station_files[i])
+    })
   cr_msg <- padr(core_message = paste0("  data processed  ", collapes = ""),
     wdth = 80, pad_char = "=", pad_extras = c("|", "", "", "|"),
     force_extras = FALSE, justf = c(0, 0)

@@ -37,7 +37,6 @@ dt_clean <- function(
   f_params = NULL,
   verbose = FALSE,
   xtra_v = FALSE,
-  cores = getOption("mc.cores", 2L),
   ...
 ) {
 
