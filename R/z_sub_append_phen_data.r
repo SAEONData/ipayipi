@@ -47,7 +47,7 @@ append_phen_data <- function(
     )
     # read_dta
     sf_eindx <- ipayipi::sf_dta_read(sfc = sfc, station_file = station_file,
-      tv = tn, tmp = TRUE, pipe_house = pipe_house, start_dttm = nd_min,
+      tv = tn, pipe_house = pipe_house, start_dttm = nd_min,
       end_dttm = nd_max, return_dta = FALSE
     )[[tn]]
   } else if (data.table::is.data.table(station_file)) {

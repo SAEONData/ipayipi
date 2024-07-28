@@ -140,7 +140,7 @@ phen_gaps <- function(
         ), notes = NA_character_
       )][, names(x)[!names(x) %in% c(sdcols[j], "int")], with = FALSE]
       return(x)
-    })
+    }, future.packages = "ipayipi")
     phen_gaps <- phen_gaps[sapply(phen_gaps, function(gx) nrow(gx) > 0)]
     phen_gaps <- data.table::rbindlist(phen_gaps)
     return(phen_gaps)

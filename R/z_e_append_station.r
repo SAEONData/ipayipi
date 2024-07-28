@@ -25,7 +25,7 @@ append_station <- function(
     "uz_phen_name" <- "origin" <- "date_time" <- NULL
 
   sfc <- ipayipi::open_sf_con(pipe_house = pipe_house, station_file =
-      station_file, tmp = TRUE, verbose = verbose
+      station_file, verbose = verbose
   )
 
   ## read in data ----

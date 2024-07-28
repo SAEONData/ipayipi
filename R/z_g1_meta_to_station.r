@@ -53,7 +53,7 @@ meta_to_station <- function(
   message(cr_msg)
   r <- lapply(slist, function(x) {
     sfc <- open_sf_con(pipe_house = pipe_house, station_file = x,
-      tmp = TRUE, verbose = verbose, xtra_v = xtra_v
+      verbose = verbose, xtra_v = xtra_v
     )
     sfn <- gsub(pattern = station_ext, replacement = "", x = x)
     sfn <- basename(sfn)
@@ -67,7 +67,7 @@ meta_to_station <- function(
       verbose = verbose, xtra_v = xtra_v
     )
     write_station(pipe_house = pipe_house, station_file = x,
-      overwrite = TRUE, append = FALSE, keep_open = keep_open
+      overwrite = TRUE, append = FALSE
     )
     cr_msg <- padr(core_message = paste0(
       basename(x), " done ...", collapes = ""

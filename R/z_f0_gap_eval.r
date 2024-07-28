@@ -72,8 +72,7 @@ gap_eval <- function(
 
   # open station connection
   sfc <- ipayipi::open_sf_con(pipe_house = pipe_house,
-    station_file = station_file, tmp = TRUE,
-    verbose = verbose, xtra_v = xtra_v
+    station_file = station_file, verbose = verbose, xtra_v = xtra_v
   )
 
   # generate gap table for each raw data table from data_summary ----
@@ -192,7 +191,7 @@ gap_eval <- function(
   )
   # refresh station connection
   sfc <- ipayipi::open_sf_con(pipe_house = pipe_house, station_file =
-      station_file, tmp = TRUE, verbose = verbose,
+      station_file, verbose = verbose,
     xtra_v = xtra_v
   )
 
@@ -406,7 +405,7 @@ gap_eval <- function(
   }
   if (!keep_open) {
     write_station(pipe_house = pipe_house, station_file = station_file,
-      overwrite = TRUE, append = FALSE, keep_open = keep_open
+      overwrite = TRUE, append = FALSE
     )
   }
   invisible(list(gaps = gaps))

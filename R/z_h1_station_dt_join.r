@@ -124,10 +124,10 @@ dt_join <- function(
   hsf_dta <- hsf_dta[order(hsf_dta)]
 
   if (length(wrk_dta) > 0) {
-    x_tbl <- ipayipi::sf_dta_read(sfc = sfc, tmp = TRUE, tv = "dt_working")
+    x_tbl <- ipayipi::sf_dta_read(sfc = sfc, tv = "dt_working")
   } else {
     x_tbl_n <- hsf_dta[length(hsf_dta) - 1]
-    x_tbl <- ipayipi::sf_dta_read(sfc = sfc, tmp = TRUE, tv = x_tbl_n)
+    x_tbl <- ipayipi::sf_dta_read(sfc = sfc, tv = x_tbl_n)
   }
   if (length(hsf_dta) > 0) {
     y_tbl_n <- hsf_dta[length(hsf_dta)]

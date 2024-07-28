@@ -56,7 +56,7 @@ dt_process <- function(
 
   # open station file connection
   sfc <- ipayipi::open_sf_con(pipe_house = pipe_house, station_file =
-      station_file, tmp = TRUE, verbose = verbose, xtra_v = xtra_v
+      station_file, verbose = verbose, xtra_v = xtra_v
   )
   if (!is.null(pipe_seq) && any(!"pipe_seq" %in% names(sfc),
         overwrite_pipe_memory
@@ -64,7 +64,7 @@ dt_process <- function(
     saveRDS(pipe_seq, file.path(dirname(sfc[1]), "pipe_seq"))
   }
   pipe_seq <- ipayipi::sf_dta_read(
-    sfc = sfc, tmp = TRUE, tv = "pipe_seq", verbose = FALSE
+    sfc = sfc, tv = "pipe_seq", verbose = FALSE
   )[["pipe_seq"]]
 
   # clean up any temp data
@@ -79,13 +79,13 @@ dt_process <- function(
     unlink(sfc[mfiles[mfiles %in% names(sfc)]], recursive = TRUE)
   }
   sfc <- ipayipi::open_sf_con(pipe_house = pipe_house, station_file =
-      station_file, tmp = TRUE, verbose = verbose, xtra_v = xtra_v
+      station_file, verbose = verbose, xtra_v = xtra_v
   )
   # read function summary tables
   # open output_dt and associate table summary
   sf_names <- names(sfc)
   f_summary <- ipayipi::sf_dta_read(pipe_house = pipe_house, sfc = sfc,
-    tmp = TRUE, tv = sf_names[sf_names %ilike% "summary|phens|pipe_seq"],
+    tv = sf_names[sf_names %ilike% "summary|phens|pipe_seq"],
     station_file = station_file, verbose = FALSE
   )
   f_summary$sf_names <- sf_names
@@ -122,7 +122,7 @@ dt_process <- function(
     ppsi <- pps[[i]]
     lapply(unique(ppsi$dtp_n), function(j) {
       sfc <- open_sf_con(pipe_house = pipe_house, station_file = station_file,
-        tmp = TRUE, verbose = verbose, xtra_v = xtra_v
+        verbose = verbose, xtra_v = xtra_v
       )
       # get function and prepare arguments
       ppsij <- ppsi[dtp_n == j]
@@ -207,9 +207,9 @@ dt_process <- function(
     })
   })
   sfc <- open_sf_con(pipe_house = pipe_house, station_file = station_file,
-    tmp = TRUE, verbose = verbose, xtra_v = xtra_v
+    verbose = verbose, xtra_v = xtra_v
   )
-  pps <- ipayipi::sf_dta_read(sfc = sfc, tmp = TRUE, tv = "pipe_seq",
+  pps <- ipayipi::sf_dta_read(sfc = sfc, tv = "pipe_seq",
     verbose = FALSE
   )[["pipe_seq"]]
   if (!is.null(stages)) {
@@ -222,7 +222,7 @@ dt_process <- function(
     ppsi <- pps[[i]]
     pit <- lapply(unique(ppsi$dtp_n), function(j) {
       sfc <- open_sf_con(pipe_house = pipe_house, station_file = station_file,
-        tmp = TRUE, verbose = verbose, xtra_v = xtra_v
+        verbose = verbose, xtra_v = xtra_v
       )
       # get function and prepare arguments
       ppsij <- ppsi[dtp_n == j]
@@ -253,7 +253,7 @@ dt_process <- function(
     pit <- data.table::rbindlist(pit)
 
     sfc <- open_sf_con(pipe_house = pipe_house, station_file = station_file,
-      tmp = TRUE, verbose = verbose, xtra_v = xtra_v
+      verbose = verbose, xtra_v = xtra_v
     )
     # convert dt_working to output_dt
     odtn <- unique(ppsi$output_dt)[1]
@@ -287,14 +287,14 @@ dt_process <- function(
   piit <- piit[order(dt_n, dtp_n, n)]
   saveRDS(piit, file.path(dirname(sfc[1]), "pipe_seq"))
   sfc <- open_sf_con(pipe_house = pipe_house, station_file = station_file,
-    tmp = TRUE, verbose = verbose, xtra_v = xtra_v
+    verbose = verbose, xtra_v = xtra_v
   )
   unwanted_tbls <- paste0(c(unwanted_tbls, "_hsf_table_"), collapse = "|")
   unwanted_tbls <- names(sfc)[names(sfc) %ilike% unwanted_tbls]
   if (length(unwanted_tbls) == 0) unwanted_tbls <- NULL
   sapply(unwanted_tbls, function(x) unlink(sfc[x], recursive = TRUE))
   ipayipi::write_station(pipe_house = pipe_house, station_file = station_file,
-    overwrite = TRUE, keep_open = keep_open
+    overwrite = TRUE
   )
   return(station_file)
 }

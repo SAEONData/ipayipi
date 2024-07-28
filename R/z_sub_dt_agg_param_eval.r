@@ -138,7 +138,7 @@ agg_param_eval <- function(
     for (i in seq_along(f_params)) assign(names(f_params[i]), f_params[[i]])
 
     # read phens_dt
-    phens_dt <- ipayipi::sf_dta_read(sfc = sfc, tmp = TRUE, tv = "phens_dt")[[
+    phens_dt <- ipayipi::sf_dta_read(sfc = sfc, tv = "phens_dt")[[
       "phens_dt"
     ]]
 

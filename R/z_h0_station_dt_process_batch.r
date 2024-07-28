@@ -79,8 +79,7 @@ dt_process_batch <- function(
           output_dt_preffix = output_dt_preffix,
           output_dt_suffix = output_dt_suffix,
           overwrite_pipe_memory = overwrite_pipe_memory,
-          verbose = verbose, xtra_v = xtra_v,
-          keep_open = keep_open
+          verbose = verbose, xtra_v = xtra_v
         )
       )
       invisible(station_files[i])

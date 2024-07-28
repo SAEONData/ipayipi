@@ -70,7 +70,7 @@ append_phen_overlap_data <- function(
       nd_max > sf_eindx$indx$mn
     )) {
       ipayipi::sf_dta_chunkr(dta_room = dta_room, dta_sets = list(ndt), tn = tn,
-        tmp = TRUE, ri = ri, rit = rit, verbose = verbose, xtra_v = xtra_v
+        ri = ri, rit = rit, verbose = verbose, xtra_v = xtra_v
       )
       sfo_dttms <- data.table::data.table(
         sfo_min = NULL, sfo_max = NULL
@@ -317,7 +317,7 @@ append_phen_overlap_data <- function(
     dta_sets <- list(raw_dto)
     names(dta_sets) <- basename(fsi)
     oindxr <- ipayipi::sf_dta_chunkr(dta_room = dta_room, dta_sets = dta_sets,
-      tn = tn, tmp = TRUE, ri = ri, rit = rit, verbose = verbose,
+      tn = tn, ri = ri, rit = rit, verbose = verbose,
       xtra_v = xtra_v
     )
     sfo_dttms <- data.table::data.table(
