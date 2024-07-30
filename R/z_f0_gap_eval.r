@@ -63,7 +63,7 @@ gap_eval <- function(
   # tbl_n = "^raw_*"
   # phen_eval = TRUE
 
-  ":=" <- "%ilike%" <- NULL
+  ":=" <- "%ilike%" <- ".N" <- NULL
   "dt_diff_s" <- "table_name" <- "start_dttm" <- "end_dttm" <- "dta_start" <-
     "dta_end" <- "event_type" <- "gap_start" <- "gap_end" <- "problem_gap" <-
     "qa" <- "ev_start_dttm" <- "ev_end_dttm" <- "ev_phen" <- "ev_event_type" <-

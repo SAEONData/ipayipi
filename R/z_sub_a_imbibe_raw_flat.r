@@ -223,6 +223,9 @@ imbibe_raw_flat <- function(
     head_info_i$station_title <- gsub(
       "[^[:alnum:]'_']", "", head_info_i$station_title
     )
+    head_info_i$station_title <- gsub(
+      "_+$|^_+", "", head_info_i$station_title
+    )
     # summarise phenomena info
     phen_names <- data_setup_names[13:18]
     phen_info <- data_setup[names(data_setup) %in% phen_names]

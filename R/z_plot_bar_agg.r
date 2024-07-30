@@ -12,7 +12,7 @@
 #' @param file_ext The station file extension. Inherits the 'ipayipi' defult of '.ipip'.
 #' @param prompt Logical. If `TRUE` the function will prompt the user to identify stations for plotting. The wanted and unwanted filters still apply when in interactive mode (`TRUE`).
 #' @param recurr Should the function search recursively? I.e., thorugh sub-folders as well --- `TRUE`/`FALSE`. Defaults to `FALSE`.
-#' @param cores  Number of CPU's to use for processing in parallel. Only applies when working on Linux systems.
+#' @param pipe_house If provided the 'ipip_room' will be used as the input directory. _See_ `ipip_house()`.
 #' @return A list containing the plot data, a ggplot object, and the aggregation period used to summarise data.
 #' @details When searching for station data only the first station table that matches tbl_search_key is extracted. Extracted tables will not be used if they don't have either a "date-time" column, or the specified 'phen_name'.
 #' _NA_ values in data aggretation periods: if the 'gid' field (for gap identification) was created using `ipayipi::dt_agg()` a column in the returned dataa with the suffix '_nas' will be calculated whereby NA values are returned if a gap id ('gid') was present (_see also_ `ipayipi::gap_eval()`).
@@ -20,21 +20,27 @@
 #' @author Paul J. Gordijn
 #' @export
 plot_bar_agg <- function(
+  input_dir = ".",
   agg = "1 month",
   phen_name = NULL,
   tbl_search_key = "dt_1_months_agg",
+  show_gaps = FALSE,
   wanted = NULL,
   unwanted = NULL,
   x_lab = "Date-time",
   y_lab = NULL,
-  input_dir = ".",
   file_ext = ".ipip",
   prompt = FALSE,
   recurr = TRUE,
+  pipe_house = NULL,
   ...
 ) {
 
   "date_time" <- "stnd_title" <- NULL
+
+  # input dir
+  if (!is.null(pipe_house)) input_dir <- pipe_house$ipip_room
+
   # sts agg period
   agg <- ipayipi::sts_interval_name(agg)[["sts_intv"]]
   agg <- gsub(" ", "_", agg)
@@ -56,7 +62,7 @@ plot_bar_agg <- function(
     if (!any(names(dta[[1]]) %in% "date_time")) dta <- NULL
     return(list(stnd_title = stnd_title, dta = dta))
   }
-  dts <- future.apply::future_lapply(slist, function(x) {
+  dts <- lapply(slist, function(x) {
     dta <- attempt::attempt(tbl_read(x))
     if (attempt::is_try_error(dta)) {
       dta <- NULL
@@ -68,7 +74,7 @@ plot_bar_agg <- function(
   dts_names <- sapply(dts, function(x) x[["stnd_title"]])
   dts <- lapply(dts, function(x) x[["dta"]][[1]])
   names(dts) <- dts_names
-  dts <- future.apply::future_lapply(seq_along(dts), function(i) {
+  dts <- lapply(seq_along(dts), function(i) {
     dts[[i]][["stnd_title"]] <- dts_names[i]
     return(dts[[i]])
   })
@@ -82,11 +88,28 @@ plot_bar_agg <- function(
 
   # generate basic plot
   if (is.null(y_lab)) y_lab <- phen_name
+  dts$year <- lubridate::year(dts$date_time)
+  dts$month <- lubridate::month(dts$date_time, abbr = TRUE,
+    label = TRUE
+  )
+  if (show_gaps) pgap <- paste0(phen_name, "_nas") else pgap <- phen_name
   p <- ggplot2::ggplot(dts, ggplot2::aes(
-    x = date_time, y = !!as.name(phen_name), fill = stnd_title
+    x = date_time, y = !!as.name(pgap), colour = stnd_title,
+    fill = stnd_title
   )) +
+    ggplot2::geom_point(
+      aes(y = !!as.name(phen_name)),
+      position = ggplot2::position_dodge(width = 1),
+      na.rm = TRUE, shape = "-", size = 15, alpha = 0.4
+    ) +
     ggplot2::geom_bar(stat = "identity", position = "dodge") +
-    ggplot2::labs(x = x_lab, y = y_lab)
+    ggplot2::labs(x = x_lab, y = y_lab) +
+    khroma::scale_colour_sunset(discrete = TRUE) +
+    khroma::scale_fill_sunset(discrete = TRUE) +
+    egg::theme_article() +
+    ggplot2::guides(
+      color = ggplot2::guide_legend(override.aes = list(size = 5))
+    )
   agg_obj <- list(plt_data = dts, plt = p, agg = agg)
   names(agg_obj) <- c("plt_data", "plt", "agg_period")
   return(agg_obj)

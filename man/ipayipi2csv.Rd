@@ -2,10 +2,11 @@
 % Please edit documentation in R/z_ipayipi2csv.r
 \name{ipayipi2csv}
 \alias{ipayipi2csv}
-\title{ipayipi to 'csv'}
+\title{ipayipi station to 'csv'}
 \usage{
 ipayipi2csv(
-  data_dir = NULL,
+  input_dir = ".",
+  pipe_house = NULL,
   output_dir = NULL,
   file_ext = ".ipip",
   wanted_tabs = NULL,
@@ -14,36 +15,25 @@ ipayipi2csv(
   unwanted = NULL,
   baros = FALSE,
   recurr = TRUE,
-  dt_export_format = "write.csv",
   ...
 )
 }
 \arguments{
-\item{data_dir}{The directory where standardised ipayipi data files to be
-are stored.}
+\item{file_ext}{Character string of the file extension of the input data files. E.g., ".csv" for hobo rainfall file exports. This input character string should contain the period as in the previous sentence.}
 
-\item{file_ext}{Character string of the file extension of the input
-data files. E.g., ".csv" for hobo rainfall file exports. This input
-character string should contain the period as in the previous sentence.}
+\item{wanted_tabs}{Data items/tables that should be exported to csvs.  '\%ilike\%': ergo seperate multiple search phrases by '|'.}
 
-\item{wanted_tabs}{Data items/tables that should be exported to csvs. Evaluated using '\%ilike\%': ergo seperate multiple search phrases by '|'.}
-
-\item{prompt}{Set to TRUE for interactive mode. If FALSE all relevant files
-in the specified directory will be exported.}
+\item{prompt}{Set to TRUE for interactive mode. If FALSE all relevant files in the specified directory will be exported.}
 
 \item{wanted}{Vector of strings listing files that should not be included in the import. Evaluated using '\%ilike\%': ergo seperate multiple search phrases by '|'.}
 
 \item{unwanted}{Vector of strings listing files that should not be included in the import. Evaluated using '\%ilike\%': ergo seperate multiple search phrases by '|'.}
 
-\item{baros}{Should the function include barometric files
-in the final list - TRUE/FALSE. This parameter is specifically for working
-with groundwater data.}
+\item{baros}{Should the function include barometric files in the final list - TRUE/FALSE. This parameter is specifically for working with groundwater data.}
 
-\item{dt_export_format}{Passed to \code{data.table::fwrite()}. Default is
-"write.csv".}
+\item{data_dir}{The directory where standardised ipayipi data files to be are stored.}
 
-\item{out_dir}{The outpur directory where the standardised ipayipi data
-object will be saved/exported to.}
+\item{out_dir}{The outpur directory where the standardised ipayipi data object will be saved/exported to.}
 }
 \value{
 A list of station files which had tables exported to csv files.

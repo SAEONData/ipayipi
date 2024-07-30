@@ -14,7 +14,7 @@
 #' @param prompt Should the function use an interactive file selection function otherwise all files are returned. TRUE or FALSE.
 #' @param recurr Should the function search recursively into sub directories for hobo rainfall csv export files? TRUE or FALSE.
 #' @param cores  Number of CPU's to use for processing in parallel. Only applies when working on Linux.
-#' @param keep_open Logical. Keep _hidden_ 'station_file' open for ease of access. Defaults to `TRUE`.
+#' @param keep_open Logical. Keep _hidden_ 'station_file' open for ease of access. Defaults to `FALSE`.
 #' @author Paul J. Gordijn
 #' @details Gap data for each station and respective tables are extracted from the station, using `ipayipi::gap_eval()`. Gap tables are combined with the full record of data in a data summary table and plotted using ggplot2. Note that 'gaps' can be edited by imbibing metadata into a stations record, _see_ `ipayipi::gap_eval()` for details.
 #' @return A list containing a plot, which shows the availability of data, the gap data as formatted for plotting. The plot is produced using `ggplot2::ggplot()`.
@@ -36,14 +36,28 @@ dta_availability <- function(
   recurr = FALSE,
   prompt = FALSE,
   keep_open = TRUE,
+  xtra_v = FALSE,
   ...
 ) {
-  ".SD" <- ":=" <- "." <- NULL
-  "station_n" <- "stnd_title" <- "dtt0" <- "dtt1" <- "station" <-
-    "table_name" <- "data_yes" <- "date_time" <- "gap_yes" <-
-    "gs_data_yes" <- "problem_gap" <- "gs_gid" <- "station_tbl_n" <-
-    "gs_gap_start" <- "gs_gap_end" <- "gdttm1" <- "gdttm0" <- "dttm0" <-
-    "dttm1" <- "table_wrd" <- "n" <- NULL
+
+  # station_ext <- ".ipip"
+  # gap_problem_thresh_s <- 6 * 60 * 60
+  # event_thresh_s <- 10 * 60
+  # start_dttm <- NULL
+  # end_dttm <- NULL
+  # plot_tbls <- NULL
+  # meta_events <- "meta_events"
+  # verbose <- TRUE
+  # wanted <- NULL
+  # unwanted <- NULL
+  # recurr <- FALSE
+  # prompt <- FALSE
+  # keep_open <- FALSE
+  # xtra_v <- TRUE
+
+  ":=" <- NULL
+  "stnd_title" <- "station" <- "table_name" <- "data_yes" <- "gid" <-
+    "problem_gap" <- "gap_start" <- "gap_end" <- "phen" <-  NULL
   slist <- ipayipi::dta_list(input_dir = pipe_house$ipip_room,
     file_ext = ".ipip", prompt = prompt, recurr = recurr,
     unwanted = unwanted, wanted = wanted
@@ -54,11 +68,12 @@ dta_availability <- function(
     stop("Refine search parameters---no station files detected.")
   }
   # extract data for gaps
-  gaps <- future.apply::future_lapply(slist, function(x) {
-    dta <- readRDS(file.path(pipe_house$ipip_room, x))["gaps"]
+  gaps <- lapply(slist, function(x) {
+    dta <- ipayipi::sf_dta_read(station_file = x, pipe_house = pipe_house,
+      tv = "gaps", verbose = verbose, xtra_v = xtra_v
+    )
     return(dta$gaps)
   })
-  names(gaps) <- slist
 
   # produce gap tables where they are missing
   run_gaps <- names(gaps[sapply(gaps, is.null)])
@@ -68,11 +83,11 @@ dta_availability <- function(
   run_gap_gaps <- lapply(run_gaps, function(x) {
     g <- ipayipi::gap_eval(pipe_house = pipe_house, station_file = x,
       gap_problem_thresh_s = gap_problem_thresh_s, event_thresh_s =
-        event_thresh_s, keep_open = keep_open, meta_events = meta_events,
-      verbose = verbose
+        event_thresh_s, meta_events = meta_events,
+      verbose = verbose, xtra_v = xtra_v
     )
     ipayipi::write_station(pipe_house = pipe_house, sf = g, station_file = x,
-      overwrite = TRUE, append = TRUE, keep_open = keep_open
+      overwrite = TRUE, append = TRUE
     )
     g$gaps <- g$gaps[problem_gap == TRUE]
     invisible(g$gaps)
@@ -80,6 +95,7 @@ dta_availability <- function(
   names(run_gap_gaps) <- run_gaps
 
   gaps <- c(gaps[!sapply(gaps, is.null)], run_gap_gaps)
+  gaps_null <- gaps[[length(gaps)]][0]
   gs <- lapply(seq_along(gaps), function(i) {
     gaps[[i]]$station <- sub("\\.ipip", "", names(gaps[i]))
     g <- split.data.frame(gaps[[i]][problem_gap == TRUE],
@@ -91,7 +107,9 @@ dta_availability <- function(
   if (!is.null(plot_tbls)) gs <- gs[names(gs) %in% plot_tbls]
 
   sedta <- lapply(seq_along(slist), function(i) {
-    ds <- readRDS(file.path(pipe_house$ipip_room, slist[i]))[["data_summary"]]
+    ds <- sf_dta_read(pipe_house = pipe_house, tv = "data_summary",
+      station_file = slist[i], tmp = TRUE
+    )[["data_summary"]]
     ds <- ds[, c("start_dttm", "end_dttm", "stnd_title", "table_name")]
     if (!is.null(plot_tbls)) ds <- ds[table_name %in% plot_tbls]
     ds$station_n <- rev(seq_along(slist))[i]
@@ -101,6 +119,7 @@ dta_availability <- function(
     return(ds)
   })
   sedta <- unlist(sedta, recursive = FALSE)
+  # get max and min dttm's for table data
   sedta <- lapply(seq_along(sedta), function(i) {
     ds <- sedta[[i]]
     ds$start_dttm <- min(ds$start_dttm)
@@ -111,7 +130,6 @@ dta_availability <- function(
     return(ds)
   })
   sedta <- data.table::rbindlist(sedta)
-  data.table::setkey(sedta, "start_dttm", "end_dttm")
 
   no_gaps <- sapply(gs, function(x) x$station[1])
   no_gaps <- sedta$stnd_title[!sedta$stnd_title %in% no_gaps]
@@ -130,180 +148,80 @@ dta_availability <- function(
     return(x)
   })
 
-  # get all time recordings
-  dts <- lapply(seq_along(gs), function(i) {
-    dts1 <- sedta[stnd_title == gs[[i]]$station[1], "start_dttm"]
-    names(dts1) <- "dtt0"
-    dts2 <- sedta[stnd_title == gs[[i]]$station[1], "end_dttm"]
-    names(dts2) <- "dtt0"
-    dts <- rbind(dts1, dts2)
-    # add in the gaps
-    dts1 <- gs[[i]][, "gap_start"]
-    names(dts1) <- "dtt0"
-    dts2 <- gs[[i]][, "gap_end"]
-    names(dts2) <- "dtt0"
-    dts3 <- gs[[i]][, "gap_end"] + 0.01
-    names(dts3) <- "dtt0"
-    dts <- rbind(dts, dts1, dts2, dts3)
-    invisible(dts)
-  })
-  dts <- c(dts, list(no_gaps))
-  dts <- data.table::rbindlist(dts)[order(dtt0), ]
-  dts <- unique(dts)
-  dts$dtt1 <- dts$dtt0
-  data.table::setkey(dts, dtt0, dtt1)
-  gs <- data.table::rbindlist(gs, use.names = TRUE)
-  names(gs) <- paste0("gs_", names(gs))
-  data.table::setkey(gs, "gs_gap_start", "gs_gap_end")
-  gs <- gs[, ":="(gdttm0 = gs_gap_start, gdttm1 = gs_gap_end)]
-
-  dty <- lapply(unique(sedta$data_yes), function(i) {
-    dtj <- data.table::foverlaps(y = sedta[data_yes == i],
-      x = dts, mult = "all", nomatch = NA
-    )
-    dtj <- dtj[, ":="(dttm0 = dtt0, dttm1 = dtt1)]
-    data.table::setkey(dtj, dtt0, dtt1)
-    dtj <- gs[gs_data_yes == i][dtj, on = .(gdttm1 >= dttm0, gdttm0 <= dttm1)]
-    dtj$station <- dtj[!is.na(stnd_title)]$stnd_title[1]
-    dtj$station_n <- dtj[!is.na(station_n)]$station_n[1]
-    dtj$table_name <- dtj[!is.na(table_name)]$table_name[1]
-    dtj <- dtj[, names(dtj)[
-      names(dtj) %in% c("gs_gid", "data_yes", "gs_gap_yes", "dtt0",
-        "station", "station_n", "table_name"
+  gs <- data.table::rbindlist(c(gs, list(gaps_null)), fill = TRUE,
+    use.names = TRUE
+  )
+  gs <- gs[, ":="(start_dttm = gap_start, end_dttm = gap_end)]
+  gs$table_wrd <- paste0(gs$station, ": ", gs$data_yes)
+  sedta <- sedta[, station := stnd_title][, gid := ""]
+  gs <- rbind(gs, sedta, use.names = TRUE, fill = TRUE)
+  p <- suppressWarnings(ggplot2::ggplot(
+    gs[phen %in% "logger"],
+    ggplot2::aes(
+      y = data_yes, x = start_dttm,
+      group = data_yes, colour = station,
+      text = paste("<b>Start--end: </b>", start_dttm, "--", end_dttm,
+        "<br>", "<b>Station: </b>", station, "<br>", "<b>Table name: </b>",
+        table_name, "<br>", "<b>Gap ID: </b>", gid
       )
-    ], with = FALSE]
-    dtj$table_wrd <- paste0(dtj$station_n[1], ": ", dtj$table_name[1])
-    return(dtj)
-  })
-
-  # gap_labs <- lapply(seq_along(gaps), function(i) {
-  #   g <- gaps[[i]]
-  #   g$mid_time <- g$gap_start + (g$dt_diff_s / 2)
-  #   g$station <- sub("\\.ipip", "", names(gaps[i]))
-  #   g <- g[, c("gid", "mid_time", "station")]
-  #   g$n <- i
-  #   return(g)
-  # })
-
-  # gap_labs <- data.table::rbindlist(gap_labs)
-  dts <- data.table::rbindlist(dty)
-  data.table::setnames(dts, old = c("dtt0", "gs_gap_yes"),
-    new = c("date_time", "gap_yes")
+    )
+  ) +
+    ggplot2::geom_segment(
+      data = sedta,
+      inherit.aes = FALSE,
+      ggplot2::aes(
+        y = data_yes, x = start_dttm,
+        xend = end_dttm, yend = data_yes,
+        text = paste("<b>Start--end: </b>", start_dttm, "--", end_dttm,
+          "<br>", "<b>Station: </b>", station, "<br>", "<b>Table name: </b>",
+          table_name
+        ),
+        colour = station
+      ), linewidth = 2
+    ) +
+    ggplot2::geom_segment(
+      data = gs[phen %in% "logger"],
+      inherit.aes = FALSE,
+      ggplot2::aes(
+        y = data_yes, x = start_dttm,
+        xend = end_dttm, yend = data_yes,
+        text = paste("<b>Start--end: </b>", start_dttm, "--", end_dttm,
+          "<br>", "<b>Station: </b>", station, "<br>", "<b>Table name: </b>",
+          table_name
+        )
+      ),
+      colour = "#801b1b", linewidth = 6
+    )
   )
 
-  dts$station_wrd <- paste0(dts$station_n, ": ", dts$station)
-  q <- dts[!is.na(data_yes),
-    c("data_yes", "station", "station_n", "table_name", "station_wrd")
-  ][order(data_yes)]
-  if (is.null(start_dttm)) start_dttm <- min(dts$date_time)
-  if (is.null(end_dttm)) end_dttm <- max(dts$date_time)
-  dts <- dts[date_time >= start_dttm]
-  dts <- dts[date_time <= end_dttm]
-
-  dt_label <- dts
-  dt_label <- dt_label[!is.na(gs_gid)]
-  if (nrow(dt_label) > 0) {
-    dt_label <- dt_label[, date_time := min(date_time),
-      by = .(station, gs_gid)
-    ]
+  if (nrow(gs[!phen %in% "logger" & !is.na(phen)]) > 0) {
+    p <- suppressWarnings(p + ggplot2::geom_segment(
+      data = gs[!phen %in% "logger" & !is.na(phen)],
+      inherit.aes = FALSE,
+      ggplot2::aes(
+        y = data_yes, x = start_dttm,
+        xend = end_dttm, yend = data_yes,
+        text = paste("<b>Start--end: </b>", start_dttm, "--", end_dttm,
+          "<br>", "<b>Station: </b>", station, "<br>", "<b>Table name: </b>",
+          table_name, "<br>", "<b>Phenomena: </b>", phen
+        )
+      ), colour = "#271a1195", linewidth = 4
+    ))
   }
-  dt_label <- unique(dt_label)
-  q <- unique(q)
-  p <- ggplot2::ggplot(dts, ggplot2::aes(
-    y = data_yes, x = date_time, group = data_yes, colour = station,
-    text = paste("<b>Date-time: </b>", date_time, "<br>", "<b>Station: </b>",
-      station, "<br>", "<b>Table name: </b>", table_name, "<br>",
-      "<b>Gap ID: </b>", gs_gid
-    )
-  )) +
-    ggplot2::geom_line(ggplot2::aes(x = date_time, y = gap_yes), linewidth = 8,
-      colour = "#801b1b", na.rm = TRUE
-    ) +
-    ggplot2::geom_line(na.rm = TRUE, linewidth = 2, alpha = 0.8) +
+  p <- suppressWarnings(p +
     ggplot2::scale_y_continuous(
-      breaks = q$data_yes, labels = q$station,
-      sec.axis = ggplot2::sec_axis(~.,
-        breaks = q$data_yes, labels = q$table_name
+      breaks = sedta$data_yes, labels = paste0(
+        sedta$station, "\n", sedta$table_name
       )
-    ) +
-    ggplot2::labs(x = "Date", colour = "Station") +
+    ) + khroma::scale_colour_sunset(discrete = TRUE) +
+    ggplot2::labs(x = "Date") +
     egg::theme_article() +
     ggplot2::theme(axis.title.y = ggplot2::element_blank(),
-      legend.position = "top"
+      legend.position = "none",
+      axis.text.y = ggplot2::element_text(angle = 15)
     )
-  p <- p + ggplot2::geom_text(data = dt_label, inherit.aes = FALSE,
-    mapping = ggplot2::aes(y = data_yes, x = date_time, group = data_yes,
-      label = gs_gid
-    ), nudge_y = 0.35, size = 3
   )
 
-  # build table of dependancies for full time period and table limited time
-  # period
-  # unique nomenclature table
-  dts <- dts[, station_tbl_n := as.numeric(as.factor(table_wrd))][
-    order(station_tbl_n)
-  ]
-  ntbl <- unique(dts[
-    , -c("gs_gid", "gap_yes", "table_name", "data_yes", "date_time")
-  ])[order(station_tbl_n)]
-  dtl <- split.data.frame(dts, f = as.factor(dts$station_tbl_n))
-  dtg <- do.call(cbind, lapply(dtl, function(x) {
-    s <- x[!is.na(data_yes)]$table_wrd[1]
-    x[!is.na(data_yes) & is.na(gap_yes), "data"] <- 1 # data present
-    sb <- which(x$data == 1)
-    if (sb[1] > 0) x[c(1:(sb[1] - 1)), "data"] <- 0 # an NA lead
-    if (sb[length(sb)] < nrow(x)) {
-      x[c(sb[length(sb)]:nrow(x)), "data"] <- 2 # NA tail
-    }
-    x <- x[, "data"]
-    names(x) <- s
-    return(x)
-  }))
-  names(dtg) <- ntbl$table_wrd
-  # generate dependancy matrices for imputation
-  dep <- future.apply::future_lapply(ntbl$station_tbl_n, function(i) {
-    tbln <- ntbl$table_wrd[i]
-    dtgx <- dtg[,
-      ntbl$station_tbl_n[!ntbl$station_tbl_n %in% i],
-      with = FALSE
-    ]
-    dtgx <- dtgx[, n := rowSums(.SD == 1, na.rm = TRUE)]
-    l_dep <- dtgx[which(dtg[[tbln]] == 0 & dtgx$n >= 1)]
-    d <- colSums(l_dep[, -"n"] == 1, na.rm = TRUE)
-    g_dep <- dtgx[which(is.na(dtg[[tbln]]))]
-    g <- colSums(g_dep[, -"n"] == 1, na.rm = TRUE)
-    t_dep <- dtgx[which(dtg[[tbln]] == 2 & dtgx$n >= 1)]
-    t <- colSums(t_dep[, -"n"] == 1, na.rm = TRUE)
-    data.table::data.table(depn = rep(tbln, length(dtl)),
-      predn = c(tbln, names(d)),
-      lead_pred = c(0, data.table::fifelse(d > 0, 1, 0)),
-      gap_pred = c(0, data.table::fifelse(g > 0, 1, 0)),
-      tail_pred = c(0, data.table::fifelse(t > 0, 1, 0))
-    )
-  })
-  dep <- data.table:::rbindlist(dep)
-  depl <- data.table::dcast(dep, depn ~ predn, value.var = "lead_pred")
-  nord <- names(depl)[!names(depl) %in% "depn"]
-  depl <- depl[, c("depn", nord[order(as.numeric(sub(": .*", "", nord)))]),
-    with = FALSE
-  ][order(as.numeric(sub(": .*", "", depl$depn)))]
-  ml <- as.matrix(depl[, -"depn"])
-  rownames(ml) <- ntbl$table_wrd
-  depl <- data.table::dcast(dep, depn ~ predn, value.var = "gap_pred")
-  depl <- depl[, c("depn", nord[order(as.numeric(sub(": .*", "", nord)))]),
-    with = FALSE
-  ][order(as.numeric(sub(": .*", "", depl$depn)))]
-  mg <- as.matrix(depl[, -"depn"])
-  rownames(mg) <- ntbl$table_wrd
-  depl <- data.table::dcast(dep, depn ~ predn, value.var = "tail_pred")
-  depl <- depl[, c("depn", nord[order(as.numeric(sub(": .*", "", nord)))]),
-    with = FALSE
-  ][order(as.numeric(sub(": .*", "", depl$depn)))]
-  mt <- as.matrix(depl[, -"depn"])
-  rownames(mt) <- ntbl$table_wrd
-
-  data_availability <- list(plt_availability = p, plt_data = dts,
-    lead_m = ml, gap_m = mg, tail_m = mt, nomtbl = ntbl
-  )
-  return(data_availability)
+  data_availability <- list(plt = p, plt_data = gs)
+  invisible(data_availability)
 }

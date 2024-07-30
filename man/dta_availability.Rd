@@ -19,6 +19,7 @@ dta_availability(
   recurr = FALSE,
   prompt = FALSE,
   keep_open = TRUE,
+  xtra_v = FALSE,
   ...
 )
 }
@@ -49,7 +50,7 @@ dta_availability(
 
 \item{prompt}{Should the function use an interactive file selection function otherwise all files are returned. TRUE or FALSE.}
 
-\item{keep_open}{Logical. Keep \emph{hidden} 'station_file' open for ease of access. Defaults to \code{TRUE}.}
+\item{keep_open}{Logical. Keep \emph{hidden} 'station_file' open for ease of access. Defaults to \code{FALSE}.}
 
 \item{cores}{Number of CPU's to use for processing in parallel. Only applies when working on Linux.}
 }

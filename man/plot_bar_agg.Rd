@@ -5,21 +5,25 @@
 \title{Plot data by period aggregate}
 \usage{
 plot_bar_agg(
+  input_dir = ".",
   agg = "1 month",
   phen_name = NULL,
   tbl_search_key = "dt_1_months_agg",
+  show_gaps = FALSE,
   wanted = NULL,
   unwanted = NULL,
   x_lab = "Date-time",
   y_lab = NULL,
-  input_dir = ".",
   file_ext = ".ipip",
   prompt = FALSE,
   recurr = TRUE,
+  pipe_house = NULL,
   ...
 )
 }
 \arguments{
+\item{input_dir}{Folder in which to search for standardised station data. Defaults to the current directory.}
+
 \item{agg}{The time period of data aggregation to be plotted given as a character string. The character string is evaluated by \code{ipayipi::sts_interval_name()} to ensure compatibility.}
 
 \item{phen_name}{The standardised phenomena name. This needs to be an exact match to the desired phenomena.}
@@ -34,15 +38,13 @@ plot_bar_agg(
 
 \item{y_lab}{The y-axis label.}
 
-\item{input_dir}{Folder in which to search for standardised station data. Defaults to the current directory.}
-
 \item{file_ext}{The station file extension. Inherits the 'ipayipi' defult of '.ipip'.}
 
 \item{prompt}{Logical. If \code{TRUE} the function will prompt the user to identify stations for plotting. The wanted and unwanted filters still apply when in interactive mode (\code{TRUE}).}
 
 \item{recurr}{Should the function search recursively? I.e., thorugh sub-folders as well --- \code{TRUE}/\code{FALSE}. Defaults to \code{FALSE}.}
 
-\item{cores}{Number of CPU's to use for processing in parallel. Only applies when working on Linux systems.}
+\item{pipe_house}{If provided the 'ipip_room' will be used as the input directory. \emph{See} \code{ipip_house()}.}
 }
 \value{
 A list containing the plot data, a ggplot object, and the aggregation period used to summarise data.

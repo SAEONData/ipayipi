@@ -50,7 +50,7 @@ meta_to_station <- function(
   ), wdth = 80, pad_char = "=", pad_extras = c("|", "", "", "|"),
   force_extras = FALSE, justf = c(0, 0)
   )
-  message(cr_msg)
+  ipayipi::msg(cr_msg, verbose)
   r <- lapply(slist, function(x) {
     sfc <- open_sf_con(pipe_house = pipe_house, station_file = x,
       verbose = verbose, xtra_v = xtra_v
@@ -74,12 +74,12 @@ meta_to_station <- function(
     ), wdth = 80, pad_char = " ", pad_extras = c("|", "", "", "|"),
     force_extras = FALSE, justf = c(-1, 2)
     )
-    message(cr_msg)
+    ipayipi::msg(cr_msg, verbose)
   })
   rm(r)
   cr_msg <- padr(core_message = paste0(" Metadata added  ", collapes = ""),
     wdth = 80, pad_char = "=", pad_extras = c("|", "", "", "|"),
     force_extras = FALSE, justf = c(0, 0)
   )
-  return(message(cr_msg))
+  return(ipayipi::msg(cr_msg, verbose))
 }
