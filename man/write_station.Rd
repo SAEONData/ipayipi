@@ -10,8 +10,7 @@ write_station(
   station_file = NULL,
   overwrite = FALSE,
   append = TRUE,
-  keep_open = FALSE,
-  con_f = "open_sf_con2",
+  keep_open = TRUE,
   verbose = FALSE,
   xtra_v = FALSE,
   ...

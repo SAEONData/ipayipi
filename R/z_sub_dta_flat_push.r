@@ -25,7 +25,6 @@ dta_flat_push <- function(
   ri = NULL,
   stations = NULL,
   recurr = FALSE,
-  cores = getOption("mc.cores", 2L),
   file_ext = ".ipip",
   ...
 ) {
@@ -47,7 +46,7 @@ dta_flat_push <- function(
   }
 
   # write data to stations--tables
-  t <- parallel::mclapply(seq_along(slist), function(i) {
+  t <- future.apply::future_lapply(seq_along(slist), function(i) {
     m <- readRDS(slist[i])
     tab_name <- names(m)[names(m) %in% tab_names][1]
     t <- m[[tab_name]]
@@ -58,6 +57,6 @@ dta_flat_push <- function(
       saveRDS(m, slist[i])
     }
     return(slist[i])
-  }, mc.cores = cores)
+  })
   return(t)
 }

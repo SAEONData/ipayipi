@@ -61,7 +61,6 @@ imbibe_raw_batch <- function(
   recurr = FALSE,
   verbose = FALSE,
   xtra_v = FALSE,
-  cores = getOption("mc.cores", 2L),
   ...
 ) {
   "err" <- NULL
@@ -94,7 +93,7 @@ imbibe_raw_batch <- function(
     if (is.null(file_ext_in)) {
       file_ext_in <- tools::file_ext(slist[i])
       file_ext_in <- paste0(".",
-        sub(pattern = "\\.", replacement = "", file_ext_in)
+        sub(pattern = "[.]", replacement = "", file_ext_in)
       )
     }
     fp <- file.path(pipe_house$wait_room, slist[i])
@@ -111,15 +110,18 @@ imbibe_raw_batch <- function(
       max_rows = max_rows,
       logg_interfere_type = logg_interfere_type,
       verbose = verbose,
-      xtra_v = xtra_v,
-      cores = cores
+      xtra_v = xtra_v
     ))
     if (attempt::is_try_error(fl)) {
       fl$err <- TRUE
     }
     # save as tmp rds if no error
     if (!fl$err) {
-      fn_htmp <- tempfile(pattern = ".tmp_raw_", tmpdir = pipe_house$wait_room)
+      fn_htmp <- tempfile(pattern = "raw_",
+        tmpdir = file.path(tempdir(), "wait_room_tmp")
+      )
+      # fn_htmp <- gsub("^[/]|^[//]|^[\\]|[/]$|[\\]$", "", fn_htmp)
+      # fn_htmp <- file.path(pipe_house$wait_room, fn_htmp)
       st_dt <- min(fl$ipayipi_data_raw$raw_data$date_time)
       ed_dt <- max(fl$ipayipi_data_raw$raw_data$date_time)
       dttm_rng <- paste0(
@@ -135,6 +137,7 @@ imbibe_raw_batch <- function(
         gsub(pattern = "_", replacement = "-", x = dttm_rng)
       )
       class(fl$ipayipi_data_raw) <- "ipayipi_raw"
+      if (!file.exists(dirname(fn_htmp))) dir.create(dirname(fn_htmp))
       saveRDS(fl$ipayipi_data_raw, fn_htmp)
     } else {
       fn_htmp <- NA_character_
@@ -160,7 +163,7 @@ imbibe_raw_batch <- function(
   fn_dt_arc <- file_name_dt[err != TRUE]
 
   if (!is.null(pipe_house$raw_room)) {
-    parallel::mclapply(seq_along(fn_dt_arc$yr_mon_end), function(i) {
+    future.apply::future_lapply(seq_along(fn_dt_arc$yr_mon_end), function(i) {
       arc_dir <- file.path(pipe_house$raw_room, fn_dt_arc$yr_mon_end[i])
       if (!dir.exists(arc_dir)) dir.create(arc_dir)
       file.copy(from = file.path(fn_dt_arc$fp[i]),
@@ -170,32 +173,34 @@ imbibe_raw_batch <- function(
           ), fn_dt_arc$file_ext_in[i], collapse = ""
         ))
       )
-    }, mc.cores = cores, mc.cleanup = TRUE)
+    })
   }
 
   # check for duplicates and make unique integers
   if (!anyNA.data.frame(fn_dt_arc)) {
     split_fn_dt_arc <- split(fn_dt_arc, f = factor(fn_dt_arc$fn))
-    split_fn_dt_arc <- parallel::mclapply(split_fn_dt_arc, function(x) {
-      x$rep <- seq_len(nrow(x))
-      return(x)
-    }, mc.cores = cores, mc.cleanup = TRUE)
+    split_fn_dt_arc <-
+      future.apply::future_lapply(split_fn_dt_arc, function(x) {
+        x$rep <- seq_len(nrow(x))
+        return(x)
+      })
     fn_dt_arc <- data.table::rbindlist(split_fn_dt_arc)
     if (substr(file_ext_out, 1, 1) != ".") {
       file_ext_out <- paste0(".", file_ext_out)
     }
     # rename the temp rds files and delete the raw dat files
-    parallel::mclapply(seq_along(fn_dt_arc$fn), function(i) {
+    future.apply::future_lapply(seq_along(fn_dt_arc$fn), function(i) {
       # rename temp file
       if (file.exists(fn_dt_arc$fn_htmp[i])) {
-        file.rename(from = fn_dt_arc$fn_htmp[i],
-          to = file.path(dirname(fn_dt_arc$fn_htmp[i]),
+        file.copy(from = fn_dt_arc$fn_htmp[i],
+          to = file.path(pipe_house$wait_room,
             paste0(fn_dt_arc$fn[i], "__", fn_dt_arc$rep[i], file_ext_out)
           )
         )
+        unlink(fn_dt_arc$fn_htmp[i], recursive = TRUE)
       }
 
-      # remove dat file in wait room
+      # remove raw file in wait room
       if (file.exists(fn_dt_arc$fp[i])) file.remove(fn_dt_arc$fp[i])
 
       # remove dat file in source
@@ -205,7 +210,7 @@ imbibe_raw_batch <- function(
         )
         if (file.exists(fr))  file.remove(fr)
       }
-    }, mc.cores = cores, mc.cleanup = TRUE)
+    })
   }
   cr_msg <- padr(core_message = paste0(" imbibed  ", collapes = ""),
     wdth = 80, pad_char = "=", pad_extras = c("|", "", "", "|"),

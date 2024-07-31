@@ -77,7 +77,6 @@ nomenclature_chk <- function(
   csv_out = TRUE,
   file_ext = "ipr",
   verbose = FALSE,
-  cores = getOption("mc.cores", 2L),
   ...
 ) {
   "uz_station" <- "stnd_title" <- "station" <- "logger_type" <-
@@ -135,7 +134,7 @@ nomenclature_chk <- function(
   slist <- ipayipi::dta_list(input_dir = pipe_house$wait_room, file_ext =
       file_ext, prompt = FALSE, recurr = TRUE, unwanted = NULL, wanted = NULL
   )
-  nomtab_import <- parallel::mclapply(slist, function(x) {
+  nomtab_import <- future.apply::future_lapply(slist, function(x) {
     mfile <- readRDS(file.path(pipe_house$wait_room, x))
     nomtabo <- data.table::data.table(
       uz_station = mfile$data_summary$uz_station, # 1
@@ -152,7 +151,7 @@ nomenclature_chk <- function(
       table_name = NA_character_
     )
     invisible(nomtabo)
-  }, mc.cores = cores, mc.cleanup = TRUE)
+  })
   nomtab_import <- data.table::rbindlist(nomtab_import)
 
   nomtab <- rbind(nomtab, nomtab_import)

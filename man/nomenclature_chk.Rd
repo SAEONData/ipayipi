@@ -10,7 +10,6 @@ nomenclature_chk(
   csv_out = TRUE,
   file_ext = "ipr",
   verbose = FALSE,
-  cores = getOption("mc.cores", 2L),
   ...
 )
 }
@@ -24,9 +23,9 @@ nomenclature_chk(
 
 \item{verbose}{Print some details on the files being processed? Logical.}
 
-\item{cores}{Number of CPU's to use for processing in parallel. Only applies when working on Linux.}
-
 \item{out_csv}{Logical. If TRUE a csv file is made in the working directory if there are files with unrecognised nomenclature.}
+
+\item{cores}{Number of CPU's to use for processing in parallel. Only applies when working on Linux.}
 }
 \value{
 returns a csv nomenclature file when unrecognised synonyms/data attributes are detected. Screen output notes whether the nomenclature table is complete.

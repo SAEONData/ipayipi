@@ -9,7 +9,7 @@ sf_dta_read(
   tv = NULL,
   pipe_house = NULL,
   station_file = NULL,
-  tmp = FALSE,
+  tmp = TRUE,
   return_dta = FALSE,
   verbose = TRUE,
   start_dttm = NULL,

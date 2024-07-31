@@ -28,7 +28,6 @@ sf_dta_chunkr <- function(
     i_zeros = 5,
     verbose = FALSE,
     xtra_v = FALSE,
-    cores = getOption("mc.cores", 2L),
     ...) {
   ":=" <- "." <- "%ilike%" <- "chnk_fl" <- "chnk_cl" <- "date_time" <-
     "nchnk_fl" <- "nchnk_cl" <- "d1" <- "d2" <- "dta_new" <- NULL
@@ -116,7 +115,7 @@ sf_dta_chunkr <- function(
   indx <- ipayipi::sf_dta_chunkr_sub_rechnk(
     dta_room = dta_room, dts_min = dts_min, dts_max = dts_max, indx = indx,
     chunk_i = chunk_i, rechunk = rechunk, buff_period = buff_period, i_zeros =
-      i_zeros, verbose = verbose, cores = cores, xtra_v = xtra_v
+      i_zeros, verbose = verbose, xtra_v = xtra_v
   )
 
   # add input data sets to chunk files ----
@@ -178,7 +177,7 @@ sf_dta_chunkr <- function(
   if (is.null(rit)) rit <- "continuous"
   w <- ipayipi::chunkr_sub_wr(dta_room = dta_room, write_tbl = wd, dta_sets =
       dta_sets, i_zeros = i_zeros, ri = ri, rit = rit, overwrite = TRUE,
-    cores = cores, verbose = verbose, xtra_v = xtra_v
+    verbose = verbose, xtra_v = xtra_v
   )
 
   it <- it[!indx %in% w$indx]
@@ -192,7 +191,7 @@ sf_dta_chunkr <- function(
   # inter-chunk time series check/fill ----
   ipayipi::msg("Checking inter chunk ts integrity ...", xtra_v)
   w <- ipayipi::chunkr_inter_chk(dta_room = dta_room, indx = indx, i_zeros =
-      i_zeros, cores = cores, verbose = verbose, xtra_v
+      i_zeros, verbose = verbose, xtra_v
   )
   it <- it[!indx %in% w$indx]
   it <- rbind(it, w, fill = TRUE)

@@ -29,7 +29,6 @@ header_sts <- function(
   file_ext_in = ".ipr",
   file_ext_out = ".iph",
   verbose = FALSE,
-  cores = getOption("mc.cores", 2L),
   ...
 ) {
   ".SD" <- ":=" <- NULL
@@ -47,13 +46,12 @@ header_sts <- function(
   )
   ipayipi::msg(cr_msg, verbose)
   nomtab <- ipayipi::nomenclature_chk(pipe_house = pipe_house,
-    check_nomenclature = TRUE, csv_out = TRUE, file_ext = file_ext_in,
-    cores = cores
+    check_nomenclature = TRUE, csv_out = TRUE, file_ext = file_ext_in
   )
   if (!is.na(nomtab$output_csv_name)) message("Update nomenclature")
   nomtab <- nomtab$update_nomtab
 
-  file_name_dt <- parallel::mclapply(seq_along(slist), function(i) {
+  file_name_dt <- future.apply::future_lapply(seq_along(slist), function(i) {
     cr_msg <- padr(core_message = paste0(" +> ", slist[i], collapes = ""),
       wdth = 80, pad_char = " ", pad_extras = c("|", "", "", "|"),
       force_extras = FALSE, justf = c(1, 1)
@@ -96,7 +94,7 @@ header_sts <- function(
       # ensure continuous date-time sequence of continuous data
       m$raw_data <- ipayipi::dttm_extend_long(
         data_sets = list(m$raw_data), ri = nt$record_interval[1],
-        intra_check = TRUE, cores = cores
+        intra_check = TRUE
       )
       # adjust inc exc timeline if necessary
       if (nt$record_interval_type[1] %in% "continuous" &&
@@ -151,7 +149,7 @@ header_sts <- function(
     ri <- m$data_summary$record_interval
     z <- c(z, list(fn = file_name, old_fn = slist[[i]], ri = ri, rep = 1))
     return(z)
-  }, mc.cores = cores, mc.cleanup = TRUE)
+  })
   file_name_dt <- data.table::rbindlist(file_name_dt)
 
   if (nrow(file_name_dt) > 0) {
@@ -167,7 +165,7 @@ header_sts <- function(
     # rename saved files if they don't still need nomenclature updates
     no_update <- split_file_name_dt[update == TRUE]
     tbl_update <- split_file_name_dt[update == FALSE]
-    parallel::mclapply(seq_len(nrow(tbl_update)), function(i) {
+    future.apply::future_lapply(seq_len(nrow(tbl_update)), function(i) {
       fn <- file.path(pipe_house$wait_room, paste0(tbl_update$fn[i], "__",
         tbl_update$rep[i], file_ext_out
       ))
@@ -178,7 +176,7 @@ header_sts <- function(
         s <- FALSE
       }
       invisible(s)
-    }, mc.cores = cores, mc.cleanup = TRUE)
+    })
     data.table::setnames(tbl_update, old = c("fn", "old_fn", "ri"),
       new = c("file_name", "old_file_name", "record_interval")
     )

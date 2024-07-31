@@ -21,7 +21,7 @@
 #'  - `dt_calc_chain`: running `data.table` chained calculations on harvested data.
 #'  - `dt_agg`: Aggregate phenomena/variables by custom or default functions.
 #'    Defaults are based on the phenomena descriptions in `phens` tables, i.e., their measure, variable type, and units. Default aggregation functions are housed in the `ipayipi::sts_agg_functions` table.
-#'  - `dt_join`: Used to merge harvested data sets via simple or comlex 'fuzzy' type joins based on time intervals using `data.table`s join syntax, and ipayipi's own time-series sensitive data joining `ipayipi::append_phen_data2()`, implemented through `ipayipi::mhlanga()`.
+#'  - `dt_join`: Used to merge harvested data sets via simple or comlex 'fuzzy' type joins based on time intervals using `data.table`s join syntax, and ipayipi's own time-series sensitive data joining `ipayipi::append_phen_data()`, implemented through `ipayipi::mhlanga()`.
 #'
 #'  The above functions can be specified in the `pipe_seq` function. `pipe_seq` runs partial to fuller evaluation of pipeline structure to promote seemless processing. Fuller evaluation by `ipayipi::pipe_seq()` is performed within `ipayipi::dt_process()`; during this process, station data (both internally and externally harvested data) are read so new-phenomena metadata can be generated. All this to minimise potential error during data processing. 
 #' Processed data, function parameters, and new phenomena summaries are returned and appended to station files for future use.
@@ -37,15 +37,14 @@ dt_process <- function(
   overwrite_pipe_memory = FALSE,
   verbose = FALSE,
   unwanted_tbls = "_tmp",
-  cores = getOption("mc.cores", 2L),
   xtra_v = FALSE,
-  keep_open = FALSE,
+  keep_open = TRUE,
   ...
 ) {
   # pipe_seq = pipe_seq
   # output_dt_preffix = "dt_"
   # output_dt_suffix = NULL
-  # overwrite_pipe_memory = T
+  # overwrite_pipe_memory = F
   # verbose = TRUE
   # unwanted_tbls = "_tmp"
   # cores = getOption("mc.cores", 2L)
@@ -56,8 +55,8 @@ dt_process <- function(
   "%ilike%" <- "dt_n" <- "dtp_n" <- "ppsid" <- "phen_name" <- "n" <- NULL
 
   # open station file connection
-  sfc <- ipayipi::open_sf_con2(pipe_house = pipe_house, station_file =
-      station_file, tmp = TRUE, verbose = verbose, xtra_v = xtra_v
+  sfc <- ipayipi::open_sf_con(pipe_house = pipe_house, station_file =
+      station_file, verbose = verbose, xtra_v = xtra_v
   )
   if (!is.null(pipe_seq) && any(!"pipe_seq" %in% names(sfc),
         overwrite_pipe_memory
@@ -65,7 +64,7 @@ dt_process <- function(
     saveRDS(pipe_seq, file.path(dirname(sfc[1]), "pipe_seq"))
   }
   pipe_seq <- ipayipi::sf_dta_read(
-    sfc = sfc, tmp = TRUE, tv = "pipe_seq", verbose = FALSE
+    sfc = sfc, tv = "pipe_seq", verbose = FALSE
   )[["pipe_seq"]]
 
   # clean up any temp data
@@ -78,16 +77,15 @@ dt_process <- function(
       names(sfc) %ilike% "^dt_|_hsf_table_"
     ])
     unlink(sfc[mfiles[mfiles %in% names(sfc)]], recursive = TRUE)
-    sfc <- ipayipi::open_sf_con2(pipe_house = pipe_house, station_file =
-        station_file, tmp = TRUE, verbose = verbose, xtra_v = xtra_v
-    )
   }
-
+  sfc <- ipayipi::open_sf_con(pipe_house = pipe_house, station_file =
+      station_file, verbose = verbose, xtra_v = xtra_v
+  )
   # read function summary tables
   # open output_dt and associate table summary
   sf_names <- names(sfc)
   f_summary <- ipayipi::sf_dta_read(pipe_house = pipe_house, sfc = sfc,
-    tmp = TRUE, tv = sf_names[sf_names %ilike% "summary|phens|pipe_seq"],
+    tv = sf_names[sf_names %ilike% "summary|phens|pipe_seq"],
     station_file = station_file, verbose = FALSE
   )
   f_summary$sf_names <- sf_names
@@ -98,12 +96,12 @@ dt_process <- function(
     overwrite_pipe_memory = overwrite_pipe_memory
   )
 
-  if (pp$update_pipe_data) {
+  if (pp$update_pipe_data || !"f_params" %in% names(sfc)) {
     # prep pps for partial evaluation
     pps <- pp$pipe_seq
     pps <- split(pps, f = factor(pps$dt_n))
     saveRDS(pp$pipe_seq, file.path(dirname(sfc[1]), "pipe_seq"))
-  } else {# no eval if NULL --- sf already has pps
+  } else {# no eval if NULL --- sf already has pps and f_params
     pps <- NULL
   }
 
@@ -123,8 +121,8 @@ dt_process <- function(
   lapply(seq_along(pps), function(i) {
     ppsi <- pps[[i]]
     lapply(unique(ppsi$dtp_n), function(j) {
-      sfc <- open_sf_con2(pipe_house = pipe_house, station_file = station_file,
-        tmp = TRUE, verbose = verbose, xtra_v = xtra_v
+      sfc <- open_sf_con(pipe_house = pipe_house, station_file = station_file,
+        verbose = verbose, xtra_v = xtra_v
       )
       # get function and prepare arguments
       ppsij <- ppsi[dtp_n == j]
@@ -208,11 +206,11 @@ dt_process <- function(
       return(o)
     })
   })
-  sfc <- open_sf_con2(pipe_house = pipe_house, station_file = station_file,
-    tmp = TRUE, verbose = verbose, xtra_v = xtra_v
+  sfc <- open_sf_con(pipe_house = pipe_house, station_file = station_file,
+    verbose = verbose, xtra_v = xtra_v
   )
-  pps <- ipayipi::sf_dta_read(pipe_house = pipe_house, sfc = sfc, tmp = TRUE,
-    tv = "pipe_seq", verbose = FALSE
+  pps <- ipayipi::sf_dta_read(sfc = sfc, tv = "pipe_seq",
+    verbose = FALSE
   )[["pipe_seq"]]
   if (!is.null(stages)) {
     pps <- pps[dt_n >= min(stages)][dt_n <= max(stages)]
@@ -223,8 +221,8 @@ dt_process <- function(
   piit <- lapply(seq_along(pps), function(i) {
     ppsi <- pps[[i]]
     pit <- lapply(unique(ppsi$dtp_n), function(j) {
-      sfc <- open_sf_con2(pipe_house = pipe_house, station_file = station_file,
-        tmp = TRUE, verbose = verbose, xtra_v = xtra_v
+      sfc <- open_sf_con(pipe_house = pipe_house, station_file = station_file,
+        verbose = verbose, xtra_v = xtra_v
       )
       # get function and prepare arguments
       ppsij <- ppsi[dtp_n == j]
@@ -247,15 +245,15 @@ dt_process <- function(
       ipayipi::msg(cr_msg, verbose)
       # get arguments and process function
       args <- list(station_file = station_file, f_params = f_params, ppsij =
-          ppsij, sfc = sfc, cores = cores, verbose = verbose, xtra_v = xtra_v
+          ppsij, sfc = sfc, verbose = verbose, xtra_v = xtra_v
       )
       ppsij_ud <- do.call(what = f, args = args)
       return(ppsij_ud$ppsij)
     })
     pit <- data.table::rbindlist(pit)
 
-    sfc <- open_sf_con2(pipe_house = pipe_house, station_file = station_file,
-      tmp = TRUE, verbose = verbose, xtra_v = xtra_v
+    sfc <- open_sf_con(pipe_house = pipe_house, station_file = station_file,
+      verbose = verbose, xtra_v = xtra_v
     )
     # convert dt_working to output_dt
     odtn <- unique(ppsi$output_dt)[1]
@@ -270,14 +268,14 @@ dt_process <- function(
       ipayipi::sf_dta_chunkr(dta_room = file.path(dirname(sfc)[1], odtn),
         dta_sets = list(readRDS(w)), tn = odtn, verbose = verbose,
         xtra_v = xtra_v, ri = dw$dt_working$indx$ri, rit =
-          dw$dt_working$indx$rit, cores = cores
+          dw$dt_working$indx$rit
       )
     })
     # write a normal file if not chunked
     if (is.null(dw$dt_working$fs) && length(dw) > 0) {
       dta <- ipayipi::dt_dta_open(dw)
       ipayipi::sf_dta_wr(dta_room = file.path(dirname(sfc)[1], odtn),
-        tn = odtn, dta = dta, cores = cores, verbose = verbose, xtra_v = xtra_v
+        tn = odtn, dta = dta, verbose = verbose, xtra_v = xtra_v
       )
     }
     unlink(sfc["dt_working"], recursive = TRUE)
@@ -288,15 +286,15 @@ dt_process <- function(
   piit <- rbind(opiit[!dt_n %in% piit$dt_n], piit)
   piit <- piit[order(dt_n, dtp_n, n)]
   saveRDS(piit, file.path(dirname(sfc[1]), "pipe_seq"))
-  sfc <- open_sf_con2(pipe_house = pipe_house, station_file = station_file,
-    tmp = TRUE, verbose = verbose, xtra_v = xtra_v
+  sfc <- open_sf_con(pipe_house = pipe_house, station_file = station_file,
+    verbose = verbose, xtra_v = xtra_v
   )
   unwanted_tbls <- paste0(c(unwanted_tbls, "_hsf_table_"), collapse = "|")
   unwanted_tbls <- names(sfc)[names(sfc) %ilike% unwanted_tbls]
   if (length(unwanted_tbls) == 0) unwanted_tbls <- NULL
   sapply(unwanted_tbls, function(x) unlink(sfc[x], recursive = TRUE))
   ipayipi::write_station(pipe_house = pipe_house, station_file = station_file,
-    overwrite = TRUE, keep_open = keep_open
+    overwrite = TRUE
   )
   return(station_file)
 }

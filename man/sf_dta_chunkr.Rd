@@ -16,7 +16,6 @@ sf_dta_chunkr(
   i_zeros = 5,
   verbose = FALSE,
   xtra_v = FALSE,
-  cores = getOption("mc.cores", 2L),
   ...
 )
 }

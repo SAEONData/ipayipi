@@ -8,6 +8,7 @@
 #' @param in_station_meta_name The file name (without extension) of the metadata file that will be filtered and appended to a station file.
 #' @param wanted A strong containing keywords to use to filter which stations are selected for processing. Multiple search kewords should be seperated with a bar ('|'), and spaces avoided unless part of the keyword.
 #' @param unwanted Similar to wanted, but keywords for filtering out unwanted stations.
+#' @param keep_open Logical. Keep _hidden_ 'station_file' open for ease of access. Defaults to `TRUE`.
 #' @param ... Additional arguments passed to `ipayipi::dta_list()`.
 #' @keywords logger data processing; field metadata; data pipeline; supplementary data; field notes
 #' @author Paul J. Gordijn
@@ -25,6 +26,9 @@ meta_to_station <- function(
   stnd_title_col_name = "stnd_title",
   wanted = NULL,
   unwanted = NULL,
+  verbose = FALSE,
+  xtra_v = FALSE,
+  keep_open = TRUE,
   ...
 ) {
   if (is.null(input_dir)) input_dir <- pipe_house$ipip_room
@@ -46,28 +50,36 @@ meta_to_station <- function(
   ), wdth = 80, pad_char = "=", pad_extras = c("|", "", "", "|"),
   force_extras = FALSE, justf = c(0, 0)
   )
-  message(cr_msg)
+  ipayipi::msg(cr_msg, verbose)
   r <- lapply(slist, function(x) {
-    sf <- readRDS(file.path(input_dir, x))
+    sfc <- open_sf_con(pipe_house = pipe_house, station_file = x,
+      verbose = verbose, xtra_v = xtra_v
+    )
     sfn <- gsub(pattern = station_ext, replacement = "", x = x)
-    sf[[in_station_meta_name]] <- edb[
-      eval(parse(text = paste0(stnd_title_col_name,
-        " == \"", sfn, "\"", collapse = ""
-      )
-      ))
-    ]
-    saveRDS(sf, file = file.path(input_dir, x))
+    sfn <- basename(sfn)
+    mdta <- edb[which(edb[[stnd_title_col_name]] %in% sfn[1])]
+    # write event metadata to temporary station file
+    unlink(sfc[in_station_meta_name], recursive = TRUE)
+    ipayipi::msg("Chunking logger event data", xtra_v)
+    ipayipi::sf_dta_wr(
+      dta_room = file.path(dirname((sfc[1])), in_station_meta_name),
+      dta = mdta, overwrite = TRUE, tn = in_station_meta_name,
+      verbose = verbose, xtra_v = xtra_v
+    )
+    write_station(pipe_house = pipe_house, station_file = x,
+      overwrite = TRUE, append = FALSE
+    )
     cr_msg <- padr(core_message = paste0(
       basename(x), " done ...", collapes = ""
     ), wdth = 80, pad_char = " ", pad_extras = c("|", "", "", "|"),
     force_extras = FALSE, justf = c(-1, 2)
     )
-    message(cr_msg)
+    ipayipi::msg(cr_msg, verbose)
   })
   rm(r)
   cr_msg <- padr(core_message = paste0(" Metadata added  ", collapes = ""),
     wdth = 80, pad_char = "=", pad_extras = c("|", "", "", "|"),
     force_extras = FALSE, justf = c(0, 0)
   )
-  return(message(cr_msg))
+  return(ipayipi::msg(cr_msg, verbose))
 }

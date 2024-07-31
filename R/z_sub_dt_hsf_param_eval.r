@@ -93,7 +93,7 @@ hsf_param_eval <- function(
     # open hsf file if different from sf
     if (basename(hsfn) != basename(station_file)) {
       hsfc <- attempt::try_catch(
-        ipayipi::open_sf_con2(station_file = hsfn, verbose = verbose,
+        ipayipi::open_sf_con(station_file = hsfn, verbose = verbose,
           tv = hsf_table, xtra_v = xtra_v, tmp = TRUE
         )
       )

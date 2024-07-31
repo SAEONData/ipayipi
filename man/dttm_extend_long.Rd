@@ -4,13 +4,7 @@
 \alias{dttm_extend_long}
 \title{Generate date-time data for sequence gaps}
 \usage{
-dttm_extend_long(
-  data_sets = NULL,
-  intra_check = FALSE,
-  ri = NULL,
-  cores = getOption("mc.cores", 2L),
-  ...
-)
+dttm_extend_long(data_sets = NULL, intra_check = FALSE, ri = NULL, ...)
 }
 \arguments{
 \item{data_sets}{List of time-series data sets with a 'date_time' column.}

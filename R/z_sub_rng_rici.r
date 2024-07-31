@@ -34,7 +34,8 @@ rng_rici <- function(
   }
   if (any(is.null(r_rng) && is.null(r_fx), is.null(c_rng) && is.null(c_fx))) {
     message(paste0("If the row or column range are not supplied, ",
-      "a fixed row or column, respectively, must be supplied."))
+      "a fixed row or column, respectively, must be supplied."
+    ))
     stop("Missing row or column index value(s)")
   }
   if (is.null(r_rng)) r_rng <- rep(r_fx, times = length(c_rng))

@@ -21,7 +21,7 @@ dt_harvest(
 
 \item{ppsij}{The desirsed time_interval associated with the extracted data. If this is \code{NULL} then the table is extracted as is.}
 
-\item{sfc}{Station file connection; see \code{ipayipi::open_sf_con2()}.}
+\item{sfc}{Station file connection; see \code{ipayipi::open_sf_con()}.}
 
 \item{hsf_table}{The path of the directory in which to search for the external data and/or data table.}
 }

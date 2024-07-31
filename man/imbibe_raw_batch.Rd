@@ -25,7 +25,6 @@ imbibe_raw_batch(
   recurr = FALSE,
   verbose = FALSE,
   xtra_v = FALSE,
-  cores = getOption("mc.cores", 2L),
   ...
 )
 }
@@ -65,9 +64,9 @@ with a bar ('|'), and spaces avoided unless part of the keyword.}
 
 \item{verbose}{Logical passed to \code{attempt::attempt()} which reads the logger text file in with either \code{data.table::fread()} or base R.}
 
-\item{cores}{Number of CPU's to use for processing in parallel. Only applies when working on Linux.}
-
 \item{record_interval}{If there are is no discrete, record interval set in the logger program, i.e., the sampling is event based, then this parameter must be set to "event_based". Defaults to "continuous".}
+
+\item{cores}{Number of CPU's to use for processing in parallel. Only applies when working on Linux.}
 }
 \description{
 Uses \code{ipayipi::imbibe_logger_dt()} to read and transfer

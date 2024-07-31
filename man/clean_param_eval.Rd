@@ -50,7 +50,7 @@ clean_param_eval(
 \item{ppsij}{Data processing \code{pipe_seq} table from which function parameters and data are extracted/evaluated. This is parsed to this function automatically by \code{ipayipi::dt_process()}.
 param sf}
 
-\item{sfc}{List of file paths to the temporary station file directory. Generated using \code{ipayipi::open_sf_con2()}.}
+\item{sfc}{List of file paths to the temporary station file directory. Generated using \code{ipayipi::open_sf_con()}.}
 
 \item{verbose}{Logical. Whether or not to report messages and progress.}
 

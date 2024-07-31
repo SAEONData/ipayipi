@@ -18,7 +18,6 @@ sf_dta_wr(
   i_zeros = 5,
   verbose = TRUE,
   xtra_v = FALSE,
-  cores = getOption("mc.cores", 2L),
   ...
 )
 }

@@ -183,7 +183,7 @@ mhlanga <- function(
 
   # full_join --- time sensitive
   if (join == "full_join" && all(time_seq[1], time_seq[2])) {
-    xy <- ipayipi::append_phen_data3(station_file = x_tbl, ndt = y_tbl,
+    xy <- ipayipi::append_phen_data(station_file = x_tbl, ndt = y_tbl,
       phen_id = FALSE, phen_dt = phen_dt, overwrite_sf = over_right, ri = ri,
       ...
     )

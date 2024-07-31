@@ -147,7 +147,7 @@ gw_driffter <- function(
       #  values for the rows above and below the calibration values
       #  Cushions for the possibility of no rows above or below
       callbs <-
-        lapply(seq_len(dippers),
+        future.apply::future_lapply(seq_len(dippers),
           function(z, d_tab=drifting_t, rng_side_in=rng_side,
             rng_max_in=rng_max) {
             c_row <- which(d_tab$dip_n == z)

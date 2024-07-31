@@ -29,82 +29,90 @@
 #' @keywords string, padding, pad, message, print.
 
 padr <- function(
-        core_message = NULL,
-        wdth = NULL,
-        pad_char = c("-"),
-        pad_extras = c("|", "", "", "|"),
-        force_extras = FALSE,
-        justf = c(0, 0)
-    ) {
-        ## set width if NULL
-        if (is.null(wdth)) wdth <- options()$width
+  core_message = NULL,
+  wdth = NULL,
+  pad_char = c("-"),
+  pad_extras = c("|", "", "", "|"),
+  force_extras = FALSE,
+  justf = c(0, 0)
+) {
+  ## set width if NULL
+  if (is.null(wdth)) wdth <- options()$width
 
-        # determine the number of preffix and suffix chars
-        buffr_n <- sum(nchar(pad_extras))
-        if (justf[1] == 0) {
-            if (wdth > (nchar(core_message) + buffr_n)) {
-                pad_infill_n <- wdth - (nchar(core_message) + buffr_n)
-                l_pad <- paste0(pad_extras[1],
-                    strrep(pad_char, ceiling(pad_infill_n / 2)), pad_extras[2],
-                        collapse = "")
-                r_pad <- paste0(pad_extras[3],
-                    strrep(pad_char, floor(pad_infill_n / 2)), pad_extras[4],
-                    collapse = "")
-            } else {
-                if (force_extras) {
-                    l_pad <- paste0(pad_extras[1], pad_extras[2], collapse = "")
-                    r_pad <- paste0(pad_extras[3], pad_extras[4], collapse = "")
-                }
-                if (!force_extras) {
-                    l_pad <- ""
-                    r_pad <- ""
-                }
-            }
-        }
-
-        # justified left
-        if (justf[1] == -1) {
-            if (wdth > (nchar(core_message) + buffr_n)) {
-                pad_infill_n <- wdth - (nchar(core_message) + buffr_n)
-                l_pad <- paste0(pad_extras[1], strrep(pad_char, justf[2]),
-                    pad_extras[2], collapse = "")
-                r_pad <- paste0(pad_extras[3],
-                    strrep(pad_char, pad_infill_n - justf[2]), pad_extras[4],
-                    collapse = "")
-            } else {
-                if (force_extras) {
-                    l_pad <- paste0(pad_extras[1], pad_extras[2], collapse = "")
-                    r_pad <- paste0(pad_extras[3], pad_extras[4], collapse = "")
-                }
-                if (!force_extras) {
-                    l_pad <- ""
-                    r_pad <- ""
-                }
-            }
-        }
-
-        # justified right
-        if (justf[1] == 1) {
-            if (wdth > (nchar(core_message) + buffr_n)) {
-                pad_infill_n <- wdth - (nchar(core_message) + buffr_n)
-                if (pad_infill_n - justf[2] < 0) {
-                    l_padjt <- 0
-                } else l_padjt <- pad_infill_n - justf[2]
-                l_pad <- paste0(pad_extras[1],
-                    strrep(pad_char, l_padjt),
-                    pad_extras[2], collapse = "")
-                r_pad <- paste0(pad_extras[3], strrep(pad_char, justf[2]),
-                    pad_extras[4], collapse = "")
-            } else {
-                if (force_extras) {
-                    l_pad <- paste0(pad_extras[1], pad_extras[2], collapse = "")
-                    r_pad <- paste0(pad_extras[3], pad_extras[4], collapse = "")
-                }
-                if (!force_extras) {
-                    l_pad <- ""
-                    r_pad <- ""
-                }
-            }
-        }
-        invisible(return(paste0(l_pad, core_message, r_pad, collapse = "")))
+  # determine the number of preffix and suffix chars
+  buffr_n <- sum(nchar(pad_extras))
+  if (justf[1] == 0) {
+    if (wdth > (nchar(core_message) + buffr_n)) {
+      pad_infill_n <- wdth - (nchar(core_message) + buffr_n)
+      l_pad <- paste0(pad_extras[1],
+        strrep(pad_char, ceiling(pad_infill_n / 2)), pad_extras[2],
+        collapse = ""
+      )
+      r_pad <- paste0(pad_extras[3],
+        strrep(pad_char, floor(pad_infill_n / 2)), pad_extras[4],
+        collapse = ""
+      )
+    } else {
+      if (force_extras) {
+        l_pad <- paste0(pad_extras[1], pad_extras[2], collapse = "")
+        r_pad <- paste0(pad_extras[3], pad_extras[4], collapse = "")
+      }
+      if (!force_extras) {
+        l_pad <- ""
+        r_pad <- ""
+      }
     }
+  }
+
+  # justified left
+  if (justf[1] == -1) {
+    if (wdth > (nchar(core_message) + buffr_n)) {
+      pad_infill_n <- wdth - (nchar(core_message) + buffr_n)
+      l_pad <- paste0(pad_extras[1], strrep(pad_char, justf[2]),
+        pad_extras[2], collapse = ""
+      )
+      r_pad <- paste0(pad_extras[3],
+        strrep(pad_char, pad_infill_n - justf[2]), pad_extras[4],
+        collapse = ""
+      )
+    } else {
+      if (force_extras) {
+        l_pad <- paste0(pad_extras[1], pad_extras[2], collapse = "")
+        r_pad <- paste0(pad_extras[3], pad_extras[4], collapse = "")
+      }
+      if (!force_extras) {
+        l_pad <- ""
+        r_pad <- ""
+      }
+    }
+  }
+
+  # justified right
+  if (justf[1] == 1) {
+    if (wdth > (nchar(core_message) + buffr_n)) {
+      pad_infill_n <- wdth - (nchar(core_message) + buffr_n)
+      if (pad_infill_n - justf[2] < 0) {
+        l_padjt <- 0
+      } else {
+        l_padjt <- pad_infill_n - justf[2]
+        l_pad <- paste0(pad_extras[1],
+          strrep(pad_char, l_padjt),
+          pad_extras[2], collapse = ""
+        )
+        r_pad <- paste0(pad_extras[3], strrep(pad_char, justf[2]),
+          pad_extras[4], collapse = ""
+        )
+      }
+    } else {
+      if (force_extras) {
+        l_pad <- paste0(pad_extras[1], pad_extras[2], collapse = "")
+        r_pad <- paste0(pad_extras[3], pad_extras[4], collapse = "")
+      }
+      if (!force_extras) {
+        l_pad <- ""
+        r_pad <- ""
+      }
+    }
+  }
+  invisible(return(paste0(l_pad, core_message, r_pad, collapse = "")))
+}

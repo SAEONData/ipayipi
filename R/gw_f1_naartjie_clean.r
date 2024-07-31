@@ -42,6 +42,7 @@ gw_naartjie_clean <- function(
   wanted = NULL,
   unwanted = NULL,
   prompt = TRUE,
+  verbose = FALSE,
   ...
 ) {
 
@@ -178,7 +179,7 @@ gw_naartjie_clean <- function(
       segs_n <- max(drifting_tt$iN, na.rm = TRUE)
 
       # Work through each of the naartjie segments and check for outliers
-      naarbs <- lapply(seq_len(segs_n), function(z) {
+      naarbs <- future.apply::future_lapply(seq_len(segs_n), function(z) {
         if (z == 1) {
           r1 <- which(drifting_tt$iN == 0)
           r2 <- which(drifting_tt$iN == 1)

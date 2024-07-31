@@ -1,17 +1,10 @@
 #' @title Open and prepare event metadata database.
-#' @description Reads standardised metadata and appends records the matching
-#'  station.
+#' @description Reads standardised metadata and appends records the matching station.
 #' @param input_dir Directory in which to search for the metadata database.
-#' @param meta_file File name of the standardised rainfall metadata
-#'  database or a meta_file table object.
-#' @param col_dlm The column delimter of the 'flat' logger file which is fed
-#'  to `data.table::fread()` or `base::read.csv()`.`
-#' @param col_names Names of the columns (as a vector of strings. If provided
-#'  then this is used to check against the data being read. If a column is
-#'  missing/misspelt then data will not be read.
-#' @param col_types Inspired by `googlesheets4` --- string of data
-#'  indicating the data tye of each column. The following formats are
-#'  supported:
+#' @param meta_file File name of the standardised rainfall metadata database or a meta_file table object.
+#' @param col_dlm The column delimter of the 'flat' logger file which is fed to `data.table::fread()` or `base::read.csv()`.`
+#' @param col_names Names of the columns (as a vector of strings. If provided then this is used to check against the data being read. If a column is missing/misspelt then data will not be read.
+#' @param col_types Inspired by `googlesheets4` --- string of data indicating the data tye of each column. The following formats are supported:
 #'   - l: Logical,
 #'   - i: Integer,
 #'   - d or n: Numeric, or "double",
@@ -22,35 +15,19 @@
 #'   - c: Character.
 #'   - f: Factor.
 #'  * not yet implemented.
-#' @param dt_format The function attempts to work out the date-time format
-#'  from a vector of format types supplied to this argument. The testing is
-#'  done via `lubridate::parse_date_time()`. `lubridate::parse_date_time()`
-#'  prioritizes the tesing of date-time formats in the order vector of
-#'  formats supplied. The default vector of date-time formats supplied should
-#'  work well for most logger outputs.
-#' @param dt_tz Recognized time-zone (character string) of the data locale. The
-#'  default for the package is South African, i.e., "Africa/Johannesburg" which
-#'  is equivalent to "SAST".
-#' @param d_format String indicating the order of the year month and date to
-#'  be parsed by `lubridate`. Not yet implemented.
-#' @param T_format String indicating time format, e.g., hms --- see lubridate.
-#'   Not yet implemented.
+#' @param dt_format The function attempts to work out the date-time format from a vector of format types supplied to this argument. The testing is done via `lubridate::parse_date_time()`. `lubridate::parse_date_time()` prioritizes the tesing of date-time formats in the order vector of formats supplied. The default vector of date-time formats supplied should work well for most logger outputs.
+#' @param dt_tz Recognized time-zone (character string) of the data locale. The default for the package is South African, i.e., "Africa/Johannesburg" which is equivalent to "SAST".
+#' @param d_format String indicating the order of the year month and date to be parsed by `lubridate`. Not yet implemented.
+#' @param T_format String indicating time format, e.g., hms --- see lubridate. Not yet implemented.
 #' @param output_dir Directory where meta file should be saved.
-#' @param output_name Name of the file for saving as an RDS file. The default
-#'  extension is ".rmds".
+#' @param output_name Name of the file for saving as an RDS file. The default extension is ".rmds".
 #' @param event_thresh The event threshold provided in seconds. Argument used to prepare event database for gap and pseudo event evaluation by populating NA values in the 'event_thresh_s' field by the argument value provided here. The defult is ten minutes, that is 10 * 60 seconds. _see_ `ipayipi::gap_eval()`.
-#' @keywords logger data processing; field metadata; data pipeline;
-#'  supplementary data; field notes
+#' @keywords logger data processing; field metadata; data pipeline; supplementary data; field notes
 #' @author Paul J. Gordijn
 #' @return Standardised data table of events.
-#' @details Reads in an events database or sheet in 'csv' format. Checks that
-#'  column names have been standardised. Transforms the date-time columns to
-#'  a standardised format --- ** this format and timezone must match that used
-#'  by the data pipeline **.
+#' @details Reads in an events database or sheet in 'csv' format. Checks that column names have been standardised. Transforms the date-time columns to a standardised format --- ** this format and timezone must match that used by the data pipeline **.
 #'
-#'  The metadata table rows must have an assicatiated time stamp with header
-#'  "date_time". Additional date-time columns are permitted e.g., start and
-#'  end date_times, as, 'start_dttm' and 'end_dttm', respectively.
+#'  The metadata table rows must have an assicatiated time stamp with header "date_time". Additional date-time columns are permitted e.g., start and end date_times, as, 'start_dttm' and 'end_dttm', respectively.
 #' @md
 #' @export
 meta_read <- function(

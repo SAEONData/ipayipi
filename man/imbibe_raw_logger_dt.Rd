@@ -18,7 +18,7 @@ imbibe_raw_logger_dt(
   data_setup = NULL,
   remove_prompt = FALSE,
   logg_interfere_type = "on_site",
-  verbose = TRUE,
+  verbose = FALSE,
   xtra_v = FALSE,
   ...
 )

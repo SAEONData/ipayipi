@@ -67,7 +67,6 @@ dt_join <- function(
     sfc = NULL,
     verbose = FALSE,
     xtra_v = FALSE,
-    cores = getOption("mc.cores", 2L),
     ...) {
   # join = "full_join"
   # x_tbl = NULL
@@ -125,10 +124,10 @@ dt_join <- function(
   hsf_dta <- hsf_dta[order(hsf_dta)]
 
   if (length(wrk_dta) > 0) {
-    x_tbl <- ipayipi::sf_dta_read(sfc = sfc, tmp = TRUE, tv = "dt_working")
+    x_tbl <- ipayipi::sf_dta_read(sfc = sfc, tv = "dt_working")
   } else {
     x_tbl_n <- hsf_dta[length(hsf_dta) - 1]
-    x_tbl <- ipayipi::sf_dta_read(sfc = sfc, tmp = TRUE, tv = x_tbl_n)
+    x_tbl <- ipayipi::sf_dta_read(sfc = sfc, tv = x_tbl_n)
   }
   if (length(hsf_dta) > 0) {
     y_tbl_n <- hsf_dta[length(hsf_dta)]
@@ -173,7 +172,7 @@ dt_join <- function(
   unlink(file.path(dirname(sfc)[1], "dt_working"), recursive = TRUE)
   ipayipi::sf_dta_chunkr(dta_room = file.path(dirname(sfc)[1], "dt_working"),
     chunk_i = NULL, rechunk = FALSE, dta_sets = list(dt_working),
-    tn = "dt_working", ri = ppsij$time_interval[1], cores = cores,
+    tn = "dt_working", ri = ppsij$time_interval[1],
     verbose = verbose
   )
   return(list(ppsij = ppsij))

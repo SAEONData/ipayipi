@@ -32,7 +32,6 @@ logger_data_import_batch <- function(
   unwanted = NULL,
   file_ext = NULL,
   verbose = FALSE,
-  cores = getOption("mc.cores", 2L),
   ...
 ) {
 
@@ -60,7 +59,7 @@ logger_data_import_batch <- function(
     return(x)
   })
   slist_dfs <- data.table::rbindlist(slist_dfs)
-  parallel::mclapply(seq_len(nrow(slist_dfs)), function(x) {
+  future.apply::future_lapply(seq_len(nrow(slist_dfs)), function(x) {
     if (is.null(file_ext)) {
       file_ext <- tools::file_ext(slist_dfs$name[x])
       file_ext <- paste0(".", sub(pattern = "\\.", replacement = "", file_ext))
@@ -80,7 +79,7 @@ logger_data_import_batch <- function(
       force_extras = FALSE, justf = c(-1, 2)
     )
     ipayipi::msg(cr_msg, verbose)
-  }, mc.cores = cores, mc.cleanup = TRUE)
+  })
 
   cr_msg <- padr(core_message =
       paste0("  import complete  ", collapes = ""),

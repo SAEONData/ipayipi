@@ -15,7 +15,6 @@ chunkr_inter_chk <- function(
     indx = FALSE,
     dta_sets = NULL,
     i_zeros = NULL,
-    cores = getOption("mc.cores", 2L),
     verbose = FALSE,
     xtra_v = FALSE,
     ...) {
@@ -47,7 +46,7 @@ chunkr_inter_chk <- function(
   wd <- data.table::rbindlist(lapply(inter_fill, function(x) x$wd))
   w <- ipayipi::chunkr_sub_wr(dta_room = dta_room, write_tbl = wd, dta_sets =
       lapply(inter_fill, function(x) x$s), ri = indx$ri, rit = indx$rit,
-    i_zeros = i_zeros, overwrite = FALSE, cores = cores, xtra_v = xtra_v
+    i_zeros = i_zeros, overwrite = FALSE, xtra_v = xtra_v
   )
   return(w)
 }

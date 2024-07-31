@@ -42,7 +42,8 @@ gw_physiCally <- function(
   }
   slist <- ipayipi::dta_list(input_dir = input_dir, recurr = recurr,
     prompt = prompt, wanted = wanted, unwanted = unwanted,
-    file_ext = ".rds")
+    file_ext = ".rds"
+  )
   if (length(slist) == 0) {
     stop("There are no such standardised R water level files in the directory!")
   }
@@ -50,7 +51,8 @@ gw_physiCally <- function(
   # Update the logger retrieve and datum info
   cr_msg <- padr(core_message = " updating datum and retrieve logs ",
     pad_char = "=", pad_extras = c("|", "", "", "|"), force_extras = FALSE,
-    justf = c(0, 0), wdth = 80)
+    justf = c(0, 0), wdth = 80
+  )
   message(cr_msg)
   dum$zum <- paste0(dum$Location, "_", dum$Borehole)
   dum <- dum[which(dum$Lock == TRUE & dum$QA == TRUE), ]
@@ -62,7 +64,8 @@ gw_physiCally <- function(
     emma <- sub(x = emm, pattern = ".rds", replacement = "")
     cr_msg <- padr(core_message = paste0(">~ ", emma, " ~<", collapse = ""),
       pad_char = c("-"), pad_extras = c("|", "", "", "|"),
-      force_extras = FALSE, justf = c(-1, 3), wdth = 80)
+      force_extras = FALSE, justf = c(-1, 3), wdth = 80
+    )
     message(cr_msg)
     emmat <- gsub("__[^__]+$", "", emma)
     dum_temp <- dum[which(dum$zum == emmat), ]

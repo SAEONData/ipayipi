@@ -2,7 +2,7 @@
 % Please edit documentation in R/gw_plot_dygraph2.r
 \name{gw_vis_dy2}
 \alias{gw_vis_dy2}
-\title{Visualisation of ground water corrections with interactive widgets.}
+\title{Visualisation of multiple groundwater level series.}
 \usage{
 gw_vis_dy2(
   input_dir = ".",
@@ -11,52 +11,37 @@ gw_vis_dy2(
   rain_data = NULL,
   recurr = FALSE,
   prompt = FALSE,
+  pipe_house = NULL,
   ...
 )
 }
 \arguments{
-\item{rain_data}{A list with three elements. If provided the
-value will be passed to \code{ipayipi::rain_aggs()} --- see documentation
---- and the rainfall data  will be included on the graphs secondary axis.
-If this argument is provided it will override display of elecroconductivity
-on the secondary axis. The first element must contain the aggregation period
-and the second a search keyword that will be used to select a rainfall
-station.}
+\item{input_dir}{Defaults to the current working directory. Only used if the \code{pipe_house} object is \code{NULL}.}
 
-\item{file}{A level file object read into R.}
+\item{wanted}{Regex string used to filter stations when searching for groundwater data to plot.}
 
-\item{vis_type}{Integer options 1, 2, 3, or 4. 1 - plots only the drift
-corrected water level; 2 - plots only drift neutral time series with
-outliers; 3 - combination of 1 and 2. 4 - plots barologger data alongside
-drift neutral series; cannot include rainfall (\code{rain_data} must be set to
-NULL, and conduct to FALSE).}
+\item{unwanted}{Regex string to filter off unwanted stations when searching for groundwater stations from which to extract data.}
 
-\item{dippr}{If TRUE this add dipper readings to the graphs.}
+\item{rain_data}{A data.table with daily rainfall data. The rainfall column must be headed 'rain_tot', and the 'date-time' column must be named 'date_time'.}
 
-\item{conduct}{Logical. If \code{TRUE} conductivity data (if present) will be
-plotted on the secondary axis.}
+\item{recurr}{Whether to search recursively within the \code{input_dir} or \code{pipe_house$ipip_room}. Logical. Defaults to FALSE.}
 
-\item{group}{use a common string to syncronize the a-axes of separate graphs.}
+\item{prompt}{Logical. Use a prompt to select stations for plotting? Defaults to FALSE.}
 
-\item{show_events}{Show when logger data was downloaded.}
+\item{pipe_house}{If the \code{pipe_house} is provided stationse will be searched for in the \code{pipe_house$ipip_room} directory.}
 }
 \description{
-This function uses the html based `dygraphs' package to
-generate interactive graphs that can be included in markdown documents.
-There are several options provided for plotting transformed groundwater
-data.
+Plots interactive graph for visualising trends in water level and daily rainfall patterns.
 }
 \details{
-Plotting is optimized for evaluating transformed groundwater data
-processed using \code{ipayipi}. The transformed data should be compared to the
-\code{drift-neutral} data to visually assess the effectiveness of data
-processing. Drift-netral data has not been drift corrected, and therefore,
-indicates the effectiveness of barometric compensation.
+Plotting is optimized for evaluating transformed groundwater data processed using \code{ipayipi}. Daily rainfall data must have no missing values within the data set (i.e., leading and training NA values are fine, but NAs between the start and end date-times will be problematic). Plotting is done via \code{dygraphs}.
 }
 \author{
 Paul J. Gordijn
 }
 \keyword{Ground}
 \keyword{graph,}
+\keyword{grouped}
+\keyword{series}
 \keyword{visualisation,}
 \keyword{water}

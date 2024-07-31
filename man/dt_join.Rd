@@ -25,7 +25,6 @@ dt_join(
   sfc = NULL,
   verbose = FALSE,
   xtra_v = FALSE,
-  cores = getOption("mc.cores", 2L),
   ...
 )
 }

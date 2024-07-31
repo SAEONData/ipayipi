@@ -124,7 +124,7 @@ calc_param_eval <- function(
     # generate a phen table
     record_interval_type <- ipayipi::sts_interval_name(ppsij$time_interval[1])
 
-    old_phens_dt <- ipayipi::sf_read(sfc = sfc, tmp = TRUE, tv = "phens_dt")[[
+    old_phens_dt <- ipayipi::sf_read(sfc = sfc, tv = "phens_dt")[[
       "phens_dt"
     ]][phen_name %in% xtras$phen_name]
     old_phens_dt$nas <- rowSums(

@@ -8,7 +8,7 @@ sf_read(
   sfc = NULL,
   tv = NULL,
   station_file = NULL,
-  tmp = FALSE,
+  tmp = TRUE,
   pipe_house = NULL,
   verbose = TRUE,
   start_dttm = NULL,

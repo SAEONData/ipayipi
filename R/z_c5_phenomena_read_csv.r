@@ -36,8 +36,11 @@ phenomena_read_csv <- function(
     stop("File not found!")
   }
   phentab <- read.csv(file.path(pipe_house$wait_room, file))
-  cans <- sum(sapply(phentab[, c("phen_name_full", "phen_name", "units",
-    "measure")], function(x) sum(is.na(x))))
+  cans <- sum(
+    sapply(phentab[, c("phen_name_full", "phen_name", "units", "measure")
+      ], function(x) sum(is.na(x))
+    )
+  )
   if (cans > 0) {
     message("There are unconfirmed identities in the nomenclature!")
     message("Please edit the csv file to remove NAs.")
