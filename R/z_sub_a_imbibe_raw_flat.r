@@ -71,7 +71,8 @@ imbibe_raw_flat <- function(
   ),
   dt_tz = "Africa/Johannesburg",
   data_setup = NULL,
-  verbose = TRUE,
+  verbose = FALSE,
+  xtra_v = FALSE,
   ...
 ) {
   "%ilike%" <- ".N" <- NULL
@@ -80,7 +81,7 @@ imbibe_raw_flat <- function(
   # read flat
   file <- attempt::attempt(data.table::fread(file = file_path, header = FALSE,
       check.names = FALSE, blank.lines.skip = FALSE, sep = col_dlm,
-      showProgress = verbose, strip.white = FALSE, fill = TRUE
+      showProgress = xtra_v, strip.white = FALSE, fill = TRUE
     ), silent = TRUE
   )
   # if there was an error then we try and read the file using base r
@@ -104,10 +105,11 @@ imbibe_raw_flat <- function(
     file <- attempt::attempt(dyno_read(file_path))
   }
   if (attempt::is_try_error(file)) {
-    message("Failed reading file check recognised file format")
-    message(paste0("Use \`imbibe_raw_batch()\` for processing ",
-      "files in the \'wait_room\'.", collapse = ""
-    ))
+    ipayipi::msg("Failed reading file check recognised file format", xtra_v)
+    ipayipi::msg(paste0("Use \`imbibe_raw_batch()\` for processing ",
+        "files in the \'wait_room\'.", collapse = ""
+      ), xtra_v
+    )
     return(list(ipayipi_data_raw = file, err = TRUE))
   }
   data_setup_names <- c(
@@ -129,21 +131,25 @@ imbibe_raw_flat <- function(
   if (is.list(data_setup)) {
     # check that the defaults have been supplied
     if (!any(data_setup_names[c(1:2, 4:5, 11, 20)] %in% names(data_setup))) {
-      message(paste0("The following names were not supplied: ",
-        data_setup_names[!data_setup_names[c(1:2, 4:5, 11, 20)] %in%
-            names(data_setup)
-        ], sep = "\n"
-      ))
-      message("Supply all required information in the 'data_setup'!")
+      ipayipi::msg(paste0("The following names were not supplied: ",
+          data_setup_names[!data_setup_names[c(1:2, 4:5, 11, 20)] %in%
+              names(data_setup)
+          ], sep = "\n"
+        ), xtra_v
+      )
+      ipayipi::msg("Supply all required information in the 'data_setup'!",
+        xtra_v
+      )
       return(list(ipayipi_data_raw = file, err = TRUE))
     }
     # check for unrecognised names
     if (any(!names(data_setup) %in% data_setup_names)) {
-      message(paste0("The following names were not supported: ",
-        names(data_setup)[!names(data_setup) %in% data_setup_names],
-        sep = "\n"
-      ))
-      message("Unsupported names in the 'data_setup'!")
+      ipayipi::msg(paste0("The following names were not supported: ",
+          names(data_setup)[!names(data_setup) %in% data_setup_names],
+          sep = "\n"
+        ), xtra_v
+      )
+      ipayipi::msg("Unsupported names in the 'data_setup'!", xtra_v)
       return(list(ipayipi_data_raw = file, err = TRUE))
     }
     # get header information
@@ -290,7 +296,7 @@ imbibe_raw_flat <- function(
     if (length(nchk[nchk != FALSE]) == 0) {
       ipayipi::msg(
         x = "Failure to render phen names -- check phen name row in data_setup",
-        verbose = verbose
+        verbose = xtra_v
       )
       return(list(ipayipi_data_raw = file, err = TRUE))
     }
@@ -299,7 +305,7 @@ imbibe_raw_flat <- function(
       orders = dt_format, tz = dt_tz
     ))
     if (attempt::is_try_error(date_time)) {
-      message("Problem with reading date-time values")
+      ipayipi::msg("Problem with reading date-time values", xtra_v)
       print(file[data_setup$data_row:nrow(file), ][[
         data_setup$date_time
       ]][1:5])
@@ -348,7 +354,7 @@ imbibe_raw_flat <- function(
       data_setup$dttm_inc_exc <- c(TRUE, FALSE)
     }
     if (length(data_setup$dttm_inc_exc) == 1) {
-      ipayipi::msg("Error: Check \'dttm_inc_exc\' parameter!", verbose)
+      ipayipi::msg("Error: Check \'dttm_inc_exc\' parameter!", xtra_v)
       return(list(ipayipi_data_raw = file, err = TRUE))
     }
     # finalize the data_summary

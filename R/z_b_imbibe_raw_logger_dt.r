@@ -78,7 +78,7 @@ imbibe_raw_logger_dt <- function(
   data_setup = NULL,
   remove_prompt = FALSE,
   logg_interfere_type = "on_site",
-  verbose = TRUE,
+  verbose = FALSE,
   xtra_v = FALSE,
   ...
 ) {
@@ -102,7 +102,7 @@ imbibe_raw_logger_dt <- function(
       dta_ex <- attempt::try_catch(expr = ipayipi::imbibe_raw_flat(
         file_path = file_path, file_ext = file_ext, col_dlm = col_dlm,
         dt_format = dt_format, dt_tz = dt_tz, data_setup = data_setup[[dsi]],
-        verbose = verbose
+        verbose = verbose, xtra_v = xtra_v
       ))
       boolf <- !dta_ex$err
       ipayipi::msg(paste0("\'data_setup\' ", dsi, " success!"),
@@ -116,7 +116,7 @@ imbibe_raw_logger_dt <- function(
   } else {
     dta_ex <- ipayipi::imbibe_xml(
       file_path = file_path, dt_format = dt_format, dt_tz = dt_tz,
-      data_setup = data_setup, verbose = verbose
+      data_setup = data_setup, verbose = verbose, xtra_v
     )
   }
 
