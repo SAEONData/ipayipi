@@ -1,4 +1,4 @@
-<img align="right" width="40%" height="40%" src="https://github.com/SAEONData/ipayipi/blob/master/img/ipayipi_120.png">
+<img align="right" width="40%" height="40%" src="https://github.com/SAEONData/ipayipi/blob/main_saeon/img/ipayipi_120.png">
 
 # ipayipi — data processing pipeline
 
