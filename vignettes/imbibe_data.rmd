@@ -1,0 +1,322 @@
+---
+title: "<img src=\"../img/ipayipi_120.png\" width=\"30%\" height=\"30%\" style=\"float: right;\"/> <br/> <br/>  ipayipi <br/> <br/> opening the pipeline: <br/> imbibe data"
+output: rmarkdown::html_vignette
+date: "`r format(Sys.time(), '%d %B, %Y')`"
+rmarkdown.html_vignette.check_title: FALSE
+vignette: >
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteIndexEntry{<img src=\"../img/ipayipi_120.png\" width=\"30%\" height=\"30%\" style=\"float: right;\"/> <br/> <br/>  ipayipi <br/> <br/> opening the pipeline: <br/> imbibe data}
+  %\VignetteEncoding{UTF-8}
+---
+
+
+```{r setup, echo=FALSE, results="hide"}
+defaultW <- getOption("warn") 
+options(warn = -1)
+
+packages <- c("ipayipi", "DT", "kableExtra", "ipayipi", "dygraphs",
+  "ggplot2", "egg", "khroma")
+# Install packages not yet installed
+installed_packages <- packages %in% rownames(installed.packages())
+if (any(installed_packages == FALSE)) {
+    install.packages(packages[!installed_packages])
+}
+# Packages loading
+invisible(lapply(packages, library, character.only = TRUE))
+options(warn = defaultW)
+knitr::opts_chunk$set(echo = TRUE)
+knitr::opts_knit$set(root.dir = '/home/paulg/Documents/projects_current/ipayipi_data_pipe/')
+```
+
+```{r check-wd, eval=FALSE, echo=FALSE, results="hide"}
+getwd()
+```
+
+# Summary
+
+'ipayipi' was built for processing time-series data using 'data.table' functionality and speed for processing large datasets. This vignette introduces batch processing of time-series data using R __ipayipi__: covering extraction and standardisation of logger data. Specifically, the five steps outlined in this vignette are:
+
+1. Load `R ipayipi` (install from [GitHub](https://github.com/SAEONData/ipayipi)),
+1. Initiate pipeline,
+1. Imbibe data,
+1. Standardise data,
+1. Make station files, \&
+1. Identify gaps.
+
+An overview of the code to execute these five steps are shown below. This code is all that is required to run each time new data is available. For more details and options for each step, see respective function documentation/help files.
+
+```{r pipe steps, eval=FALSE, echo=TRUE, results="hide"}
+## 1. load pacakge
+library(ipayipi)
+
+## 2. initiate pipeline ----
+# define our general working directory: wherever data is going to be processed ...
+wd <- "ipayipi/data-raw/eg_data/met_eg"
+
+# define directory from which data will be sourced
+sd <- "ipayipi/data-raw/eg_data/met_eg/dta_in"
+
+# setup pipeline directory structure
+pipe_house <- ipip_house(work_dir = wd, source_dir = sd)
+
+## 3. read & imbibe in data ----
+logger_data_import_batch(pipe_house)
+imbibe_raw_batch(pipe_house, file_ext_in = ".dat",
+  data_setup = ipayipi::cs_toa5)
+
+## 4. standardise data ----
+header_sts(pipe_house)
+phenomena_sts(pipe_house)
+
+## store standardised data ----
+# transfer standardised data to the nomvet_room
+transfer_sts_files(pipe_house)
+
+## 5. append standardised data files ----
+append_station_batch(pipe_house)
+
+## 6. identify gaps ----
+gap_eval_batch(pipe_house)
+```
+
+
+# Introduction
+
+Organising time-series data from loggers, such as, weather stations or ground-water sensors, requires no small amount of data structuring. `ipayipi` helps make this process dynamic and structured, so that, processing, down (and back up) a pipeline, is traceable. Importantly, `ipayipi` preserves raw-data integrity and initiates archival---so raw data is available in a standardised format---and the processing of this data can be updated.
+
+The package can be found on [GitHub](https://github.com/SAEONData/ipayipi) and can be installed using the 'devtools' package: `devtools::install_github("SAEONData/ipayipi")`.
+
+# Initiate pipeline: the 'pipe_house'
+
+The 'pipe_house' is the name of the directory where we will initiate a data-pipeline structure. To keep things simple, we will _only_ use our 'pipe_house' for defined data streams. In this vignette the data stream consists of meteorological data gathered from a weather station data logger. `ipayipi` handles most time-series data formats readable from flat files into R. Data for this vignette can be downloaded from GitHub in the package's raw-data folder [here](https://github.com/pauljeco/ipayipi/tree/main/data-raw/eg_data/met_eg/dta_in).
+
+```{r, pipe_house}
+# setting up the 'pipe_house'
+## general pipeline working directory
+wd <- "ipayipi/data-raw/eg_data/met_eg"
+
+## data souce folder
+sd <- "ipayipi/data-raw/eg_data/met_eg/dta_in"
+
+## initiate pipeline
+pipe_house <- ipip_house(work_dir = wd, source_room = sd)
+print(pipe_house)
+```
+
+What has `ipip_house()` done? It has created the following directories, if they don't already exist*:
+
+1. 'source_room': where new logger data is going to be made available.
+2. 'wait_room': waiting room for imbibing data into the pipeline.
+3. 'nomvet_room': where standardised/corrected logger files get archived (nomenclature vetted).
+4. 'ipip_room': here data get appended into contiguous single station records, and processed.
+5. 'raw_room': where 'unaltered' raw data gets pushed.
+
+*NB! _Running this function will not overwrite existing data_.
+
+# Imbibe data
+
+In this step, data gets pulled from pipelines data source, that is, the 'source directory' (`pipe_house$source_room`), into the 'waiting room' (`pipe_house$wait_room`). The example data contains two-years of Cambell Scientific logger text files derived from sensors on a [SAEON](https://www.saeon.ac.za) meteorological station in northern Maputaland, South Africa.
+
+
+```{r, import-set, eval = TRUE, echo = FALSE}
+pipe_house$raw_room <- NULL
+```
+
+```{r, import-imbibe, eval = TRUE}
+# copy data from source to the wait_room
+logger_data_import_batch(pipe_house = pipe_house,
+  file_ext = ".dat", # the file extension (with period) of raw data files
+  verbose = FALSE, # set to TRUE to report progress in the terminal
+  unwanted = "02.2022" # excluding the import of Feb 2022 to make data 'gap'
+)
+```
+
+Now that some data is in the 'wait_room' directory we can read it into R. Note the pre-set 'data_setup' option for Cambell Scientific TOA5 formatted files `ipayipi::cs_toa5`.
+
+```{r, imbibe, eval = FALSE}
+imbibe_raw_batch(pipe_house = pipe_house,
+  data_setup = ipayipi::cs_toa5, # standard for reading t0a5 formatted files 
+  record_interval_type = "continuous"
+)
+```
+For more on data input formats, that is, the 'data_setup' argument, _see_ the help files of the `imbibe_raw_logger_dt()` function (i.e., `?imbibe_raw_logger_dt`).
+
+Record-interval type is an important parameter. `ipayipi` handles __continuous__, __event-based__ (discontinuous), and __mixed__ time-series data types. Record intervals get evaluated using the `record_interval_eval()` function. Record interval information will be important for further steps, such as, identifying 'gaps' or missing data automatically.
+
+
+# Standardise data
+
+Both file-header information, plus other phenomena (variable) metadata, will now be standardised. The spelling/synonyms of file names and associated header metadata have to be scrutinised first. Only after header information gets standardised, can we move on to working on the phenomena. These steps are essential for automating file record appending and downstream data correction/processing (e.g., drift correction).
+
+```{r, nom standard, eval = FALSE}
+header_sts(pipe_house)
+```
+
+If it is the first-time running `header_sts()`, or new synonyms get introduced into pipe-house directory, `header_sts()` will produce a warning. This is because the user needs to define new nomenclature standards. <span style="background-color:#df9a86"> Unstandardised names (or columns) have the preffix '**uz**'</span>. These standards get stored in a file called 'nomtab.rns' in the 'waiting room'. _If this file is deleted---a new one will be generated---but the user will have to populate the tables with synonym vocab_.
+
+The nomenclature table in the 'waiting room' can be updated from 'csv' format (or directly in R). If a new synonym gets introduced---the file containing new nomenclature will be skipped in further processing---a 'csv' version of the 'nomtab.rns' will be copied to the 'waiting room' for editing.
+
+_Only the following fields_ --- with `NA`s --- _require editing in the 'nomtab' 'csv':_
+
+- <span style="background-color:#aed8f0">location</span>: standardised location shorthand,
+- <span style="background-color:#aed8f0">station</span>: standardised station name,
+- <span style="background-color:#aed8f0">standard title</span>: station name. Generally a concatenation of location and station.
+- <span style="background-color:#aed8f0">record interval type</span>: Either 'continuous', 'mixed' or 'event_based'. Automatically generated and saved as unstandardised ('uz') using `record_interval_eval()`. However, if there are in sufficient data records, e.g., one record in a continuous data flow, this needs manual checking.
+- <span style="background-color:#aed8f0">record interval </span>: In addition to 'record interval type' the 'record interval' describes the nature of time series data. The 'record interval' is a standardised string describing the interval between data records, e.g., "1_days", for daily. Can be "discnt" for discontinuous data. For mixed data the 'record interval' describes the continuous interval. The 'record interval' string can be standardised using `ipayipi::record_interval_eval()`.
+- <span style="background-color:#aed8f0">table name</span>: shorthand description of the data table from respective logger. This should generally be a description of the time interval between recordings, or for discontinuous, say rainfall data, be 'raw_rain', for example.
+
+```{r, nom standard_eg, eval = TRUE, echo = TRUE}
+pt <- read.csv("ipayipi/data-raw/eg_data/met_eg/nomtab_display.csv")
+kbl(pt) |>
+  kable_paper("hover") |>
+  kable_styling(font_size = 11) |>
+  column_spec(c(1, 7:8, 11), background = "#df9a86") |>
+  column_spec(c(2:6, 9:10, 12), background = "#aed8f0") |>
+  scroll_box(width = "100%", height = "400px")
+```
+
+Once `NA` values of the above fields have been populated the edited 'csv' will be imbibed into the pipeline structure when rerunning `header_sts(pipe_house)`---this function will imbibe the most recently updated 'csv' nomenclature table from the 'wait_room' into the pipeline, and standardised header nomenclature.
+
+_In step with good [tidy data](https://www.tidyr.tidyverse.org/articles/tidy-data.html) standards, keep nomenclature to 'snake case' with no special characters (bar the useful underscore')._
+'
+Standardising _phenomena_ metadata follows a similar process as for header-data standardisation. If the phenomena standards have been described and there is a 'phentab.rps' in the 'waiting room', running the below code updates all files phenomena details.
+
+```{r, phen standard, eval = FALSE}
+phenomena_sts(pipe_house = pipe_house)
+```
+
+If there is no 'phenomena table' ('phentab.rps'), one `NA` values in the 'csv' copy need to be described. The following fields in the 'csv' phentab must be populated:
+
+- <span style="background-color:#aed8f0">phen_name_full</span>: A descriptive name of the phenomenon (variable).
+- <span style="background-color:#aed8f0">phen_type</span>: the type of phenomena (e.g., atmospheric pressure).
+- <span style="background-color:#aed8f0">phen_name</span>: the name (used as a column header) of the phenomena. Must be created to avoid duplications.
+- <span style="background-color:#aed8f0">units</span>: the measurement unit, e.g., bars.
+- <span style="background-color:#aed8f0">measure</span>: describes how sampling has been done over/at the sampling interval, e.g., mean, min, sample, etc.
+
+Additional fields that are not mandatory include:
+
+- f_convert: A numeric multiplier that will be applied to this phenomena. Useful for converting from unstandardised to standardised units.
+
+If an 'f_convert' factor (_scroll right on the table below_) is applied to phenomena, the standardised units must be different from the unstandardised units (<span style="background-color:#df9a86">uz_units</span>) in the phenomena table. This ensures that phenomena that are appended have similar units.
+
+```{r, phen standard_eg, eval = TRUE, echo = FALSE}
+pt <- read.csv("ipayipi/data-raw/eg_data/met_eg/phentab_display.csv")
+kbl(pt) |>
+  kable_paper("hover") |>
+  kable_styling(font_size = 11) |>
+  column_spec(c(8:10), background = "#df9a86") |>
+  column_spec(c(1:7), background = "#aed8f0") |>
+  scroll_box(width = "100%", height = "400px")
+```
+
+After filling in details, to replace `NA` values, rerun `phenomena_sts(pipe_house)`, to imbibe the updated phenomena descriptions, and update the logger data being standardised. 
+
+Standardised data files get transferred to the 'nomenclature vetted' directory ('nomtab room') using the function below. After being transferred, files in the waiting room (except the nomtab and phentab standards) are automatically removed.
+
+
+```{r, nomvet transfer, eval = FALSE}
+# move standardised files to a storage directory
+transfer_sts_files(pipe_house)
+```
+
+__Archiving raw data files__: Before removing raw unstandardised files---if there is a 'raw_room' directory in the pipeline working directory---raw input data files will be copied to this directory and filed in folders by year and month of the lasted date of recording. This is done by the `imbibe_raw_batch()` function.
+
+# Make station files
+
+The `append_station_batch()` function updates station files in the 'ipip_room' with files from the 'nomvet_room'.
+
+```{r, append station files, eval = TRUE}
+# append station files + metadata records
+# note the 'cores' argument --- parallel processing supported on Linux systems
+append_station_batch(pipe_house, cores = 2)
+```
+
+Now that a station file has been generated for the Vasi Science Centre weather station we can check what tables have been created/appended. Station files are maintained in the 'ipip_room' of the pipeline's folder structure.
+
+```{r, examine data, eval = TRUE}
+# list station files in the ipip directory
+sf <- dta_list(
+  input_dir = pipe_house$ipip_room, # search directory
+  file_ext = ".ipip", # note the station's default file extension
+)
+
+# check what stations are in the ipip room
+print(sf)
+
+# read in the station file
+sf <- readRDS(file.path(pipe_house$ipip_room, sf[1]))
+
+# names of the tables stored in the station file
+names(sf)
+```
+
+## 'Raw' data
+
+Our station file has three 'raw' data tables, with 5 minute, daily, and monthly data.
+
+```{r, examine 5 min data, eval = TRUE}
+# a look 1st data row of 5 minute data
+print(sf$raw_5_min[1, ])
+
+# use kableExtra to view first 20 data rows --- default printing of tables doesn't
+#  looks good in html
+kbl(sf$raw_5_min[1:20, ]) |>
+  kable_paper("hover") |>
+  kable_styling(font_size = 11) |>
+  scroll_box(width = "100%", height = "400px")
+```
+
+## The 'raw' data-header summary
+
+This table contains summary information on the origin of each data file used to make up the station file.
+```{r, examine data summary, eval = TRUE, echo = TRUE}
+# using kableExtra
+kbl(sf$data_summary) |> kable_paper("hover") |> kable_styling(font_size = 11) |>
+  scroll_box(width = "100%", height = "400px")
+```
+
+## The phenomena table: 'phens'
+
+A station file version of phenomena standards. Note each phenomena variation/synonym has a unique identifier ('phid') within the scope of this station.
+```{r, examine phens, eval = TRUE, echo = TRUE}
+# using kableExtra
+kbl(sf$phens) |> kable_paper("hover") |> kable_styling(font_size = 11) |>
+  scroll_box(width = "100%", height = "400px")
+```
+
+Note the 'phid' link in the temporal phenomena summary below.
+```{r, examine phens summ, eval = TRUE, echo = TRUE}
+# using kableExtra
+kbl(sf$phen_data_summary) |> kable_paper("hover") |> kable_styling(font_size = 11) |>
+  scroll_box(width = "100%", height = "400px")
+```
+
+__Phenomena append notes__: When appending phenomena tables, if there is overlapping data, 'ipayipi' will examine each overlapping phenomena series in turn and overwrite either new data (e.g., additions to a station file) or the station file data. Missing data (NAs) will however not be overwritten. The phenomena data summary keeps a temporal record of how phenomena have been appended. Maintaining these records helps data processing down the pipeline.
+
+## Missing data---__gaps__
+
+Checking for data 'gaps' in continuous data streams can be fairly straight forward---just highlight the missing/NA values. But with discontinuous or event based data things are more nuanced. `gap_eval_batch()` identifies gap periods, specifically where a logger was not recording, in continuous and discontinuous time-series data. Here the data is continuous so identifying gaps is simple.
+
+```{r, examine gaps, eval = TRUE, echo = TRUE}
+gap_eval_batch(pipe_house, cores = 3)
+# read in the station file
+sf <- readRDS(file.path("ipayipi/data-raw/eg_data/met_eg",
+  "ipip_room/mcp_vasi_science_centre_aws.ipip"))
+sf$gaps
+```
+
+Note the table and graph correctly show that February 2022 is missing in all raw data tables---we omitted importing this data using the 'unwanted' parameter in the import data stage above. _Hover over the graph---interact_.
+
+```{r, gap plot, eval = TRUE, echo = TRUE, fig.align = "center", out.width = '80%', fig.out.height = '80%'}
+p <- plot_raw_availability(pipe_house)
+p <- p$plot_availability + scale_colour_sunset(discrete = TRUE) +
+      labs(color = "Station") +
+      theme(legend.position = "none")
+plotly::ggplotly(p)
+```
+Gaps highlighted in the dark-red colour.
+
+```{r, remove nomvet and raw files, eval = TRUE, results = 'hide', echo = FALSE}
+unlink(pipe_house$raw_room, recursive = TRUE)
+unlink(pipe_house$nomvet_room, recursive = TRUE)
+```
