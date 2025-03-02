@@ -8,8 +8,9 @@
 \subsection{'cs_toa5'}{
 
 An ipayipi data_setup list for imbibing (\code{ipayipi::imbibe_raw_logger_dt()})
-TOA5 formatted data. The 'location' name is not specified. Only generic
-information is provided for harvesting of logger file header information.
+TOA5 formatted data (Cambell Scientific). The 'location' name in the data
+setupis not specified. Only generic information is provided for harvesting
+of logger file header information.
 __See \code{ipayipi::imbibe_raw_logger_dt()} documentation for a describtion of
 a \code{data_setup}.
 }

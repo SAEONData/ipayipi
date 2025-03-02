@@ -2,33 +2,34 @@
 % Please edit documentation in R/sub_dta_availability.R
 \name{dta_availability}
 \alias{dta_availability}
-\title{Plot the coverage of ipayipi station files}
+\title{Plot the coverage of ipayipi station file data}
 \usage{
 dta_availability(
-  input_dir = ".",
   pipe_house = NULL,
+  input_dir = ".",
   phen_names = NULL,
+  phen_eval = TRUE,
   station_ext = ".ipip",
   gap_problem_thresh_s = 6 * 60 * 60,
   event_thresh_s = 10 * 60,
   start_dttm = NULL,
   end_dttm = NULL,
-  tbl_names = NULL,
+  tbl_names = "^raw_",
   meta_events = "meta_events",
-  verbose = FALSE,
   wanted = NULL,
   unwanted = NULL,
   recurr = TRUE,
   prompt = FALSE,
-  keep_open = TRUE,
+  verbose = FALSE,
   xtra_v = FALSE,
+  chunk_v = FALSE,
   ...
 )
 }
 \arguments{
-\item{input_dir}{Defaults to the working diretory. If the \code{pipe_house} arument is provided then the working directory defaults to \code{pipe_house$ipip_room}.}
-
 \item{pipe_house}{List of pipeline directories. \strong{See} \code{ipayipi::ipip_house()} \strong{for details}.}
+
+\item{input_dir}{Defaults to the working diretory. If the \code{pipe_house} arument is provided then the working directory defaults to \code{pipe_house$ipip_room}.}
 
 \item{phen_names}{Vector of phenomena names. Defaults to \code{NULL} whereby all phenomena gaps are included. Logger gaps are always included --- see the 'gap' table.}
 
@@ -46,8 +47,6 @@ dta_availability(
 
 \item{meta_events}{\emph{Parsed to} \code{ipayipi::gap_eval()}.}
 
-\item{verbose}{Logical. Whether or not to report messages and progress.}
-
 \item{wanted}{A string of keywords to use to filter which stations are selected for processing. Multiple search kewords should be seperated with a bar ('|'), and spaces avoided unless part of the keyword.}
 
 \item{unwanted}{Similar to wanted, but keywords for filtering out unwanted stations.}
@@ -56,9 +55,7 @@ dta_availability(
 
 \item{prompt}{Should the function use an interactive file selection function otherwise all files are returned. TRUE or FALSE.}
 
-\item{keep_open}{Logical. Keep \emph{hidden} 'station_file' open for ease of access. Defaults to \code{FALSE}.}
-
-\item{cores}{Number of CPU's to use for processing in parallel. Only applies when working on Linux.}
+\item{verbose}{Logical. Whether or not to report messages and progress.}
 }
 \value{
 A list containing a plot, which shows the availability of data, the gap data as formatted for plotting. The plot is produced using \code{ggplot2::ggplot()}.
@@ -68,6 +65,8 @@ Uses ggplot2 to show the availability of data for a select group of station's an
 }
 \details{
 Gap data for each station and respective tables are extracted from the station, using \code{ipayipi::gap_eval()}. Gap tables are combined with the full record of data in a data summary table and plotted using ggplot2. Note that 'gaps' can be edited by imbibing metadata into a stations record, \emph{see} \code{ipayipi::gap_eval()} for details.
+
+Gap retrival for processed data (not begining with 'raw_') may not work as expected.
 }
 \author{
 Paul J. Gordijn

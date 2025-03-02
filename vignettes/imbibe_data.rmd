@@ -51,18 +51,19 @@ library(ipayipi)
 
 ## 2. initiate pipeline ----
 # define our general working directory: wherever data is going to be processed ...
-wd <- "ipayipi/data-raw/eg_data/met_eg"
+pd <- "ipayipi/data-raw/eg_data/met_eg"
 
 # define directory from which data will be sourced
 sd <- "ipayipi/data-raw/eg_data/met_eg/dta_in"
 
 # setup pipeline directory structure
-pipe_house <- ipip_house(work_dir = wd, source_dir = sd)
+pipe_house <- ipip_house(pipe_house_dir = pd, source_dir = sd)
 
 ## 3. read & imbibe in data ----
 logger_data_import_batch(pipe_house)
 imbibe_raw_batch(pipe_house, file_ext_in = ".dat",
-  data_setup = ipayipi::cs_toa5)
+  data_setup = ipayipi::cs_toa5
+)
 
 ## 4. standardise data ----
 header_sts(pipe_house)

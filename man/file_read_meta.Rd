@@ -8,10 +8,10 @@
 \subsection{'file_read_meta'}{
 
 iPayipi file_read_meta table used for setting defaults when attempting to
-read/imbibe raw data files. This table is used in:
+read/imbibe raw data files. This table is used internally in:
 \code{ipayipi::imbibe_raw_batch()}. If the \code{file_ext} and/or \code{col_dlm}
 arguments are \code{NULL} this table assists with reading in data in the
-correct format.
+correct format. Additional formats can be inserted into this data object.
 }
 }
 \source{

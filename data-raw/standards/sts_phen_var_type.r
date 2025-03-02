@@ -5,6 +5,7 @@ sts_phen_var_type <- data.table::data.table(
     "str|string|chr|character|char",
     "fac|factor|fact", "date|time|posix|date-time|posixct|dttm",
     "logical|lgcl|lcl|lgc|logi",
-    "difftime")
+    "difftime"
+  )
 )
 usethis::use_data(sts_phen_var_type, overwrite = TRUE)
