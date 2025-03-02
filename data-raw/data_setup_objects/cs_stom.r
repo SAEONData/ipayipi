@@ -4,7 +4,7 @@ cs_stom <- list(
   try1 = list( # units specified, data from row 5
     file_format = "saeon_stom", # saeon terresetrial observation download
     station_title = "!fp!", # extract title from download file name
-    logger_type = "campbell", # miscellaneous cambell loggers
+    logger_type = "cambell", # miscellaneous cambell loggers
     table_name = "raw", # just raw for now
     date_time = 1, # column where date_time data are located
     dttm_inc_exc = c(FALSE, TRUE), # does the data include the current dttm

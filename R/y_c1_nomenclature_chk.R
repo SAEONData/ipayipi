@@ -25,7 +25,7 @@ nomenclature_chk <- function(
   # if there is a more recent csv nomtab update the nomtab.rns
   # update nomtab.rns if csv is more recently modified
   # generate nomtab.rns if there is sa csv
-  nomlist <- ipayipi::dta_list(input_dir = pipe_house$wait_room, file_ext =
+  nomlist <- dta_list(input_dir = pipe_house$wait_room, file_ext =
       ".csv", wanted = "aa_nomtab"
   )
   nom_dts <- lapply(nomlist, function(x) {

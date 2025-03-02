@@ -8,6 +8,10 @@ phenomena_sts(
   pipe_house = NULL,
   remove_dups = FALSE,
   external_phentab = NULL,
+  dt_format = c("Ymd HMOS", "Ymd HMS", "Ymd IMOSp", "Ymd IMSp", "ymd HMOS", "ymd HMS",
+    "ymd IMOSp", "ymd IMSp", "mdY HMOS", "mdY HMS", "mdy HMOS", "mdy HMS", "mdy IMOSp",
+    "mdy IMSp", "dmY HMOS", "dmY HMS", "dmy HMOS", "dmy HMS", "dmy IMOSp", "dmy IMSp"),
+  dt_tz = "Africa/Johannesburg",
   prompt = FALSE,
   recurr = TRUE,
   wanted = NULL,
@@ -23,6 +27,10 @@ phenomena_sts(
 \item{remove_dups}{Logical. If true then a prompt is used to facilitate the removal of duplicate phenomena. Files with duplicate phenomena names will not be processed into a pipeline until the issue of duplication issue is resolved.}
 
 \item{external_phentab}{File path to phenomena database. By default the function will search in the 'pipe_house' 'wait_room' for a phenomena database ('phentab'). If \code{external_phentab} is provided this option will override the 'pipe_house' default enabling access to another pipelines phenomena database.}
+
+\item{dt_format}{The function attempts to work out the date-time format from a vector of format types supplied to this argument. The testing is done via \code{\link[lubridate:parse_date_time]{lubridate::parse_date_time()}}. \code{\link[lubridate:parse_date_time]{lubridate::parse_date_time()}} prioritizes the tesing of date-time formats in the order vector of formats supplied. The default vector of date-time formats supplied should work well for most logger outputs. \bold{NB!} seconds are required.}
+
+\item{dt_tz}{Recognized time-zone (character string) of the data locale. The default for the package is South African, i.e., "Africa/Johannesburg" which is equivalent to "SAST".}
 
 \item{prompt}{Set to TRUE for interactive mode. Note this will not work if embedded in a parallel processing instance.}
 

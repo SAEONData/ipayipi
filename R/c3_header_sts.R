@@ -79,7 +79,7 @@ header_sts <- function(
   if (verbose || xtra_v) cli::cli_h1(c(
     "Standardising header info of {length(slist)} file{?s}"
   ))
-  nomtab <- ipayipi::nomenclature_chk(pipe_house = pipe_house,
+  nomtab <- nomenclature_chk(pipe_house = pipe_house,
     csv_out = TRUE, file_ext = file_ext_in
   )
   nomtab <- nomtab$update_nomtab

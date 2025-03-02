@@ -2,6 +2,7 @@
 #' @description Standardise raw data inputs formats and more for the 'ipayipi' pipeline though an interactive process.
 #' @inheritParams dta_list
 #' @inheritParams logger_data_import_batch
+#' @inheritParams imbibe_raw_batch
 #' @param remove_dups Logical. If true then a prompt is used to facilitate the removal of duplicate phenomena. Files with duplicate phenomena names will not be processed into a pipeline until the issue of duplication issue is resolved.
 #' @param external_phentab File path to phenomena database. By default the function will search in the 'pipe_house' 'wait_room' for a phenomena database ('phentab'). If `external_phentab` is provided this option will override the 'pipe_house' default enabling access to another pipelines phenomena database.
 #' @keywords time series data; automatic weather station; batch process; file standardisation; standardise variables; transform variables
@@ -49,6 +50,19 @@ phenomena_sts <- function(
   pipe_house = NULL,
   remove_dups = FALSE,
   external_phentab = NULL,
+  dt_format = c(
+    "Ymd HMOS", "Ymd HMS",
+    "Ymd IMOSp", "Ymd IMSp",
+    "ymd HMOS", "ymd HMS",
+    "ymd IMOSp", "ymd IMSp",
+    "mdY HMOS", "mdY HMS",
+    "mdy HMOS",  "mdy HMS",
+    "mdy IMOSp",  "mdy IMSp",
+    "dmY HMOS", "dmY HMS",
+    "dmy HMOS", "dmy HMS",
+    "dmy IMOSp", "dmy IMSp"
+  ),
+  dt_tz = "Africa/Johannesburg",
   prompt = FALSE,
   recurr = TRUE,
   wanted = NULL,
@@ -91,7 +105,7 @@ phenomena_sts <- function(
     "Standardising {length(slist)} file{?s} phenomena"
   )
 
-  phentab <- ipayipi::phenomena_chk(pipe_house = pipe_house,
+  phentab <- phenomena_chk(pipe_house = pipe_house,
     check_phenomena = TRUE, csv_out = TRUE, wanted = wanted,
     unwanted = unwanted, external_phentab = external_phentab,
     verbose = verbose, xtra_v = xtra_v
@@ -272,9 +286,11 @@ phenomena_sts <- function(
     if (length(phen_new[var_type == "posix"]$phen_name) > 0) {
       dt_tz <- attr(m$raw_data$date_time[1], "tz")
       m$raw_data[, (phen_new[var_type == "posix"]$phen_name) :=
-          lapply(.SD, function(x) as.POSIXct(x, tz = dt_tz)),
-        .SDcols = phen_new[var_type == "posix"]$phen_name
-      ]
+        lapply(.SD, function(x) {
+          x <- lubridate::parse_date_time(x, tz = dt_tz, orders = dt_format)
+          return(x)
+        }),
+      .SDcols = phen_new[var_type == "posix"]$phen_name]
     }
     if (length(phen_new[phen_name %ilike% "interfere"]$phen_name) > 0) {
       for (ii in seq_len(nrow(phen_new[phen_name %ilike% "interfere"]))) {
