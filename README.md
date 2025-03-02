@@ -46,7 +46,11 @@ devtools::install_github("SAEONdata/ipayipi")
     - `dt_process_batch()`: To batch process data.
 6. Querying and visualising data.
     There are a few built-in plotting functions utilizing dygraphs, ggplot2, and plotly libraries.
+    - `dta_availability`: Check data availability within and across pipelines.
     - `dta_flat_pull()`: To harvest continuous data from stations in long or wide formats.
+    - `dta_flat_pull_discnt()`: Similar to the above except for discontinuous data.
+    - `plot_cumm()`: Visualise cummulative response of phenomena.
+    - `plot_bar_agg()`, `plotdy_drift()`, `plot_cleanr()`, and `plot_m_anomaly()` are more plotting functions.
     - Various plotting functions to examine/cross-examine data.
 
 ## Common questions

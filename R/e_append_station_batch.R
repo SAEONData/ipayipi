@@ -44,14 +44,7 @@ append_station_batch <- function(
   )
   nom_stations <- future.apply::future_sapply(nom_files, function(x) {
     z <- readRDS(file.path(pipe_house$nomvet_room, x))
-    if (by_station_table) {
-      nomvet_station <- paste(
-        z$data_summary$stnd_title[1], z$data_summary$table_name[1],
-        sep = "_"
-      )
-    } else {
-      nomvet_station <- z$data_summary$stnd_title[1]
-    }
+    nomvet_station <- z$data_summary$stnd_title[1]
     return(nomvet_station)
   })
   station_files <- gsub(sf_ext, "", station_files)

@@ -80,7 +80,7 @@ formats supplied. The default vector of date-time formats supplied should work w
 A list containing 1) the summarised data in a single data.table, 2) a logical table indicating data gaps, 3) a character string representing the time interval by which the data has been summarised, 4) the list of stations used for the summary, 5) the name of the table and the name of the field for which data was summarised, 6) Filter table results from data processing using \code{dt_clean}, & 7) the station file extension uesd for querying data.
 }
 \description{
-Queries \strong{continuous} data of a single variable/phenomena; common record interval, from multiple stations; query in 'long' or 'wide' formats.
+Queries \strong{continuous} data of a single variable/phenomena; common record interval, from multiple stations; query in 'long' or 'wide' formats. Use \code{\link[=dta_flat_pull_discnt]{dta_flat_pull_discnt()}} or \code{\link[=ipayipi2csv]{ipayipi2csv()}} to query and/or export discontinuous data.
 }
 \author{
 Paul J. Gordijn

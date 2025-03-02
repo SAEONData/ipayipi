@@ -48,6 +48,10 @@ as per \code{t_format}),
 \item not yet implemented.
 }}
 
+\item{dt_format}{The function attempts to work out the date-time format from a vector of format types supplied to this argument. The testing is done via \code{\link[lubridate:parse_date_time]{lubridate::parse_date_time()}}. \code{\link[lubridate:parse_date_time]{lubridate::parse_date_time()}} prioritizes the tesing of date-time formats in the order vector of formats supplied. The default vector of date-time formats supplied should work well for most logger outputs. \bold{NB!} seconds are required.}
+
+\item{dt_tz}{Recognized time-zone (character string) of the data locale. The default for the package is South African, i.e., "Africa/Johannesburg" which is equivalent to "SAST".}
+
 \item{d_format}{String indicating the order of the year month and date to be parsed by \code{lubridate}. Not yet implemented.}
 
 \item{T_format}{String indicating time format, e.g., hms --- see lubridate. Not yet implemented.}

@@ -68,6 +68,46 @@ This function automates the creation of four/five folders/directories that are r
 }
 
 \subsection{Pushing data through the pipeline}{
+
+Follow the sequence of functions below for an outline of processing data using ipayipi.
+\enumerate{
+\item Initiate pipeline housing.
+\itemize{
+\item \code{\link[=ipip_house]{ipip_house()}}: this function builds a pipe house directory.
+}
+\item Importing raw data.
+\itemize{
+\item \code{\link[=logger_data_import_batch]{logger_data_import_batch()}}: to bring in raw data from a source directory.
+}
+\item Imbibing and standardising raw data.
+\itemize{
+\item \code{\link[=imbibe_raw_batch]{imbibe_raw_batch()}}: Reads imported data into the pipeline format.
+\item \code{\link[=header_sts]{header_sts()}}: For standardising header data, e.g., the station name or title.
+\item \code{\link[=phenomena_sts]{phenomena_sts()}}: To get variables or phenomena data and metadata standardised.
+\item \code{\link[=transfer_sts]{transfer_sts()}}: Pushes standardised data to an archive for building station files.
+}
+\item Appending data streams.
+\itemize{
+\item \code{\link[=append_station_batch]{append_station_batch()}}: Builds station records.
+\item \code{\link[=gap_eval_batch]{gap_eval_batch()}}: Clarify & visualize data gaps.
+\item \code{\link[=meta_read]{meta_read()}} & \code{\link[=meta_to_station]{meta_to_station()}}: Optional functions to incorporate field or other metadata into station records for further processing.
+}
+\item Processing data.
+In order to process data a sequence of processing stages need to be defined (see \code{?pipe_seq}). Once defined, this sequence gets embedded into respective stations, evaluated and used to process data.
+\itemize{
+\item \code{\link[=dt_process_batch]{dt_process_batch()}}: To batch process data.
+}
+\item Querying and visualising data.
+There are a few built-in plotting functions utilizing dygraphs, ggplot2, and plotly libraries.
+\itemize{
+\item \code{\link[=dta_availability]{dta_availability()}}: Check data availability within and across pipelines.
+\item \code{\link[=dta_flat_pull]{dta_flat_pull()}}: To harvest continuous data from stations in long or wide formats.
+\item \code{\link[=dta_flat_pull_discnt]{dta_flat_pull_discnt()}}: Similar to the above except for discontinuous data.
+\item \code{\link[=plot_cumm]{plot_cumm()}}: Visualise cummulative response of phenomena.
+\item \code{\link[=plot_bar_agg]{plot_bar_agg()}}, \code{\link[=plotdy_drift]{plotdy_drift()}}, \code{\link[=plot_cleanr]{plot_cleanr()}}, and \code{\link[=plot_m_anomaly]{plot_m_anomaly()}} are more plotting functions.
+\item Various plotting functions to examine/cross-examine data.
+}
+}
 }
 }
 \examples{

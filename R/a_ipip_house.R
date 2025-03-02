@@ -31,7 +31,31 @@
 #' {*} In older versions of 'ipayipi' the 'pipe_house_dir' argument was named 'work_dir'; this alteration prevents confusion with the R terminal/console working directory.
 #'
 #' ## Pushing data through the pipeline
-#' 
+#' Follow the sequence of functions below for an outline of processing data using ipayipi.
+#' 1. Initiate pipeline housing.
+#'     - [ipip_house()]: this function builds a pipe house directory.
+#' 2. Importing raw data.
+#'     - [logger_data_import_batch()]: to bring in raw data from a source directory.
+#' 3. Imbibing and standardising raw data.
+#'     - [imbibe_raw_batch()]: Reads imported data into the pipeline format.
+#'     - [header_sts()]: For standardising header data, e.g., the station name or title.
+#'     - [phenomena_sts()]: To get variables or phenomena data and metadata standardised.
+#'     - [transfer_sts()]: Pushes standardised data to an archive for building station files.
+#' 4. Appending data streams.
+#'     - [append_station_batch()]: Builds station records.
+#'     - [gap_eval_batch()]: Clarify & visualize data gaps.
+#'     - [meta_read()] & [meta_to_station()]: Optional functions to incorporate field or other metadata into station records for further processing.
+#' 5. Processing data.
+#'     In order to process data a sequence of processing stages need to be defined (see `?pipe_seq`). Once defined, this sequence gets embedded into respective stations, evaluated and used to process data.
+#'     - [dt_process_batch()]: To batch process data.
+#' 6. Querying and visualising data.
+#'     There are a few built-in plotting functions utilizing dygraphs, ggplot2, and plotly libraries.
+#'     - [dta_availability()]: Check data availability within and across pipelines.
+#'     - [dta_flat_pull()]: To harvest continuous data from stations in long or wide formats.
+#'     - [dta_flat_pull_discnt()]: Similar to the above except for discontinuous data.
+#'     - [plot_cumm()]: Visualise cummulative response of phenomena.
+#'     - [plot_bar_agg()], [plotdy_drift()], [plot_cleanr()], and [plot_m_anomaly()] are more plotting functions.
+#'     - Various plotting functions to examine/cross-examine data.
 #' @md
 #' @examples
 #' # Inititate default pipeline in current working directory ----

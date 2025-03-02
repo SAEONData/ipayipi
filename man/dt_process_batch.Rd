@@ -56,6 +56,10 @@ in the import.}
 
 \item{xtra_v}{Logical. Should some 'x'tra messaging be done? Use to help diagnose problems, and for guidance.}
 
+\item{dt_format}{The function attempts to work out the date-time format from a vector of format types supplied to this argument. The testing is done via \code{\link[lubridate:parse_date_time]{lubridate::parse_date_time()}}. \code{\link[lubridate:parse_date_time]{lubridate::parse_date_time()}} prioritizes the tesing of date-time formats in the order vector of formats supplied. The default vector of date-time formats supplied should work well for most logger outputs. \bold{NB!} seconds are required.}
+
+\item{dt_tz}{Recognized time-zone (character string) of the data locale. The default for the package is South African, i.e., "Africa/Johannesburg" which is equivalent to "SAST".}
+
 \item{station_ext}{The extension of the station file. Defaults to 'ipip'.}
 }
 \description{
